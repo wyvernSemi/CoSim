@@ -46,8 +46,8 @@
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_clean {srcrootdir testname opdir} {
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$opdir clean
+proc mk_vproc_clean {srcrootdir testname} {
+  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory  clean
 }
 
 # -------------------------------------------------------------------------
@@ -58,10 +58,10 @@ proc mk_vproc_clean {srcrootdir testname opdir} {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc {srcrootdir testname opdir} {
+proc mk_vproc {srcrootdir testname } {
 
-  #mk_vproc_clean $srcrootdir $testname $opdir
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$opdir
+  mk_vproc_clean $srcrootdir $testname
+  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
 }
 
 # -------------------------------------------------------------------------
@@ -72,7 +72,7 @@ proc mk_vproc {srcrootdir testname opdir} {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_noclean {srcrootdir testname opdir} {
+proc mk_vproc_noclean {srcrootdir testname} {
 
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$opdir
+  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
 }

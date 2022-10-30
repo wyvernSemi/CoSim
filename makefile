@@ -46,9 +46,10 @@ MAX_NUM_VPROC      = 64
 
 SRCDIR             = code
 USRCDIR            = usercode
-TESTDIR            = .
+OPDIR              = .
+TESTDIR            = ${OPDIR}
 VOBJDIR            = ${TESTDIR}/obj
-OPDIR              = ${TESTDIR}/../sim
+
 MEMMODELDIR        = .
 
 # VPROC C source code
