@@ -348,7 +348,7 @@ int osvvm_cosim_skt::read_mem(const char* cmd, const int cmdlen, char *buf, unsi
         bool fault;
         uint8_t byte;
 
-        if (little_endian)
+        if (!little_endian)
         {
             byte = (val >> (8*idx)) & 0xff; // Little endian
         }
