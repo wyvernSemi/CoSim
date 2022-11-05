@@ -17,11 +17,11 @@ class client_gui :
   def __init__(self) :
 
     # Define some 'constants'
-    self.CONNECTED_COLOUR    = '#40ff80'
+    self.CONNECTED_COLOUR    = '#20c060'
     self.DISCONNECTED_COLOUR = '#ff4040'
     self.ERROR_COLOUR        = '#ff0000'
-    self.DEFAULT_TXT_WIDTH   = 70
-    self.TXT_LINUX_PADDING   = 22
+    self.DEFAULT_TXT_WIDTH   = 76
+    self.TXT_LINUX_PADDING   = 16
 
     self.DEFAULT_PADDING     = 36
 
@@ -35,6 +35,7 @@ class client_gui :
 
     self.portNumber          = StringVar()
     self.portNumber.set('49152')
+    self.portNumber.trace ('w', self.__portUpdated)
 
     self.portNumberHex       = StringVar()
     self.portNumberHex.set(hex(int(self.portNumber.get())))
@@ -76,6 +77,7 @@ class client_gui :
   def __opToTextWin (hdl, str) :
     hdl.config(state = NORMAL)
     hdl.insert(INSERT, str);
+    hdl.see("end");
     hdl.config(state = DISABLED)
 
   # -----------------------------------------------------------------
@@ -99,8 +101,13 @@ class client_gui :
   def __sendmsg (self, str, skt) :
     msg = '$' + str + '#' + self.__chksum(str)
     skt.sendall (msg.encode())
+    
+    try: 
+      response = self.__getmsg(skt)
+    except :
+      response = ''
 
-    return self.__getmsg(skt)
+    return response
 
   # -----------------------------------------------------------------
   # __getmsg()
@@ -334,6 +341,15 @@ class client_gui :
       self.dataEntry.config (state = DISABLED)
     else :
       self.dataEntry.config (state = NORMAL)
+  
+  # -----------------------------------------------------------------
+  # __portUpdated()
+  #
+  # Callback method on update to the portNumber variable
+  #  
+  def __portUpdated(self, object, lstidx, mode) :
+    self.portNumberHex.set(hex(int(self.portNumber.get())))
+    
 
   # -----------------------------------------------------------------
   # __genconnfrm()
@@ -389,7 +405,7 @@ class client_gui :
       colidx +=1
       self.__connStatusLbl = Label(frm, textvariable=self.connStatus, width=20, anchor=CENTER)
       self.__connStatusLbl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=W)
-      self.__connStatusLbl.config(background ='#ff4040')
+      self.__connStatusLbl.config(background ='#ff4040', foreground='white', font='Arial')
       colidx +=1
 
   # -----------------------------------------------------------------
@@ -535,7 +551,8 @@ class client_gui :
 
     # Add an image in the next column
     colidx += 1
-    img = PhotoImage(file = 'icon.png')
+    path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    img = PhotoImage(file = path + '/' + 'icon.png')
     panel = Label(master = frm, image = img)
     panel.grid(row = rowidx, column = colidx, pady = 10, padx = 5, sticky = W+E)
 

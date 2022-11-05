@@ -178,7 +178,7 @@ osvvm_cosim_skt::osvvm_cosim_skt_t osvvm_cosim_skt::connect_skt (const int portn
 
     // Advertise the port number
     char errmsg[1024];
-    
+
     sprintf(errmsg, "OSVVM_COSIM_SKT: Using TCP port number: %d\n", portno);
     io_printf(errmsg, portno);
 
@@ -361,7 +361,7 @@ int osvvm_cosim_skt::read_mem(const char* cmd, const int cmdlen, char *buf, unsi
         checksum += buf[bdx++] = LOHEXCHAR(byte);
     }
 
-    VPrint("read_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
+    DebugVPrint("read_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
 
     return bdx;
 }
@@ -491,7 +491,7 @@ int osvvm_cosim_skt::write_mem (const osvvm_cosim_skt_t skt_hdl, const char* cmd
     // Put co-sim calls here
     //////////////////////////////////////////////////////
 
-    VPrint("write_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
+    DebugVPrint("write_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
 
 #ifndef TEST
     switch(len*8)
@@ -540,9 +540,7 @@ bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd
     // Packet start
     op_buf[op_idx++] = GDB_SOP_CHAR;
 
-//#ifdef OSVVM_COSIM_DEBUG
-    VPrint("CMD = %s\n", cmd);
-//#endif
+    DebugVPrint("CMD = %s\n", cmd);
 
     // Select on command character
     switch(cmd[0])
@@ -629,10 +627,7 @@ bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd
             }
         }
 
-//#ifdef OSVVM_COSIM_DEBUG
-        VPrint("\nREPLY: %s\n", op_buf);
-//#endif
-
+        DebugVPrint("\nREPLY: %s\n", op_buf);
     }
 
     return detached;
