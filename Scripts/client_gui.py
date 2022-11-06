@@ -1,11 +1,54 @@
-from tkinter import *
-from tkinter.ttk  import *
-from tkinter.filedialog import askopenfilename, askdirectory
-from threading import Thread
+# =========================================================================
+#
+#  File Name:         client_gui.py
+#  Design Unit Name:
+#  Revision:          OSVVM MODELS STANDARD VERSION
+#
+#  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
+#  Contributor(s):
+#     Simon Southwell      simon.southwell@gmail.com
+#
+#
+#  Description:
+#      Client test script for OSVVM TCP/IP socket features
+#
+#
+#  Developed by:
+#        SynthWorks Design Inc.
+#        VHDL Training Classes
+#        http://www.SynthWorks.com
+#
+#  Revision History:
+#    Date      Version    Description
+#    11/2022   2022       Initial revision
+#
+#
+#  This file is part of OSVVM.
+#
+#  Copyright (c) 2022 by SynthWorks Design Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+# =========================================================================
+
 import socket
 import platform
 import os
-import time
+
+from tkinter            import *
+from tkinter.ttk        import *
+from tkinter.filedialog import askopenfilename, askdirectory
+from threading          import Thread
 
 class client_gui :
 
@@ -22,12 +65,11 @@ class client_gui :
     self.ERROR_COLOUR        = '#ff0000'
     self.DEFAULT_TXT_WIDTH   = 76
     self.TXT_LINUX_PADDING   = 16
-
     self.DEFAULT_PADDING     = 36
 
     # Create a Tk object
     self.root = Tk()
-    self.root.title('TCP/IP client GUI. ')
+    self.root.title('OSVVM Co-simulation TCP/IP client GUI. ')
 
     # Define widget variables
     self.hostName            = StringVar()
@@ -51,8 +93,8 @@ class client_gui :
     self.dataWidth           = IntVar()
     self.dataWidth.set(4)
 
-    self.transRnw            = IntVar()
-    self.transRnw.set(0)
+    self.transRnw            = BooleanVar()
+    self.transRnw.set(False)
     self.transRnw.trace ('w', self.__rnwUpdated)
 
     self.scriptFile          = StringVar()
@@ -65,7 +107,7 @@ class client_gui :
     self.runDir.set(os.getcwd())
 
     # Open up a socket
-    self.skt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.skt                 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
   # -----------------------------------------------------------------
   # __opToTextWin()
@@ -75,9 +117,10 @@ class client_gui :
   #
   @staticmethod
   def __opToTextWin (hdl, str) :
+
     hdl.config(state = NORMAL)
     hdl.insert(INSERT, str);
-    hdl.see("end");
+    hdl.see('end');
     hdl.config(state = DISABLED)
 
   # -----------------------------------------------------------------
@@ -88,21 +131,22 @@ class client_gui :
   #
   @staticmethod
   def __chksum(msg) :
+
     checksum = 0
 
     for c in range(0, len(msg)) :
       checksum = (checksum + ord(msg[c])) % 256
 
     if checksum < 16 :
-      return "0" + hex(checksum)[2:]
+      return '0' + hex(checksum)[2:]
     else :
       return hex(checksum)[2:]
 
   def __sendmsg (self, str, skt) :
     msg = '$' + str + '#' + self.__chksum(str)
     skt.sendall (msg.encode())
-    
-    try: 
+
+    try:
       response = self.__getmsg(skt)
     except :
       response = ''
@@ -161,6 +205,7 @@ class client_gui :
   #  Callback method for 'Connect' button activation
   #
   def __connectBtn(self) :
+
     if self.connStatus.get() != 'Connected' :
       try :
         # Open connection with configuired host TCP/IP address or name, and port number
@@ -168,7 +213,7 @@ class client_gui :
 
         # Update widget states on successful connection
         self.connStatus.set('Connected')
-        self.__opToTextWin(self.__txt, "Connected to port " + self.portNumber.get() + "\n")
+        self.__opToTextWin(self.__txt, 'Connected to port ' + self.portNumber.get() + '\n')
         self.execBtn.config(state = NORMAL)
         self.sndBtn.config(state = NORMAL)
         self.__connStatusLbl.config(background=self.CONNECTED_COLOUR)
@@ -192,7 +237,7 @@ class client_gui :
 
       # Update widget state when disconnected
       self.connStatus.set('Not Connected')
-      self.__opToTextWin(self.__txt, "Disconnected from port " + self.portNumber.get() + "\n")
+      self.__opToTextWin(self.__txt, 'Disconnected from port ' + self.portNumber.get() + '\n')
       self.execBtn.config(state = DISABLED)
       self.sndBtn.config(state = DISABLED)
       self.__portNumEntry.config(state = NORMAL)
@@ -233,7 +278,7 @@ class client_gui :
         padding = ' ' * (self.DEFAULT_PADDING - len(msg))
 
       # Update the text window with the command being sent
-      self.__opToTextWin(self.__txt, "SENT: $" + msg + "#" + self.__chksum(msg))
+      self.__opToTextWin(self.__txt, 'SENT: $' + msg + '#' + self.__chksum(msg))
 
       # Send the message and get the returned response
       response     = self.__sendmsg(msg, self.skt)
@@ -244,7 +289,7 @@ class client_gui :
         #print(rdata, hex(rdata))
 
       # Send the response to the text window
-      self.__opToTextWin(self.__txt, padding + "RESPONSE: " + response +  "\n")
+      self.__opToTextWin(self.__txt, padding + 'RESPONSE: ' + response +  '\n')
 
   # -----------------------------------------------------------------
   # __scriptBrowseBtn()
@@ -283,7 +328,7 @@ class client_gui :
       if line[0] != '#' :
 
         # Check a valid command
-        if line[0] in "MmDk" :
+        if line[0] in 'MmDk' :
 
           # Strip newlines
           msg = line.rstrip()
@@ -297,7 +342,7 @@ class client_gui :
             self.__disconnectBtn()
           else :
             # Update the text window with the command being sent
-            self.__opToTextWin(self.__txt, "SENT: $" + msg + "#" + self.__chksum(msg))
+            self.__opToTextWin(self.__txt, 'SENT: $' + msg + '#' + self.__chksum(msg))
 
             # Send and get response
             response     = self.__sendmsg(msg, self.skt)
@@ -307,12 +352,10 @@ class client_gui :
               rdata = self.__procReadResp(response, datawidth)
 
             # Send the response to the text window
-            self.__opToTextWin(self.__txt, padding + "RESPONSE: " + response +  "\n")
-
-          #time.sleep(1)
+            self.__opToTextWin(self.__txt, padding + 'RESPONSE: ' + response +  '\n')
 
     script.close()
-    
+
     if self.connStatus.get() == 'Connected' :
       self.execBtn.config(state = NORMAL)
 
@@ -341,15 +384,14 @@ class client_gui :
       self.dataEntry.config (state = DISABLED)
     else :
       self.dataEntry.config (state = NORMAL)
-  
+
   # -----------------------------------------------------------------
   # __portUpdated()
   #
   # Callback method on update to the portNumber variable
-  #  
+  #
   def __portUpdated(self, object, lstidx, mode) :
     self.portNumberHex.set(hex(int(self.portNumber.get())))
-    
 
   # -----------------------------------------------------------------
   # __genconnfrm()
@@ -367,7 +409,7 @@ class client_gui :
       frm.grid(row=row, column=col, padx=10, pady=10, sticky=W)
 
       # Label and entry box for hostname or TBP/IP address on first row
-      hdl = Label(frm, text="IP addr/hostname")
+      hdl = Label(frm, text='IP addr/hostname')
       hdl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=E)
       colidx += 1
 
@@ -377,7 +419,7 @@ class client_gui :
       # Label and entry box for port number on a new row
       colidx = 0
       rowidx+=1
-      hdl = Label(frm, text="Port Number")
+      hdl = Label(frm, text='Port Number')
       hdl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=E)
 
       colidx += 1
@@ -406,7 +448,6 @@ class client_gui :
       self.__connStatusLbl = Label(frm, textvariable=self.connStatus, width=20, anchor=CENTER)
       self.__connStatusLbl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=W)
       self.__connStatusLbl.config(background ='#ff4040', foreground='white', font='Arial')
-      colidx +=1
 
   # -----------------------------------------------------------------
   # __gentransfrm()
@@ -425,7 +466,7 @@ class client_gui :
       frm.grid(row=row, column=col, padx=10, pady=10, columnspan=2, sticky=W+E)
 
       # Add a label and entry box for the address
-      hdl = Label(frm, text="Address (hex)")
+      hdl = Label(frm, text='Address (hex)')
       hdl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=E)
 
       colidx += 1
@@ -434,7 +475,7 @@ class client_gui :
 
       # In the next column, add a radio button for read
       colidx += 1
-      hdl = Radiobutton(master = frm, text = 'read', variable = self.transRnw, value = 1)
+      hdl = Radiobutton(master = frm, text = 'read', variable = self.transRnw, value = True)
       hdl.grid(row=rowidx, column=colidx, padx=30, pady=5, sticky=W)
 
       # In the next two columns add radio buttons to select between 64 and 32 bit wide address
@@ -451,7 +492,7 @@ class client_gui :
       # In a new row, add a label and entry box for the data
       colidx = 0
       rowidx+=1
-      hdl = Label(frm, text="Data (hex)")
+      hdl = Label(frm, text='Data (hex)')
       hdl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=E)
 
       colidx += 1
@@ -461,7 +502,7 @@ class client_gui :
       # In the next four columns, add radio buttons to select between 16, 32, 16, or 8
       # bit wide data accesses. The values are in bytes
       colidx += 1
-      hdl = Radiobutton(master = frm, text = 'write', variable = self.transRnw, value = 0)
+      hdl = Radiobutton(master = frm, text = 'write', variable = self.transRnw, value = False)
       hdl.grid(row=rowidx, column=colidx, padx=30, pady=5, sticky=W)
 
       colidx += 1
@@ -508,7 +549,7 @@ class client_gui :
       frm.grid(row=row, column=col, padx=10, pady=10, columnspan=2, sticky=W+E)
 
       # Add a label and entry box for the script file
-      hdl = Label(frm, text="Script file")
+      hdl = Label(frm, text='Script file')
       hdl.grid(row=rowidx, column=colidx, padx=5, pady=5, sticky=E)
 
       colidx += 1
