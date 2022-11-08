@@ -92,7 +92,13 @@
 // STATIC VARIABLES
 // -------------------------------------------------------------------------
 
-osvvm_cosim_skt::osvvm_cosim_skt(const int port_number, const bool le) : portnum(port_number), ack_char(GDB_ACK_CHAR), rcvd_kill(false), little_endian(le)
+osvvm_cosim_skt::osvvm_cosim_skt(const int  port_number, const bool le) : 
+    portnum(port_number),
+    ack_char(GDB_ACK_CHAR),
+    sop_char(GDB_SOP_CHAR),
+    eop_char(GDB_EOP_CHAR),
+    rcvd_kill(false),
+    little_endian(le)
 {
 
     strncpy(hexchars, HEX_CHAR_MAP, str_buffer_size);
@@ -348,7 +354,7 @@ int osvvm_cosim_skt::read_mem(const char* cmd, const int cmdlen, char *buf, unsi
         bool fault;
         uint8_t byte;
 
-        if (!little_endian)
+        if (little_endian)
         {
             byte = (val >> (8*idx)) & 0xff; // Little endian
         }
@@ -432,7 +438,7 @@ int osvvm_cosim_skt::write_mem (const osvvm_cosim_skt_t skt_hdl, const char* cmd
     for (unsigned int idx = 0; idx < len; idx++)
     {
 
-        if (little_endian)
+        if (!little_endian)
         {
             val <<= 8;
         }
@@ -470,7 +476,7 @@ int osvvm_cosim_skt::write_mem (const osvvm_cosim_skt_t skt_hdl, const char* cmd
             byte |= CHAR2NIB(ipbyte[0]) << 4;
             byte |= CHAR2NIB(ipbyte[1]);
 
-            if (little_endian)
+            if (!little_endian)
             {
                 val |= byte;
             }
@@ -538,7 +544,7 @@ bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd
     static int    reason    = 0;
 
     // Packet start
-    op_buf[op_idx++] = GDB_SOP_CHAR;
+    op_buf[op_idx++] = sop_char;
 
     DebugVPrint("CMD = %s\n", cmd);
 
@@ -605,7 +611,7 @@ bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd
     }
 
     // Packet end
-    op_buf[op_idx++] = GDB_EOP_CHAR;
+    op_buf[op_idx++] = eop_char;
 
     // Checksum
     op_buf[op_idx++] = HIHEXCHAR(checksum);
@@ -668,7 +674,7 @@ int osvvm_cosim_skt::process_pkts (void)
         }
 
         // If receiving a packet end character (or delimiter for mem writes), process the command an go idle
-        if (active && (ipbyte  == GDB_EOP_CHAR     ||
+        if (active && (ipbyte  == eop_char     ||
                        idx     == ip_buffer_size-1 ||
                        (ipbyte == GDB_MEM_DELIM_CHAR && (ip_buf[0] == 'X' || ip_buf[0] == 'M'))))
         {
@@ -697,7 +703,7 @@ int osvvm_cosim_skt::process_pkts (void)
 #endif
         }
         // Wait for a packet start character
-        else if (!active && ipbyte == GDB_SOP_CHAR)
+        else if (!active && ipbyte == sop_char)
         {
             active = true;
         }

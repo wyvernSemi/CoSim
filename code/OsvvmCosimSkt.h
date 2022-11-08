@@ -47,6 +47,7 @@
 // -------------------------------------------------------------------------
 // INCLUDES
 // -------------------------------------------------------------------------
+#include "OsvvmCosimSktHdr.h"
 
 #if defined (_WIN32) || defined (_WIN64)
 
@@ -72,8 +73,8 @@ private:
 
 public:
     // Constructor
-                             osvvm_cosim_skt (const int  port_number = default_tcp_portnum,
-                                              const bool le          = true) ;
+                             osvvm_cosim_skt (const int  port_number       = default_tcp_portnum,
+                                              const bool le                = false) ;
 
     // User entry point method
            int               process_pkts    (void);
@@ -112,6 +113,8 @@ private:
            osvvm_cosim_skt_t skt_hdl;
     const  int               portnum;
     const  char              ack_char;
+           char              sop_char;
+           char              eop_char;
            char              hexchars[str_buffer_size];
 
            bool              little_endian;
