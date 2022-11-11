@@ -47,7 +47,8 @@
 // -------------------------------------------------------------------------
 // INCLUDES
 // -------------------------------------------------------------------------
-#include "OsvvmCosimSktHdr.h"
+
+#include <string>
 
 #if defined (_WIN32) || defined (_WIN64)
 
@@ -55,31 +56,93 @@
 
 #endif
 
+#include "OsvvmCosimSktHdr.h"
+
 // -------------------------------------------------------------------------
 // CLASS DEFINITION
 // -------------------------------------------------------------------------
 
-class osvvm_cosim_skt
+class OsvvmCosimSkt
 {
+    ////////////////////////////////
+    // PUBLIC
+    ////////////////////////////////
+
 public:
+    // Public constants and type definitions
+    // Note: Make external facing types and methods CamelCase to be consistent
+    // with OSVVM convention
+    
            static const int  OSVVM_COSIM_OK      = 0;
            static const int  OSVVM_COSIM_ERR     = -1;
 
-private:
-           static const int  default_tcp_portnum = 0xc000;
-           static const int  ip_buffer_size      = 1024;
-           static const int  op_buffer_size      = 1024;
-           static const int  str_buffer_size     = 100;
+           // Transaction command attribute record type
+           typedef class CmdAttrClass
+           {
+            public:
+               bool     Rnw;
+               uint64_t Addr;
+               int      AddrWidth;
+               uint64_t Data;
+               int      DataWidth;
+               bool     Detach;
+               bool     Kill;
+               int      Error;
 
-public:
+               CmdAttrClass() :
+                   Addr       (0),
+                   AddrWidth  (0),
+                   Data       (0),
+                   DataWidth  (32),
+                   Detach     (false),
+                   Kill       (false),
+                   Error      (OSVVM_COSIM_OK)
+               {
+               };
+
+           } CmdAttrType;
+
     // Constructor
-                             osvvm_cosim_skt (const int  port_number       = default_tcp_portnum,
-                                              const bool le                = false) ;
+                             OsvvmCosimSkt (const int  PortNumber   = DEFAULT_TCP_PORTNUM,
+                                            const bool LittleEndian = false,
+                                            const char Eop          = GDB_EOP_CHAR,
+                                            const char Sop          = GDB_SOP_CHAR,
+                                            const int  SuffixBytes  = 2
+                                            ) ;
 
     // User entry point method
-           int               process_pkts    (void);
+           int               ProcessPkts   (void);
+
+    ////////////////////////////////
+    // PROTECTED
+    ////////////////////////////////
+
+protected:
+   virtual CmdAttrType       ParsePkt      (const std::string CmdStr) ;
+   virtual std::string       GenRespPkt    (const CmdAttrType Resp,
+                                            const char        SopByte,
+                                            const char        EopByte,
+                                            const bool        LittleEndian) ;
+
+    ////////////////////////////////
+    // PRIVATE
+    ////////////////////////////////
 
 private:
+    // Internal constants
+           static const int  DEFAULT_TCP_PORTNUM = 0xc000;
+           static const int  HEX_BUF_SIZE        = 100;
+           static const char GDB_ACK_CHAR        = '+';
+           static const char GDB_NAK_CHAR        = '-';
+           static const char GDB_SOP_CHAR        = '$';
+           static const char GDB_EOP_CHAR        = '#';
+           static const char GDB_MEM_DELIM_CHAR  = ':';
+           static const int  MAXBACKLOG          = 5;
+
+           // Hexadecimal character LUT
+                  const char HEXCHARS[HEX_BUF_SIZE] = "0123456789abcdef";
+
+    // Internal type definition
 
 #if defined (_WIN32) || defined (_WIN64)
            // Map the socket type for windows
@@ -90,34 +153,42 @@ private:
 #endif
 
     // Private methods
-    
+
            // Methods for managing the socket connection
            int               init            (void);
            osvvm_cosim_skt_t connect_skt     (const int portno);
            void              cleanup         (void);
 
            // Methods for processing commands
-           bool              proc_cmd        (const osvvm_cosim_skt_t skt_hdl, const char* cmd, const int cmdlen);
-           bool              read_cmd        (const osvvm_cosim_skt_t skt_hdl, char* buf);
+           bool              proc_cmd        (CmdAttrType &cmd_rec);
+           bool              read_cmd        (const osvvm_cosim_skt_t skt_hdl,       char* buf);
            bool              write_cmd       (const osvvm_cosim_skt_t skt_hdl, const char* buf);
 
-           // Methods to do the memory mapped accesses
-           int               read_mem        (const char* cmd, const int cmdlen, char *buf, unsigned char &checksum);
-           int               write_mem       (const osvvm_cosim_skt_t skt_hdl,   const char* cmd, const int cmdlen, char *buf,
-                                              unsigned char &checksum, const bool is_binary);
+           int               fetch_next_pkt  (const osvvm_cosim_skt_t skt, std::string &cmdstr);
+
+           // Utility methods
+    inline int               char2nib        (char x)
+                             {
+                                 return ((x >= '0' && x <= '9') ? x - '0'        :
+                                         (x >= 'a' && x <= 'f') ? (10 + x - 'a') :
+                                                                  (10 + x - 'A'));
+                             }
+
+    inline char              hihexchar       (unsigned x){ return HEXCHARS[(x & 0xf0) >> 4]; }
+    inline char              lohexchar       (unsigned x){ return HEXCHARS[x & 0x0f]; }
 
     // Private member variables
-           bool              rcvd_kill;
-           char              ip_buf[ip_buffer_size];
-           char              op_buf[op_buffer_size];
+
+           // TCP/IP connection state
            osvvm_cosim_skt_t skt_hdl;
     const  int               portnum;
-    const  char              ack_char;
-           char              sop_char;
-           char              eop_char;
-           char              hexchars[str_buffer_size];
 
-           bool              little_endian;
+           // Configuration state for packet protocol
+    const  bool              little_endian;
+    const  char              sop_char;
+    const  char              eop_char;
+    const  char              ack_char;
+    const  int               suffix_bytes;
 
 };
 

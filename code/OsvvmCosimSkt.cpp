@@ -92,16 +92,18 @@
 // STATIC VARIABLES
 // -------------------------------------------------------------------------
 
-osvvm_cosim_skt::osvvm_cosim_skt(const int  port_number, const bool le) : 
-    portnum(port_number),
+OsvvmCosimSkt::OsvvmCosimSkt (const int  PortNumber,
+                              const bool LittleEndian,
+                              const char Eop,
+                              const char Sop,
+                              const int  SfxBytes) :
+    portnum(PortNumber),
     ack_char(GDB_ACK_CHAR),
-    sop_char(GDB_SOP_CHAR),
-    eop_char(GDB_EOP_CHAR),
-    rcvd_kill(false),
-    little_endian(le)
+    sop_char(Sop),
+    eop_char(Eop),
+    little_endian(LittleEndian),
+    suffix_bytes(SfxBytes)
 {
-
-    strncpy(hexchars, HEX_CHAR_MAP, str_buffer_size);
 
     if (init() < 0)
     {
@@ -119,14 +121,14 @@ osvvm_cosim_skt::osvvm_cosim_skt(const int  port_number, const bool le) :
 
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::init()
+// OsvvmCosimSkt::init()
 //
 // Does any required socket initialisation, prior to opening a TCP socket.
 // Current, only windows requires any handling.
 //
 // -------------------------------------------------------------------------
 
-int osvvm_cosim_skt::init(void)
+int OsvvmCosimSkt::init(void)
 {
 #if defined (_WIN32) || defined (_WIN64)
     WSADATA wsaData;
@@ -143,7 +145,7 @@ int osvvm_cosim_skt::init(void)
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::connect_skt()
+// OsvvmCosimSkt::connect_skt()
 //
 // Opens a TCP socket connection, suitable for remote debugging, on the
 // given port number (portno). It listens for a single connection, before
@@ -152,11 +154,12 @@ int osvvm_cosim_skt::init(void)
 //
 // -------------------------------------------------------------------------
 
-osvvm_cosim_skt::osvvm_cosim_skt_t osvvm_cosim_skt::connect_skt (const int portno)
+OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
 {
 
     // Create an IPv4 socket byte stream
     osvvm_cosim_skt_t svrskt;
+    
     if ((svrskt = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
     {
         VPrint("ERROR opening socket\n");
@@ -218,14 +221,14 @@ osvvm_cosim_skt::osvvm_cosim_skt_t osvvm_cosim_skt::connect_skt (const int portn
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::cleanup()
+// OsvvmCosimSkt::cleanup()
 //
 // Does any open TCP socket cleanup before exiting the program. Current,
 // only windows requires any handling.
 //
 // -------------------------------------------------------------------------
 
-inline void osvvm_cosim_skt::cleanup(void)
+inline void OsvvmCosimSkt::cleanup(void)
 {
 #if defined (_WIN32) || defined (_WIN64)
     WSACleanup();
@@ -233,7 +236,7 @@ inline void osvvm_cosim_skt::cleanup(void)
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::read_cmd()
+// OsvvmCosimSkt::read_cmd()
 //
 // Read a byte from the socket and place in the buffer (buf). Return true
 // on successful read, else return false. Compile dependent for windows
@@ -241,7 +244,7 @@ inline void osvvm_cosim_skt::cleanup(void)
 //
 // -------------------------------------------------------------------------
 
-inline bool osvvm_cosim_skt::read_cmd (const osvvm_cosim_skt_t skt_hdl, char* buf)
+inline bool OsvvmCosimSkt::read_cmd (const osvvm_cosim_skt_t skt_hdl, char* buf)
 {
     int status = OSVVM_COSIM_OK;
 
@@ -257,7 +260,7 @@ inline bool osvvm_cosim_skt::read_cmd (const osvvm_cosim_skt_t skt_hdl, char* bu
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::write_cmd()
+// OsvvmCosimSkt::write_cmd()
 //
 // Write a byte to the socket from the buffer (buf). Return true
 // on successful read, else return false. Compile dependent for windows
@@ -265,7 +268,7 @@ inline bool osvvm_cosim_skt::read_cmd (const osvvm_cosim_skt_t skt_hdl, char* bu
 //
 // -------------------------------------------------------------------------
 
-inline bool osvvm_cosim_skt::write_cmd (const osvvm_cosim_skt_t skt_hdl, const char* buf)
+inline bool OsvvmCosimSkt::write_cmd (const osvvm_cosim_skt_t skt_hdl, const char* buf)
 {
     int status = OSVVM_COSIM_OK;
 
@@ -279,253 +282,9 @@ inline bool osvvm_cosim_skt::write_cmd (const osvvm_cosim_skt_t skt_hdl, const c
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::read_mem()
+// OsvvmCosimSkt::proc_cmd()
 //
-// Read from memory in reply to a read type command (in cmd), and place
-// reply in buf. Format of the command is
-//
-//   M addr,length
-//
-// Reply format is 'XX...', as set of hex character pairs for each byte, for
-// as many as specified in length, starting from addr in memory. The
-// checksum is calculated for the returned characters, and returned in
-// checksum.
-//
-// -------------------------------------------------------------------------
-
-int osvvm_cosim_skt::read_mem(const char* cmd, const int cmdlen, char *buf, unsigned char &checksum)
-{
-    int      bdx  = 0;
-    int      cdx  = 0;
-    uint64_t addr = 0;
-    unsigned len  = 0;
-
-    // Skip command character
-    cdx++;
-
-    // Get address
-    while (cdx < cmdlen && cmd[cdx] != ',')
-    {
-        if (cmd[cdx] != ' ')
-        {
-            addr <<= 4;
-            addr  |= CHAR2NIB(cmd[cdx]);
-        }
-        cdx++;
-    }
-
-    // Skip comma and any spaces
-    while (cmd[cdx] == ',' || cmd[cdx] == ' ')
-    {
-        cdx++;
-    }
-
-    // Get length
-    while (cdx < cmdlen)
-    {
-        len <<= 4;
-        len  |= CHAR2NIB(cmd[cdx]);
-        cdx++;
-    }
-
-    uint64_t val = 0x12345678;
-
-    //////////////////////////////////////////////////////
-    // Put co-sim calls here
-    //////////////////////////////////////////////////////
-
-#ifndef TEST
-    switch(len*8)
-    {
-        uint32_t rdata32;
-        uint16_t rdata16;
-        uint8_t  rdata8;
-
-        case 32: VTransRead((uint32_t)addr, (uint32_t*)&rdata32); val = rdata32; break;
-        case 16: VTransRead((uint32_t)addr, (uint16_t*)&rdata16); val = rdata16; break;
-        case  8: VTransRead((uint32_t)addr,  (uint8_t*)&rdata8);  val = rdata8;  break;
-        default: return OSVVM_COSIM_ERR;
-    }
-#endif
-
-    // Get memory bytes and put values as hex characters in buffer
-    for (int idx = 0; idx < len; idx++)
-    {
-        bool fault;
-        uint8_t byte;
-
-        if (little_endian)
-        {
-            byte = (val >> (8*idx)) & 0xff; // Little endian
-        }
-        else
-        {
-            byte = (val >> (8*(len-idx-1))) & 0xff; // Big endian
-        }
-
-        checksum += buf[bdx++] = HIHEXCHAR(byte);
-        checksum += buf[bdx++] = LOHEXCHAR(byte);
-    }
-
-    DebugVPrint("read_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
-
-    return bdx;
-}
-
-// -------------------------------------------------------------------------
-// osvvm_cosim_skt::write_mem()
-//
-// Write to memory in reply to a write type command (in cmd), and place
-// a reply in buf. Format of the command is
-//
-//   M addr,length:XX...
-//
-// Where XX... is a set of hex character pairs for each byte to be written,
-// for length bytes, starting at addr. The data may be in binary format
-// (flagged by is_binary), in which case the XX data are single raw bytes,
-// some of which are 'escaped' (see commants in function). As the memory
-// write command's data can be large, the passed in cmd buffer does not
-// contain the data after the ':' delimiter. This is read directly from
-// the serial port and placed into the cpu's memory. A reply is placed in
-// buf ("OK", or "EIO" if an error), with a calculated checksum returned
-// in checksum.
-//
-// -------------------------------------------------------------------------
-
-int osvvm_cosim_skt::write_mem (const osvvm_cosim_skt_t skt_hdl, const char* cmd, const int cmdlen, char *buf,
-                                unsigned char &checksum, const bool is_binary)
-{
-    int      bdx          = 0;
-    int      cdx          = 0;
-    uint64_t addr         = 0;
-    unsigned len          = 0;
-    bool     io_status_ok = true;
-
-    // Skip command character
-    cdx++;
-
-    // Get address
-    while (cdx < cmdlen && cmd[cdx] != ',')
-    {
-        if (cmd[cdx] != ' ')
-        {
-            addr <<= 4;
-            addr  |= CHAR2NIB(cmd[cdx]);
-        }
-        cdx++;
-    }
-
-    // Skip comma and any spaces
-    while (cmd[cdx] == ',' || cmd[cdx] == ' ')
-    {
-        cdx++;
-    }
-
-    // Get length
-    while (cdx < cmdlen && cmd[cdx] != ':')
-    {
-        len <<= 4;
-        len  |= CHAR2NIB(cmd[cdx]);
-        cdx++;
-    }
-
-    // Skip colon
-    cdx++;
-
-    uint64_t val = 0;
-
-    // Get hex characters byte values and put into memory
-    for (unsigned int idx = 0; idx < len; idx++)
-    {
-
-        if (!little_endian)
-        {
-            val <<= 8;
-        }
-        else
-        {
-            val >>= 8;
-        }
-
-        char ipbyte[2];
-
-        if (is_binary)
-        {
-            io_status_ok |= read_cmd(skt_hdl, ipbyte);
-
-            val |= ipbyte[0];
-
-            // Some binary data is escaped (with '}' character) and the following is the data
-            // XORed with a pattern (0x20). '#', '$', and '}' are all escaped. Replies
-            // containing '*' (0x2a) must be escaped. See 'Debugging with GDB' manual, Appendix E.1
-            if (val == GDB_BIN_ESC)
-            {
-                io_status_ok |= read_cmd(skt_hdl, ipbyte);
-
-                val |= ipbyte[0] ^ GDB_BIN_XOR_VAL;
-            }
-        }
-        else
-        {
-            io_status_ok |= read_cmd(skt_hdl, &ipbyte[0]);
-            io_status_ok |= read_cmd(skt_hdl, &ipbyte[1]);
-
-            // Get byte value from hex
-            uint8_t byte = 0;
-
-            byte |= CHAR2NIB(ipbyte[0]) << 4;
-            byte |= CHAR2NIB(ipbyte[1]);
-
-            if (!little_endian)
-            {
-                val |= byte;
-            }
-            else
-            {
-                val |= ((uint64_t)byte << ((len-idx-1)*8));
-            }
-        }
-
-        if (!io_status_ok)
-        {
-            // On an error, break out of the loop
-            break;
-        }
-    }
-
-    //////////////////////////////////////////////////////
-    // Put co-sim calls here
-    //////////////////////////////////////////////////////
-
-    DebugVPrint("write_mem 0x%08x (len = %d, addr=0x%08x)\n", (uint32_t)val, len, (uint32_t)addr);
-
-#ifndef TEST
-    switch(len*8)
-    {
-        case 32: VTransWrite((uint32_t)addr, (uint32_t)val); break;
-        case 16: VTransWrite((uint32_t)addr, (uint16_t)val); break;
-        case  8: VTransWrite((uint32_t)addr,  (uint8_t)val); break;
-        default: io_status_ok = false;
-    }
-#endif
-
-    // Acknowledge the command
-    if (io_status_ok)
-    {
-        BUFOK(buf, bdx, checksum);
-    }
-    else
-    {
-        BUFERR(EIO, buf, bdx, checksum);
-    }
-
-    return io_status_ok ? bdx : OSVVM_COSIM_ERR;
-}
-
-// -------------------------------------------------------------------------
-// osvvm_cosim_skt::proc_cmd()
-//
-// Processes a single command, as stored in cmd. The command is
+// Processes a single command, as stored in cmd_rec. The command is
 // inspected and the appropriate local functions called. Generated replies
 // are added to op_buf, with this function bracketing these with $ and #,
 // followed by the two character checksum, returned by the functions (if
@@ -536,111 +295,300 @@ int osvvm_cosim_skt::write_mem (const osvvm_cosim_skt_t skt_hdl, const char* cmd
 //
 // -------------------------------------------------------------------------
 
-bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd, const int cmdlen)
+bool OsvvmCosimSkt::proc_cmd (CmdAttrType &cmd_rec)
 {
-    int           op_idx    = 0;
-    unsigned char checksum  = 0;
-    bool          detached  = false;
-    static int    reason    = 0;
 
-    // Packet start
-    op_buf[op_idx++] = sop_char;
+    if (cmd_rec.Detach || cmd_rec.Kill)
+    {
+        return true;
+    }
+    else
+    {
+        if (cmd_rec.Rnw)
+        {
+            switch(cmd_rec.DataWidth)
+            {
+                uint32_t rdata32;
+                uint16_t rdata16;
+                uint8_t  rdata8;
 
-    DebugVPrint("CMD = %s\n", cmd);
+                case 32: VTransRead((uint32_t)cmd_rec.Addr, (uint32_t*)&rdata32); cmd_rec.Data = rdata32; break;
+                case 16: VTransRead((uint32_t)cmd_rec.Addr, (uint16_t*)&rdata16); cmd_rec.Data = rdata16; break;
+                case  8: VTransRead((uint32_t)cmd_rec.Addr,  (uint8_t*)&rdata8);  cmd_rec.Data = rdata8;  break;
+                default: cmd_rec.Error = OSVVM_COSIM_ERR; return true;
+            }
+        }
+        else
+        {
+             switch(cmd_rec.DataWidth)
+             {
+                 case 32: VTransWrite((uint32_t)cmd_rec.Addr, (uint32_t)cmd_rec.Data); break;
+                 case 16: VTransWrite((uint32_t)cmd_rec.Addr, (uint16_t)cmd_rec.Data); break;
+                 case  8: VTransWrite((uint32_t)cmd_rec.Addr,   (uint8_t)cmd_rec.Data); break;
+                 default: cmd_rec.Error = OSVVM_COSIM_ERR; return true;
+             }
+        }
+    }
+
+    return false;
+}
+
+// -------------------------------------------------------------------------
+// OsvvmCosimSkt::ParsePkt ()
+//
+// Parse the packet passed in as cmdstr and contruct a protocol independent
+// command record and return it for processing by the co-simulation code.
+//
+// -------------------------------------------------------------------------
+
+OsvvmCosimSkt::CmdAttrType OsvvmCosimSkt::ParsePkt (const std::string cmdstr)
+{
+    CmdAttrType cmd_rec;
+    int         cdx = 0;
+    int         len = 0;
+    uint8_t     byte;
+
+    // Initialise the command record
+    cmd_rec.Addr       = 0;
+    cmd_rec.Data       = 0x0badc0de;
+    cmd_rec.Detach     = false;
+    cmd_rec.Kill       = false;
+    cmd_rec.Error      = OSVVM_COSIM_OK;
+
+    DebugVPrint("ParsePkt(): %s\n", cmdstr.c_str());
+
+    // Skip the SOP
+    cdx++;
+
+    // Get command character
+    char cmd = cmdstr.at(cdx++);
+
+    if (cmd != 'D' && cmd != 'k')
+    {
+
+        // Get address
+        while (cdx < cmdstr.length() && cmdstr.at(cdx) != ',')
+        {
+            if (cmdstr.at(cdx) != ' ')
+            {
+                cmd_rec.Addr <<= 4;
+                cmd_rec.Addr  |= char2nib(cmdstr.at(cdx));
+            }
+            cdx++;
+        }
+
+        // Set address width based on value
+        cmd_rec.AddrWidth = (cmd_rec.Addr > 0xffffffffULL) ? 64 : 32;
+
+        // Skip comma and any spaces
+        while (cmdstr.at(cdx) == ',' || cmdstr.at(cdx) == ' ')
+        {
+            cdx++;
+        }
+
+        // Get data length
+        while (cdx < cmdstr.length() && cmdstr.at(cdx) != GDB_MEM_DELIM_CHAR && cmdstr.at(cdx) != eop_char)
+        {
+            len <<= 4;
+            len  |= char2nib(cmdstr.at(cdx));
+            cdx++;
+        }
+
+        cmd_rec.DataWidth = len * 8;
+    }
 
     // Select on command character
-    switch(cmd[0])
+    switch(cmd)
     {
-        int status;
 
     // Read memory
     case 'm':
-        status = read_mem(cmd, cmdlen, &op_buf[op_idx], checksum);
-
-        if (status != OSVVM_COSIM_ERR)
-        {
-            op_idx += status;
-        }
-        else
-        {
-            detached = true;
-            BUFERR(EIO, op_buf, op_idx, checksum);
-            VPrint("***ERROR: proc_cmd() read memory failed\n");
-        }
-        break;
-
-    // Write memory (binary)
-    case 'X':
-        status = write_mem(skt_hdl, cmd, cmdlen, &op_buf[op_idx], checksum, true);
-
-        if (status != OSVVM_COSIM_ERR)
-        {
-            op_idx += status;
-        }
-        else
-        {
-            detached = true;
-            VPrint("***ERROR: proc_cmd() write memory failed\n");
-        }
+        cmd_rec.Rnw        = true;
         break;
 
     // Write memory
     case 'M':
-        status = write_mem(skt_hdl, cmd, cmdlen, &op_buf[op_idx], checksum, false);
 
-        if (status != OSVVM_COSIM_ERR)
+        cmd_rec.Rnw        = false;
+        cmd_rec.Data       = 0;
+
+        // Skip colon
+        cdx++;
+
+        // Get hex characters byte values and put into memory
+        for (unsigned int idx = 0; idx < len; idx++)
         {
-            op_idx += status;
-        }
-        else
-        {
-            detached = true;
-            VPrint("***ERROR: proc_cmd() write memory failed\n");
+            cmd_rec.Data <<= 8;
+
+            // Get byte value from hex
+            uint8_t byte = 0;
+
+            byte |= char2nib(cmdstr.at(cdx)) << 4; cdx++;
+            byte |= char2nib(cmdstr.at(cdx));      cdx++;
+
+            cmd_rec.Data |= byte;
         }
         break;
 
     case 'D':
-        detached = true;
-        BUFOK(op_buf, op_idx, checksum);
+        cmd_rec.Detach = true;
         break;
 
     case 'k':
-        rcvd_kill = true;
-        detached  = true;
+        cmd_rec.Kill   = true;
         break;
     }
 
-    // Packet end
-    op_buf[op_idx++] = eop_char;
+   DebugVPrint("%s: addr=%08llx awidth=%d, data=%08llx dwidth=%d detach=%d kill=%d error=%d\n",
+               cmd_rec.Rnw ? "read " : "write:",
+               cmd_rec.Addr, cmd_rec.AddrWidth,
+               cmd_rec.Data, cmd_rec.DataWidth,
+               cmd_rec.Detach, cmd_rec.Kill, cmd_rec.Error);
 
-    // Checksum
-    op_buf[op_idx++] = HIHEXCHAR(checksum);
-    op_buf[op_idx++] = LOHEXCHAR(checksum);
-
-    // Terminate buffer with a NULL character in case we want to print for debug
-    op_buf[op_idx]   = 0;
-
-    // Send reply if not 'kill' command (which has no reply)
-    if (!rcvd_kill)
-    {
-        // Output the response for the command to the terminal
-        for (int idx = 0; idx < op_idx; idx++)
-        {
-            if (!write_cmd(skt_hdl, &op_buf[idx]))
-            {
-                VPrint("OSVVM_COSIM_SKT: ERROR writing to host: terminating.\n");
-                return true;
-            }
-        }
-
-        DebugVPrint("\nREPLY: %s\n", op_buf);
-    }
-
-    return detached;
+    return cmd_rec;
 }
 
 // -------------------------------------------------------------------------
-// osvvm_cosim_skt::process_pkt()
+// OsvvmCosimSkt::GenRespPkt()
+//
+// Generate a response packet based on the response record settings,
+// returning a string with the complete response, including the
+// acknowledgement.
+//
+// -------------------------------------------------------------------------
+
+std::string OsvvmCosimSkt::GenRespPkt (const OsvvmCosimSkt::CmdAttrType Resp,
+                                       const char                       SopByte,
+                                       const char                       EopByte,
+                                       const bool                       LittleEndian)
+{
+    std::string cmd;
+    char nibble;
+
+    unsigned char chksum = 0;
+
+    if (!Resp.Error)
+    {
+        if (Resp.Detach || Resp.Kill)
+        {
+            if (Resp.Detach)
+            {
+                cmd.append("OK");
+            }
+        }
+        if (!Resp.Rnw)
+        {
+            cmd.append("OK");
+        }
+        else
+        {
+            for (int idx = 0; idx < (Resp.DataWidth/8); idx++)
+            {
+                uint8_t byte;
+
+                if (LittleEndian)
+                {
+                    byte = (Resp.Data >> (8*idx)) & 0xff; // Little endian
+                }
+                else
+                {
+                    byte = (Resp.Data >> (8*((Resp.DataWidth/8)-idx-1))) & 0xff; // Big endian
+                }
+
+
+               nibble = hihexchar(byte); cmd.push_back(nibble);
+               nibble = lohexchar(byte); cmd.push_back(nibble);
+            }
+        }
+    }
+    else
+    {
+        // Send an error response
+        cmd.append("E01");
+    }
+
+    // Calculate checksum
+    for (int idx = 0; idx < cmd.length(); idx++)
+    {
+        chksum += cmd.at(idx);
+    }
+
+    // Prepend an acknowledgement and SOP
+    char prefix[3];
+
+    prefix[0] = ack_char;
+    prefix[1] = SopByte;
+    prefix[2] = '\0';
+    cmd.insert(0, prefix);
+
+    // Append an EOP
+    nibble = EopByte; cmd.push_back(nibble);
+
+    // Append the checksum
+    nibble = hihexchar(chksum); cmd.push_back(nibble);
+    nibble = lohexchar(chksum); cmd.push_back(nibble);
+
+    DebugVPrint("GenRespPkt(): %s\n", cmd.c_str());
+
+    return cmd;
+}
+
+// -------------------------------------------------------------------------
+// OsvvmCosimSkt::fetch_next_pkt()
+//
+// Method to read a packet from the open socket in a generic way, using
+// the sop_char and eop_char to delimit the packet, and the read any
+// suffix bytes, as defined by suffix_bytes, all set at construction.
+//
+// -------------------------------------------------------------------------
+
+int OsvvmCosimSkt::fetch_next_pkt(const OsvvmCosimSkt::osvvm_cosim_skt_t skt, std::string &cmdstr)
+{
+    bool  status;
+    char ipbyte;
+
+    cmdstr.clear();
+
+    // Read bytes from socket, discarding bytes, until SOP
+    do
+    {
+        if (!read_cmd(skt, &ipbyte))
+        {
+            return OSVVM_COSIM_ERR;
+        }
+    }
+    while (ipbyte != sop_char);
+
+    // Add the SOP to the command string
+    cmdstr.push_back(ipbyte);
+
+    // Read bytes from socket, adding bytes to string, until EOP
+    do
+    {
+        if (!read_cmd(skt, &ipbyte))
+        {
+            return OSVVM_COSIM_ERR;
+        }
+        cmdstr.push_back(ipbyte);
+    }
+    while (ipbyte != eop_char);
+
+    // Read bytes from socket, adding bytes to string for suffix bytes
+    for (int idx = 0; idx < suffix_bytes; idx++)
+    {
+        if (!read_cmd(skt, &ipbyte))
+        {
+            return OSVVM_COSIM_ERR;
+        }
+        cmdstr.push_back(ipbyte);
+    }
+
+    return OSVVM_COSIM_OK;
+}
+
+
+// -------------------------------------------------------------------------
+// OsvvmCosimSkt::process_pkt()
 //
 // Top level for the socket interface of OSVVM cosim features.
 //
@@ -655,15 +603,18 @@ bool osvvm_cosim_skt::proc_cmd (const osvvm_cosim_skt_t skt_hdl, const char* cmd
 //
 // -------------------------------------------------------------------------
 
-int osvvm_cosim_skt::process_pkts (void)
+int OsvvmCosimSkt::ProcessPkts (void)
 {
-    int   idx      = 0;
-    bool  active   = false;
-    bool  detached = false;
-    bool  waiting  = true;
-    char  ipbyte;
+    int         idx      = 0;
+    bool        active   = false;
+    bool        detached = false;
+    bool        waiting  = true;
+    char        ipbyte;
 
-    while (!detached && read_cmd(skt_hdl, &ipbyte))
+    std::string cmdstr, respstr;
+    CmdAttrType cmd_rec;
+
+    while (!detached)
     {
         // If waiting for first communication, flag that attachment has happened.
         if (waiting)
@@ -672,57 +623,49 @@ int osvvm_cosim_skt::process_pkts (void)
             VPrint("OSVVM_COSIM_SKT: host attached.\n");
             fflush(stderr);
         }
-
-        // If receiving a packet end character (or delimiter for mem writes), process the command an go idle
-        if (active && (ipbyte  == eop_char     ||
-                       idx     == ip_buffer_size-1 ||
-                       (ipbyte == GDB_MEM_DELIM_CHAR && (ip_buf[0] == 'X' || ip_buf[0] == 'M'))))
+        else
         {
-            // Acknowledge the packet
-            if (!write_cmd(skt_hdl, &ack_char))
+            // Fetch a whole packet and place in cmdstr
+            int status = fetch_next_pkt (skt_hdl, cmdstr);
+
+            // If an error occured, return with status
+            if (status)
             {
-                return OSVVM_COSIM_ERR;
+                return status;
             }
 
-            // Terminate the buffer string, for ease of debug
-            ip_buf[idx] = 0;
+            // Parse the packet in the command string and return
+            // the transaction command record
+            cmd_rec  = ParsePkt(cmdstr);
 
-            // Process the command
-            detached = proc_cmd(skt_hdl, ip_buf, idx);
+            // Process the command record with co-sim accesses to the OSVVM address bus manager transactor
+            detached = proc_cmd(cmd_rec);
 
-            // Flag state as inactive
-            active = false;
+            // If not a kill command, send a response
+            if (!cmd_rec.Kill)
+            {
+                // Generate a response from the command record
+                respstr = GenRespPkt(cmd_rec, sop_char, eop_char, little_endian);
 
-            // Reset input buffer index
-            idx    = 0;
+                DebugVPrint("respstr = %s (%d)\n", respstr.c_str(), respstr.length());
 
-#ifdef OSVVM_COSIM_DEBUG
-            // At termination echo newline char to stdout
-            putchar('\n');
-            fflush(stdout);
-#endif
-        }
-        // Wait for a packet start character
-        else if (!active && ipbyte == sop_char)
-        {
-            active = true;
-        }
-        // Get command packet characters, store in buffer [and echo to screen].
-        else if (active)
-        {
-            ip_buf[idx++] = ipbyte;
-
-#ifdef OSVVM_COSIM_DEBUG
-            // Echo packet data to stdout
-            putchar(ipbyte);
-            fflush(stdout);
-#endif
+                // Send the response packet
+                for (int idx = 0; idx < respstr.length(); idx++)
+                {
+                    char rchar = respstr.at(idx);
+                    if (!write_cmd(skt_hdl, &rchar))
+                    {
+                        VPrint("OSVVM_COSIM_SKT: ERROR writing to host: terminating.\n");
+                        return true;
+                    }
+                }
+            }
         }
     }
 
     if (detached)
     {
-        VPrint("OSVVM_COSIM_SKT: host %s from target: terminating.\n", rcvd_kill ? "received 'kill'" : "detached");
+        VPrint("OSVVM_COSIM_SKT: host %s from target: terminating.\n", cmd_rec.Kill ? "received 'kill'" : "detached");
     }
     else
     {
