@@ -28,5 +28,5 @@ a bash script):
     
     make -C $OSVVMDIR/CoSim              \
             OPDIR=$SIMDIR                \
-            USRCDIR=$OSVVMDIR/CoSim/iss> \
+            USRCDIR=$OSVVMDIR/CoSim/iss  \
             USRFLAGS="-I $OSVVMDIR/CoSim/include -L $OSVVMDIR/CoSim/lib -lrv32"
