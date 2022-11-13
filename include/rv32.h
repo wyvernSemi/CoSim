@@ -27,15 +27,16 @@
 #ifndef _RV32_H_
 #define _RV32_H_
 
-#include "rv32i_cpu.h"
+#include "rv32_extensions.h"
+#include RV32_TARGET_INCLUDE
 
 // This class is the top level ISS implementation class, configurable
 // to have only those extensions required to be modelled. The
 // rv32_inheritance.h file defines which extensions are to be included.
-class rv32 : public rv32i_cpu
+class rv32 : public RV32_TARGET_INHERITANCE_CLASS
 {
 public:
-    LIBRISCV32_API rv32(FILE* dbg_fp = stdout) : rv32i_cpu(dbg_fp)
+    LIBRISCV32_API rv32(FILE* dbg_fp = stdout) : RV32_TARGET_INHERITANCE_CLASS(dbg_fp)
     {
     };
 
