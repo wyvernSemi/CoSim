@@ -78,6 +78,7 @@ typedef void *(*pThreadFunc_t)(void *);
 // VProc write and read functions (fixed at 32-bit)
 extern int      VWrite         (uint32_t addr, uint32_t  data, int delta, uint32_t node);
 extern int      VRead          (uint32_t addr, uint32_t *data, int delta, uint32_t node);
+extern int      VTick         (uint32_t ticks, uint32_t node);
 
 // Overloaded write and read transaction functions for 32 bit architecture for byte,
 // half-word and, words
@@ -101,7 +102,6 @@ extern void     VTransRead     (uint64_t addr, uint64_t *data, int prot = 0, uin
 #endif
 
 extern EXTC int  VUser         (int node);
-extern EXTC int  VTick         (uint32_t ticks, uint32_t node);
 extern EXTC void VRegInterrupt (int level, pVUserInt_t func, uint32_t node);
 extern EXTC void VRegUser      (pVUserCB_t func, uint32_t node);
 

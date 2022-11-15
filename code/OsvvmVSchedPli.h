@@ -59,7 +59,7 @@
 #define VTRANS_PARAMS      int  node,     int Interrupt,                                                         \
                            int  VPDataIn, int  VPDataInHi, int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                            int* VPAddr,   int* VPAddrHi,   int* VPAddrWidth,                                     \
-                           int* VPRw
+                           int* VPRw,     int* VPTicks
 #define VPROCUSER_PARAMS   int  node, int value
 #define VHALT_PARAMS       int, int
 

@@ -207,6 +207,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         VPAddr_int      = (uint32_t)((ns[node]->send_buf.addr)       & 0xffffffffULL);
         VPAddrHi_int    = (uint32_t)((ns[node]->send_buf.addr >> 32) & 0xffffffffULL);
         VPRw_int        = ns[node]->send_buf.rw;
+        VPTicks_int     = ns[node]->send_buf.ticks;
 
         switch(ns[node]->send_buf.type)
         {
@@ -264,6 +265,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     *VPAddr           = VPAddr_int;
     *VPAddrHi         = VPAddrHi_int;
     *VPRw             = VPRw_int;
+    *VPTicks          = VPTicks_int;
 
 }
 
