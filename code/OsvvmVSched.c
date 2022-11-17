@@ -184,11 +184,18 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 {
 
     int VPDataOut_int,   VPAddr_int,   VPRw_int, VPTicks_int;
-    int VPDataOutHi_int, VPAddrHi_int;
+    int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int;
 
     // Sample inputs and update node state
-    ns[node]->rcv_buf.data_in    = VPDataIn;
-    ns[node]->rcv_buf.data_in_hi = VPDataInHi;
+    if (ns[node]->send_buf.type != trans32_rd_burst && ns[node]->send_buf.type != trans32_wr_burst)
+    {
+        ns[node]->rcv_buf.data_in    = VPDataIn;
+        ns[node]->rcv_buf.data_in_hi = VPDataInHi;
+    }
+    else
+    {
+        ns[node]->rcv_buf.num_burst_bytes = ns[node]->send_buf.num_burst_bytes;
+    }
     ns[node]->rcv_buf.interrupt  = Interrupt;
 
     // Send message to VUser with VPDataIn value
@@ -207,6 +214,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         VPAddr_int      = (uint32_t)((ns[node]->send_buf.addr)       & 0xffffffffULL);
         VPAddrHi_int    = (uint32_t)((ns[node]->send_buf.addr >> 32) & 0xffffffffULL);
         VPRw_int        = ns[node]->send_buf.rw;
+        VPBurstSize_int = ns[node]->send_buf.num_burst_bytes;
         VPTicks_int     = ns[node]->send_buf.ticks;
 
         switch(ns[node]->send_buf.type)
@@ -227,7 +235,11 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
               *VPAddrWidth = 32;
               *VPDataWidth = 32;
               break;
-
+            case trans32_wr_burst:
+            case trans32_rd_burst:
+              *VPAddrWidth = 32;
+              *VPDataWidth = 32;
+              break;
             case trans64_wr_byte:
             case trans64_rd_byte:
               *VPAddrWidth = 64;
@@ -247,6 +259,10 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
             case trans64_rd_dword:
               *VPAddrWidth = 64;
               *VPDataWidth = 64;
+            case trans64_wr_burst:
+            case trans64_rd_burst:
+              *VPAddrWidth = 64;
+              *VPDataWidth = 64;
               break;
               
             default:
@@ -258,6 +274,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     }
 
     debug_io_printf("VTrans(): returning to simulation from node %d\n\n", node);
+    
+    DebugVPrint("===> addr=%08x rnw=%d burst=%d ticks=%d\n", VPAddr_int, VPRw_int, VPBurstSize_int, VPTicks_int);
 
     // Export outputs over FLI
     *VPDataOut        = VPDataOut_int;
@@ -265,6 +283,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     *VPAddr           = VPAddr_int;
     *VPAddrHi         = VPAddrHi_int;
     *VPRw             = VPRw_int;
+    *VPBurstSize      = VPBurstSize_int;
     *VPTicks          = VPTicks_int;
 
 }
@@ -283,5 +302,25 @@ VPROC_RTN_TYPE VProcUser(VPROCUSER_PARAMS)
     {
         (*(ns[node]->VUserCB))(value);
     }
+}
+
+// -------------------------------------------------------------------------
+// VSetBurstByte()
+//
+// -------------------------------------------------------------------------
+
+VPROC_RTN_TYPE VSetBurstRdByte(VSETBURSTRDBYTE_PARAMS)
+{
+    ns[node]->rcv_buf.databuf[idx % DATABUF_SIZE] = data;
+}
+
+// -------------------------------------------------------------------------
+// VGetBurstWrByte()
+//
+// -------------------------------------------------------------------------
+
+VPROC_RTN_TYPE VGetBurstWrByte(VGETBURSTWRBYTE_PARAMS)
+{
+    *data = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];
 }
 

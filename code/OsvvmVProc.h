@@ -1,7 +1,7 @@
 // =========================================================================
 //
 //  File Name:         OsvvmVProc.h
-//  Design Unit Name:  
+//  Design Unit Name:
 //  Revision:          OSVVM MODELS STANDARD VERSION
 //
 //  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -100,6 +100,8 @@
 #define MIN_INTERRUPT_LEVEL     1
 #define MAX_INTERRUPT_LEVEL     7
 
+#define DATABUF_SIZE            4096
+
 
 typedef enum trans_type_e
 {
@@ -108,21 +110,25 @@ typedef enum trans_type_e
   trans32_wr_word,
   trans32_wr_dword,
   trans32_wr_qword,
-  trans32_rd_byte ,
+  trans32_wr_burst,
+  trans32_rd_byte,
   trans32_rd_hword,
   trans32_rd_word ,
   trans32_rd_dword,
   trans32_rd_qword,
+  trans32_rd_burst,
   trans64_wr_byte,
   trans64_wr_hword,
   trans64_wr_word,
   trans64_wr_dword,
   trans64_wr_qword,
+  trans64_wr_burst,
   trans64_rd_byte,
   trans64_rd_hword,
   trans64_rd_word,
   trans64_rd_dword,
-  trans64_rd_qword 
+  trans64_rd_qword,
+  trans64_rd_burst
 
 } trans_type_e;
 
@@ -139,6 +145,8 @@ typedef struct
     uint32_t            prot;
     uint64_t            addr;
     uint8_t             data[16];
+    int                 num_burst_bytes;
+    uint8_t             databuf[DATABUF_SIZE];
     uint32_t            rw;
     int                 ticks;
 } send_buf_t, *psend_buf_t;
@@ -147,7 +155,8 @@ typedef struct
 {
     unsigned int        data_in;
     unsigned int        data_in_hi;
-    void*               data;
+    int                 num_burst_bytes;
+    uint8_t             databuf[DATABUF_SIZE];
     unsigned int        interrupt;
 } rcv_buf_t, *prcv_buf_t;
 

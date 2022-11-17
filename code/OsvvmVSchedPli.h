@@ -54,21 +54,29 @@
 #  define debug_io_printf //
 #  endif
 
-#define VINIT_PARAMS       int  node
-#define VSCHED_PARAMS      int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPRw,int* VPTicks
-#define VTRANS_PARAMS      int  node,     int Interrupt,                                                         \
-                           int  VPDataIn, int  VPDataInHi, int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
-                           int* VPAddr,   int* VPAddrHi,   int* VPAddrWidth,                                     \
-                           int* VPRw,     int* VPTicks
-#define VPROCUSER_PARAMS   int  node, int value
-#define VHALT_PARAMS       int, int
+#define VINIT_PARAMS               int  node
+#define VSCHED_PARAMS              int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPRw,int* VPTicks
+#define VTRANS_PARAMS              int  node,     int  Interrupt,                                                        \
+                                   int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
+                                   int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
+                                   int* VPRw,     int* VPBurstSize, int* VPTicks
+#define VTRANSBURST_PARAMS         int  node,     int  Interrupt,                                                        \
+                                   int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                    \
+                                   int* VPRw,     int* VPBurstSize, int* VPTicks
+#define VPROCUSER_PARAMS           int  node, int value
+#define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  uint8_t* data
+#define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  uint8_t  data
+#define VHALT_PARAMS               int, int
 
 #define VPROC_RTN_TYPE     void
-
-extern VPROC_RTN_TYPE VInit     (VINIT_PARAMS);
-extern VPROC_RTN_TYPE VSched    (VSCHED_PARAMS);
-extern VPROC_RTN_TYPE VTrans    (VTRANS_PARAMS);
-extern VPROC_RTN_TYPE VProcUser (VPROCUSER_PARAMS);
-extern int            VHalt     (VHALT_PARAMS);
+                                      
+extern VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
+extern VPROC_RTN_TYPE VSched          (VSCHED_PARAMS);
+extern VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
+extern VPROC_RTN_TYPE VTransBurst     (VTRANSBURST_PARAMS);
+extern VPROC_RTN_TYPE VProcUser       (VPROCUSER_PARAMS);
+extern VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);
+extern VPROC_RTN_TYPE VGetBurstWrByte (VGETBURSTWRBYTE_PARAMS);
+extern int            VHalt           (VHALT_PARAMS);
 
 #endif
