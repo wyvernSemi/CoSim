@@ -54,36 +54,14 @@ static int node  = 0;
 #define random rand
 #endif
 
+static const int max_burst_size     = 4096;
+static const int max_rd_wr_distance = 5;
+
 typedef struct {
     uint32_t addr;
-    uint32_t wdata;
-    uint32_t size;
+    uint8_t  wdata[max_burst_size];
+    int      size;
 } wtrans_t;
-
-// ------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------
-
-static void logGdbMsg(FILE *fp, wtrans_t &w, bool rnw)
-{
-    char msg[256];
-
-    if (rnw)
-    {
-        sprintf(msg, "m%x,%d\n", w.addr, w.size/8);
-    }
-    else
-    {
-        int byteSize = w.size/8;
-        switch(w.size)
-        {
-        case 32: sprintf(msg, "M%x,%d:%08x\n", w.addr, byteSize, w.wdata); break;
-        case 16: sprintf(msg, "M%x,%d:%04x\n", w.addr, byteSize, w.wdata & 0xffff); break;
-        case  8: sprintf(msg, "M%x,%d:%02x\n", w.addr, byteSize, w.wdata & 0xff); break;
-        }
-    }
-
-    fprintf(fp, "%s", msg);
-}
 
 // ------------------------------------------------------------------------------
 // Main entry point for node 0 virtual processor software
@@ -100,31 +78,71 @@ extern "C" void VUserMain0()
     std::vector<wtrans_t> vec;
     wtrans_t              wtrans;
 
+    uint8_t rbuf[max_burst_size];
+    bool    error = false;
+    int     rnw;
+
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
 
-    uint8_t wbuf[4096];
-    uint8_t rbuf[4096];
-    
-    for (int idx = 0; idx < 16; idx++)
+    while(!error)
     {
-        wbuf[idx] = idx; //random() & 0xff;
+        // Decide whether a read or a write
+        rnw  = vec.empty()                      ? 0 : // Force a write when none outstanding
+               vec.size() == max_rd_wr_distance ? 1 : // Force a read if number of writes reaches maximum
+               random() & 1;                          // Else do a random read/write
+
+        // If writing....
+        if (!rnw)
+        {
+            // Generate an unaligned random address
+            wtrans.addr = random() ^ (random() << 16);
+            
+            // Calculate the magnitude of the transaction size
+            // (Powers of 2 between 1 and 256)
+            int magnitude = 1 << (random() % 8);
+            
+            // Set the transaction size to be the magnitude plus a random offset
+            // which is between 0 and the size of the magnitude
+            wtrans.size = magnitude + random()%magnitude;
+
+            // Put random bytes in the write data buffer
+            for (int idx = 0; idx < wtrans.size; idx++)
+            {
+                wtrans.wdata[idx] = random() & 0xff;
+            }
+            
+            // Save the write transaction information
+            vec.push_back(wtrans);
+
+            // Generate a write burst transaction
+            VTransBurstWrite(wtrans.addr, wtrans.wdata, wtrans.size);
+
+        }
+        // If reading...
+        else
+        {
+            // Fetch the write transaction's information and clear from vector
+            wtrans = vec.front();
+            vec.erase(vec.begin()); 
+ 
+            // Read back fro the write address the transaction data stored
+            VTransBurstRead(wtrans.addr, rbuf, wtrans.size);
+
+            // Compare the data read from memory with that in the write transaction buffer.
+            // If a failure, report and end the generation of transactions.
+            for (int idx = 0; idx < wtrans.size; idx++)
+            {
+                if (rbuf[idx] != wtrans.wdata[idx])
+                {
+                    VPrint("**ERROR: data mismatch on read transaction starting at index %d. Exp 0x%02x Got 0x%02x\n",
+                            idx, rbuf[idx], wtrans.wdata[idx]);
+                    error = true;
+                    break;
+                }
+            }
+        }
     }
-    
-    uint32_t address = ((random() ^ (random() << 16)) & 0xfffffffc) + 2;
-    
-    VTransBurstWrite(address, wbuf, 16);
-    
-    VTick(10);
-    
-    VTransBurstRead(address, rbuf, 16);
-    
-    VPrint("===> ");
-    for (int idx =0; idx < 16; idx++)
-    {
-        VPrint("%02x ", rbuf[idx]);
-    }
-    VPrint("\n");
 
     // If ever got this far then sleep forever
     SLEEPFOREVER;
