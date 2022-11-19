@@ -56,6 +56,7 @@ static int node  = 0;
 
 static const int max_burst_size     = 4096;
 static const int max_rd_wr_distance = 5;
+static const int size_order_log2    = 8;
 
 typedef struct {
     uint32_t addr;
@@ -100,7 +101,7 @@ extern "C" void VUserMain0()
             
             // Calculate the magnitude of the transaction size
             // (Powers of 2 between 1 and 256)
-            int magnitude = 1 << (random() % 8);
+            int magnitude = 1 << (random() % size_order_log2);
             
             // Set the transaction size to be the magnitude plus a random offset
             // which is between 0 and the size of the magnitude

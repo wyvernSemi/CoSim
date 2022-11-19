@@ -76,3 +76,31 @@ proc mk_vproc_noclean {srcrootdir testname} {
 
   exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
 }
+
+# ------------------------------------------------------------------------
+# mk_vproc_lib
+#
+#   Do a clean make compile for the specified VProc
+#   test directory, linking in the specified library
+#   from CoSim/lib with headers in CoSim/include
+#
+# ------------------------------------------------------------------------
+proc mk_vproc_lib {srcrootdir testname libname} {
+
+  mk_vproc_clean $srcrootdir $testname
+  set flags "-I ${srcrootdir}/include -L ${srcrootdir}/lib -l${libname}"
+  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname \
+       OPDIR=$::osvvm::CurrentSimulationDirectory                 \
+       USRFLAGS=${flags}
+}
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+proc mk_vproc_skt {srcrootdir testname } {
+
+  mk_vproc_clean $srcrootdir $testname
+  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
+  set rc [ exec python3 $srcrootdir/Scripts/client_gui.py -b -w 2 -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 & ]
+  puts "Running client_gui.py batch mode"
+}

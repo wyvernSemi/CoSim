@@ -103,29 +103,27 @@ extern "C" int VUser (int node)
 
 static void VUserInit (int node)
 {
-    handle_t hdl;
+    //handle_t hdl;
     pVUserMain_t VUserMain_func;
     char funcname[DEFAULT_STR_BUF_SIZE];
     int status;
 
     debug_io_printf("VUserInit(%d)\n", node);
 
-    // Get function pointer of user entry routine
+    // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
-#if !defined(WIN32) ||  !defined(WIN64)
-    if ((VUserMain_func = (pVUserMain_t) dlsym(RTLD_DEFAULT, funcname)) == NULL)
-#endif
-    {
-        // If the lookup failed, try loading the shared object immediately
-        // and trying again. This addresses an issue seen with ModelSim on
-        // Windows where the symbols are *sometimes* not loaded by this point.
-        void* hdl = dlopen("VProc.so", RTLD_NOW);
 
-        if ((VUserMain_func = (pVUserMain_t) dlsym(hdl, funcname)) == NULL)
-        {
-            printf("***Error: failed to find user code symbol %s (VUserInit)\n", funcname);
-            exit(1);
-        }
+    // Load VProc shared object to make symbols global
+    void* hdlvp = dlopen("VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+    
+    // Load user shared object to get handle to lookup VUsermain function symbols
+    void* hdlvu = dlopen("VUser.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    // Get the function pointer for the entry routine
+    if ((VUserMain_func = (pVUserMain_t) dlsym(hdlvu, funcname)) == NULL)
+    {
+        printf("***Error: failed to find user code symbol %s (VUserInit)\n", funcname);
+        exit(1);
     }
 
     debug_io_printf("VUserInit(): got user function (%s) for node %d (%x)\n", funcname, node, VUserMain_func);

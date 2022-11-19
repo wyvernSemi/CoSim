@@ -36,6 +36,7 @@
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
+
 #  limitations under the License.
 #
 
@@ -69,14 +70,25 @@ USER_C_BASE        = $(notdir $(filter %c, ${USER_C}))
 SRC_INCL           = $(wildcard ${SRCDIR}/*.h)
 USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 
-VOBJS              = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_BASE:%.cpp=%.o} \
-                     ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
+VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
+VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_BASE:%.cpp=%.o})
 
 USRFLAGS           =
+
+RV32EXE            = test.exe
+
+ifeq ("${USRCDIR}", "tests/iss")
+  RV32TEST = ${RV32EXE}
+else
+  RV32TEST = dummy
+endif
 
 # Generated  PLI C library
 VPROC_PLI          = ${OPDIR}/VProc.so
 VLIB               = ${TESTDIR}/libvproc.a
+
+VUSER_PLI          = ${OPDIR}/VUser.so
+VULIB              = ${TESTDIR}/libvuser.a
 
 # Get OS type
 OSTYPE:=$(shell uname)
@@ -85,13 +97,13 @@ OSTYPE:=$(shell uname)
 ifeq (${OSTYPE}, Linux)
   CFLAGS_SO        = -shared -lpthread -lrt -rdynamic
   CPPSTD           = -std=c++11
-  MODELSIMBINDIR   = linuxaloem
   WLIB             =
+  RV32CMD          = cp tests/iss/test.exe ${OPDIR}
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
   CPPSTD           =
-  MODELSIMBINDIR   = win32aloem
   WLIB             = -lWs2_32
+  RV32CMD          = copy tests/iss/test.exe ${OPDIR}
 endif
 
 CC                 = gcc
@@ -107,14 +119,11 @@ CFLAGS             = -fPIC                                 \
                      -DMODELSIM                            \
                      -D_REENTRANT
 
-# Comman flags for vsim
-VSIMFLAGS = -pli ${VPROC_PLI} ${VPROC_TOP}
-
 #------------------------------------------------------
 # BUILD RULES
 #------------------------------------------------------
 
-all: ${VPROC_PLI}
+all: ${VPROC_PLI} ${VUSER_PLI}
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.c ${SRC_INCL}
 	@${CC} -c ${CFLAGS} $< -o $@
@@ -131,7 +140,12 @@ ${VOBJDIR}/%.o: ${USRCDIR}/%.cpp ${USER_INCL}
 ${VLIB} : ${VOBJS} ${VOBJDIR}
 	@ar cr ${VLIB} ${VOBJS}
 
+${VULIB} : ${VUOBJS} ${VOBJDIR}
+	@ar cr ${VULIB} ${VUOBJS}
+
 ${VOBJS}: | ${VOBJDIR}
+
+${VUOBJS}: | ${VOBJDIR}
 
 ${VOBJDIR}:
 	@mkdir ${VOBJDIR}
@@ -139,7 +153,13 @@ ${VOBJDIR}:
 ${OPDIR}:
 	@mkdir ${OPDIR}
 
-${VPROC_PLI}: ${OPDIR} ${VLIB}
+${RV32EXE}:
+	@${RV32CMD}
+
+.PHONY: dummy
+dummy:
+
+${VPROC_PLI}: ${VLIB}
 	@${C++} ${CPPSTD}                                   \
             ${CFLAGS_SO}                                \
             -Wl,-whole-archive                          \
@@ -152,10 +172,23 @@ ${VPROC_PLI}: ${OPDIR} ${VLIB}
             ${WLIB}                                     \
             -o $@
 
+${VUSER_PLI}: ${VULIB} ${RV32TEST}
+	@${C++} ${CPPSTD}                                   \
+            ${CFLAGS_SO}                                \
+            -Wl,-whole-archive                          \
+            ${CFLAGS}                                   \
+            -lpthread                                   \
+            -L${MODEL_TECH}                             \
+            -lmtipli                                    \
+            -L${TESTDIR} -lvuser                        \
+            -Wl,-no-whole-archive                       \
+            ${WLIB}                                     \
+            -o $@
+
 #------------------------------------------------------
 # CLEANING RULES
 #------------------------------------------------------
 
 clean:
-	@rm -rf ${VPROC_PLI} ${VLIB} ${VOBJS} ${VOBJDIR}
+	@rm -rf ${VPROC_PLI} ${VUSER_PLI} ${VLIB} ${VULIB} ${VOBJS} ${VOBJDIR} ${RV32EXE}
 

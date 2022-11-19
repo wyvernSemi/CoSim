@@ -159,7 +159,7 @@ OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
 
     // Create an IPv4 socket byte stream
     osvvm_cosim_skt_t svrskt;
-    
+
     if ((svrskt = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
     {
         VPrint("ERROR opening socket\n");
@@ -176,8 +176,20 @@ OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port        = htons(portno);
 
-    // Bind the socket to the address
-    int status = bind(svrskt, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    // Bind the socket to the address. Make up to 10 attempts on consecutive
+    // different port numbers in case a port is already in use.
+    int status, attempts;
+    for (attempts = 0; attempts < 10; attempts++)
+    {
+        serv_addr.sin_port    = htons(portno + attempts);
+        status = bind(svrskt, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+        if (status >= 0)
+        {
+            break;
+        }
+    }
+
+    // If failed to bind to a port, cleanup and report the error
     if (status < 0)
     {
         VPrint("ERROR on Binding: %d\n", status);
@@ -188,7 +200,7 @@ OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
     // Advertise the port number
     char errmsg[1024];
 
-    sprintf(errmsg, "OSVVM_COSIM_SKT: Using TCP port number: %d\n", portno);
+    sprintf(errmsg, "OSVVM_COSIM_SKT: Using TCP port number: %d\n", portno + attempts);
     io_printf(errmsg, portno);
 
     // Listen for connections (blocking)

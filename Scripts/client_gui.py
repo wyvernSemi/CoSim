@@ -63,8 +63,8 @@
 #             __chksum()
 #             getmsg()
 #         __procReadResp()
-#     __scriptBrowseButton()       -- On Browse button press, open file selector dialog to choose script file
-#     __scriptExecButton()         -- On Exectute button press, start processing script in a new thread, updating text box
+#     __scriptBrowseBtn()          -- On Browse button press, open file selector dialog to choose script file
+#     __scriptExecBtn()            -- On Exectute button press, start processing script in a new thread, updating text box
 #         __scriptExecBtnThread()  -- Thread method invoked after an Execute press
 #             __opToTextWin()
 #             __chksum()
@@ -80,6 +80,8 @@
 #
 # =========================================================================
 
+import argparse
+import time
 import socket
 import platform
 import os
@@ -144,6 +146,8 @@ class client_gui :
 
     self.__runDir            = StringVar()
     self.__runDir.set(os.getcwd())
+    
+    self.__batchMode         = False
 
   # -----------------------------------------------------------------
   # __opToTextWin()
@@ -151,13 +155,15 @@ class client_gui :
   # Method to output a string to the text window, with re-enabling
   # and immediate disabling
   #
-  @staticmethod
-  def __opToTextWin (hdl, str) :
+  def __opToTextWin (self, hdl, str) :
 
-    hdl.config(state = NORMAL)
-    hdl.insert(INSERT, str);
-    hdl.see('end');
-    hdl.config(state = DISABLED)
+    if not self.__batchMode :
+      hdl.config(state = NORMAL)
+      hdl.insert(INSERT, str);
+      hdl.see('end');
+      hdl.config(state = DISABLED)
+    else :
+      print(str, end = "")
 
   # -----------------------------------------------------------------
   # __chksum()
@@ -222,20 +228,20 @@ class client_gui :
   #
   #
   def __procReadResp(self, response, datawidth) :
-   
+
     # Get the hex number part of the response string
     hexstr = response[2:].split('#')[0]
-    
+
     # Add any requred leading zeroes
     hexstr = '0' * (8 - len(hexstr)) + hexstr
-    
+
     # Update the data entry box with the response value
     oldstate = self.__dataEntry['state']
     self.__dataEntry.config(state = NORMAL)
     self.__dataEntry.delete(0, END)
     self.__dataEntry.insert(0, hexstr)
     self.__dataEntry.config(state = oldstate)
-    
+
     # Return number as an integer value
     return int('0x' + hexstr, 16)
 
@@ -246,38 +252,39 @@ class client_gui :
   #  Callback method for 'Connect' button activation
   #
   def __connectBtn(self) :
-
-    if self.__connStatus.get() != 'Connected' :
-      try :
-        # Open up a socket
-        self.__skt               = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # Open connection with configuired host TCP/IP address or name, and port number
-        self.__skt.connect((self.__hostName.get(), int(self.__portNumber.get())))
-
-        # Update widget states on successful connection
-        self.__connStatus.set('Connected')
-        self.__opToTextWin(self.__txt, 'Connected to port ' + self.__portNumber.get() + '\n')
-        self.__scriptExecBtn.config(state = NORMAL)
-        self.__sndBtn.config(state = NORMAL)
-        self.__connStatusLbl.config(background=self.__CONNECTED_COLOUR)
-        self.__hostnameEntry.config(state = DISABLED)
-        self.__portNumEntry.config(state = DISABLED)
-        self.__disconnBtnEntry.config(state = NORMAL)
-        self.__connBtnEntry.config(state = DISABLED)
-
-      # Update widget states on unsuccessful connection
-      except:
-        self.__connStatus.set('Connection Error')
-        self.__connStatusLbl.config(background=self.__ERROR_COLOUR)
-        self.__hostnameEntry.config(state = NORMAL)
-        self.__portNumEntry.config(state = NORMAL)
-        self.__disconnBtnEntry.config(state = DISABLED)
-        self.__connBtnEntry.config(state = NORMAL)
-
-        # Shutdown and close the connection
-        self.__skt.shutdown(socket.SHUT_RDW)
-        self.__skt.close()
+  
+    if self.__connStatus.get() != 'Connected' or self.__batchMode :
+        try :
+          # Open up a socket
+          self.__skt               = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+          # Open connection with configuired host TCP/IP address or name, and port number
+          self.__skt.connect((self.__hostName.get(), int(self.__portNumber.get())))
+        
+          # Update widget states on successful connection
+          if not self.__batchMode :
+            self.__connStatus.set('Connected')
+            self.__opToTextWin(self.__txt, 'Connected to port ' + self.__portNumber.get() + '\n')
+            self.__scriptExecBtn.config(state = NORMAL)
+            self.__sndBtn.config(state = NORMAL)
+            self.__connStatusLbl.config(background=self.__CONNECTED_COLOUR)
+            self.__hostnameEntry.config(state = DISABLED)
+            self.__portNumEntry.config(state = DISABLED)
+            self.__disconnBtnEntry.config(state = NORMAL)
+            self.__connBtnEntry.config(state = DISABLED)
+        
+        # Update widget states on unsuccessful connection
+        except:
+          if not self.__batchMode :
+            self.__connStatus.set('Connection Error')
+            self.__connStatusLbl.config(background=self.__ERROR_COLOUR)
+            self.__hostnameEntry.config(state = NORMAL)
+            self.__portNumEntry.config(state = NORMAL)
+            self.__disconnBtnEntry.config(state = DISABLED)
+            self.__connBtnEntry.config(state = NORMAL)
+        
+          # Shutdown and close the connection
+          self.__skt.close()
 
   # -----------------------------------------------------------------
   # __disconnectBtn()
@@ -287,22 +294,26 @@ class client_gui :
   def __disconnectBtn(self) :
 
     # If actually connected (else ignore)...
-    if self.__connStatus.get() == 'Connected' :
+    if self.__connStatus.get() == 'Connected' or self.__batchMode:
 
       # Update widget state when disconnected
-      self.__connStatus.set('Not Connected')
-      self.__opToTextWin(self.__txt, 'Disconnected from port ' + self.__portNumber.get() + '\n')
-      self.__scriptExecBtn.config(state = DISABLED)
-      self.__sndBtn.config(state = DISABLED)
-      self.__portNumEntry.config(state = NORMAL)
-      self.__hostnameEntry.config(state = NORMAL)
-      self.__connStatusLbl.config(background=self.__DISCONNECTED_COLOUR)
+      if not self.__batchMode :
+        self.__connStatus.set('Not Connected')
+        self.__opToTextWin(self.__txt, 'Disconnected from port ' + self.__portNumber.get() + '\n')
+        self.__scriptExecBtn.config(state = DISABLED)
+        self.__sndBtn.config(state = DISABLED)
+        self.__portNumEntry.config(state = NORMAL)
+        self.__hostnameEntry.config(state = NORMAL)
+        self.__connStatusLbl.config(background=self.__DISCONNECTED_COLOUR)
+        
       response = self.__sendmsg('D', self.__skt)
-      self.__disconnBtnEntry.config(state = DISABLED)
-      self.__connBtnEntry.config(state = NORMAL)
+      
+      if not self.__batchMode :
+        self.__disconnBtnEntry.config(state = DISABLED)
+        self.__connBtnEntry.config(state = NORMAL)
 
       # Shutdown and close the connection
-      self.__skt.shutdown(socket.SHUT_RDW)
+      self.__skt.shutdown(socket.SHUT_RDWR)
       self.__skt.close()
 
       return response
@@ -416,11 +427,11 @@ class client_gui :
       self.__scriptExecBtn.config(state = NORMAL)
 
   # -----------------------------------------------------------------
-  # __scriptExecBtn()
+  # __scriptExec()
   #
   # Callback method on pressing of the 'Execute' button
   #
-  def __scriptExecBtn(self) :
+  def __scriptExec(self) :
 
     # Start a new thread to update the text box during script execution
     thread = Thread(target = self.__scriptExecBtnThread)
@@ -626,7 +637,7 @@ class client_gui :
       # In a new row, add an 'Execute' button, spanning all the columns
       colidx = 0
       rowidx += 1
-      self.__scriptExecBtn = Button(frm, text='Execute', command=self.__scriptExecBtn, width=15)
+      self.__scriptExecBtn = Button(frm, text='Execute', command=self.__scriptExec, width=15)
       self.__scriptExecBtn.config(state = DISABLED)
       self.__scriptExecBtn.grid(row=rowidx, column=colidx, padx=10, pady=10, columnspan=numcols)
       colidx +=1
@@ -682,10 +693,55 @@ class client_gui :
 
     mainloop()
 
+  # -----------------------------------------------------------------
+  # runBatch()
+  #
+  # Top level public calling method to activate a batch run
+  #
+  def runBatch(self, portNum, script) :
+
+    self.__txt = None
+    self.__batchMode = True
+    self.__portNumber.set(str(portNum))
+    self.__scriptFile.set(script)
+    self.__connectBtn();
+    self.__scriptExecBtnThread()
+    self.__disconnectBtn()
+
+  # --------------------------------------------------------------
+  # Parse the command line arguments specific to the package
+  # generator
+  #
+  @staticmethod
+  def processCmdLine() :
+
+      # Create a parser object
+      parser = argparse.ArgumentParser(description='Process command line options.')
+
+      # Command line options added here
+      parser.add_argument('-p', '--portnum', dest='portNum', default='49152', action='store',
+                          help='Set a TCP/IP port number')
+      parser.add_argument('-b', '--batch', dest='batch', default=False, action='store_true',
+                          help='Run in batch mode')
+      parser.add_argument('-s', '--script', dest='script', default='sktscript.txt', action='store',
+                          help='Specify a script to run in batch mode')
+      parser.add_argument('-w', '--wait', dest='wait', default='1', action='store',
+                          help='Specify wait period (secs) before running batch script')
+
+      return parser.parse_args()
+
 # ###############################################################
 # Only run if not imported
 #
 if __name__ == '__main__' :
 
   gui = client_gui()
-  gui.run()
+
+  # Process the command line options
+  cmdArgs = gui.processCmdLine()
+
+  if cmdArgs.batch :
+    time.sleep(int(cmdArgs.wait))
+    gui.runBatch(cmdArgs.portNum, cmdArgs.script)
+  else :
+    gui.run()
