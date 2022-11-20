@@ -99,14 +99,17 @@ extern "C" void VUserMain0()
 
     std::vector<wtrans_t> vec;
     wtrans_t              wtrans;
+    int                   count = 800; 
 
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
 
     FILE* fp = fopen("sktscript.txt", "w");
 
-    while (true)
+    while (count != 0)
     {
+        count--;
+        
         // Get read/write and address from random value
         uint32_t rnw = (uint32_t)(random() & 0x1UL);        // Bit 0
 
@@ -179,6 +182,9 @@ extern "C" void VUserMain0()
 
         logGdbMsg(fp, wtrans, rnw);
     }
+    
+    // Flag to the simulation we're finished, after 10 more iterations
+    VTick(10, true);
 
     fclose(fp);
 

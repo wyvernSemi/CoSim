@@ -56,13 +56,13 @@
 
 #define VINIT_PARAMS               int  node
 #define VSCHED_PARAMS              int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPRw,int* VPTicks
-#define VTRANS_PARAMS              int  node,     int  Interrupt,                                                        \
+#define VTRANS_PARAMS              int  node,     int  Interrupt,                                                         \
                                    int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
-                                   int* VPRw,     int* VPBurstSize, int* VPTicks
-#define VTRANSBURST_PARAMS         int  node,     int  Interrupt,                                                        \
-                                   int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                    \
-                                   int* VPRw,     int* VPBurstSize, int* VPTicks
+                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone
+#define VTRANSBURST_PARAMS         int  node,     int  Interrupt,                                                         \
+                                   int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
+                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone
 #define VPROCUSER_PARAMS           int  node, int value
 #define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  uint8_t* data
 #define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  uint8_t  data

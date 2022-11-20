@@ -70,7 +70,8 @@ constant DATA_WIDTH_MAX  : integer := 64 ;
 
 procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
-  variable Ticks            : inout  integer
+  variable Ticks            : inout  integer ;
+  variable Done             : inout  integer
   ) ;
 
 procedure CoSimTransSingle (
@@ -117,7 +118,8 @@ package body OsvvmTestCoSimPkg is
 procedure CoSimTrans (
   -- Transaction  interface
   signal   ManagerRec      : inout  AddressBusRecType ;
-  variable Ticks           : inout  integer
+  variable Ticks           : inout  integer ;
+  variable Done            : inout  integer
   ) is
 
   variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
@@ -133,6 +135,7 @@ procedure CoSimTrans (
   variable VPRW            : integer ;
   variable VPBurstSize     : integer ;
   variable VPTicks         : integer ;
+  variable VPDone          : integer ;
 
   variable Interrupt       : integer := 0 ; -- currently unused
 
@@ -150,7 +153,7 @@ procedure CoSimTrans (
         VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
       else
         VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-        VPDataInHi := 0;
+        VPDataInHi := 0 ;
       end if;
 
       -- Call VTrans to generate a new access
@@ -158,9 +161,10 @@ procedure CoSimTrans (
              VPDataIn,  VPDataInHi,
              VPDataOut, VPDataOutHi, VPDataWidth,
              VPAddr,    VPAddrHi,    VPAddrWidth,
-             VPRW,      VPBurstSize, VPTicks) ;
+             VPRW,      VPBurstSize, VPTicks, VPDone) ;
 
       Ticks := VPTicks ;
+      Done  := VPDone when Done = 0;  -- Sticky
 
       if VPBurstSize = 0 then
 
@@ -177,7 +181,7 @@ procedure CoSimTrans (
 
     else
 
-      Ticks := Ticks - 1;
+      Ticks := Ticks - 1 ;
 
     end if ;
 

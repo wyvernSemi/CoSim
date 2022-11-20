@@ -82,12 +82,15 @@ extern "C" void VUserMain0()
     uint8_t rbuf[max_burst_size];
     bool    error = false;
     int     rnw;
+    int     count = 400; 
 
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
 
-    while(!error)
+    while(!error and count != 0)
     {
+        count--;
+        
         // Decide whether a read or a write
         rnw  = vec.empty()                      ? 0 : // Force a write when none outstanding
                vec.size() == max_rd_wr_distance ? 1 : // Force a read if number of writes reaches maximum
@@ -144,6 +147,9 @@ extern "C" void VUserMain0()
             }
         }
     }
+    
+    // Flag to the simulation we've finished after a small delay
+    VTick(10, true);
 
     // If ever got this far then sleep forever
     SLEEPFOREVER;

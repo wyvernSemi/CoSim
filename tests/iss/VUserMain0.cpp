@@ -19,7 +19,7 @@
 #include "rv32.h"
 #include "rv32_cpu_gdb.h"
 
-static int node = 0;
+static const int node = 0;
 
 // Type definition for write transaction, for use in TCP/IP socket script generation
 typedef struct {
@@ -266,6 +266,9 @@ extern "C" void VUserMain0()
         fclose(cfg.dbg_fp);
     }
     delete pCpu;
+    
+    // Flag to the simulation we're finished, after 10 more iterations
+    VTick(10, true);
 
     SLEEPFOREVER;
 }

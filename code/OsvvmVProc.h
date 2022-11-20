@@ -149,6 +149,7 @@ typedef struct
     uint8_t             databuf[DATABUF_SIZE];
     uint32_t            rw;
     int                 ticks;
+    int                 done;
 } send_buf_t, *psend_buf_t;
 
 typedef struct

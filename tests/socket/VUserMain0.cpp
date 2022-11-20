@@ -44,6 +44,9 @@ extern "C" void VUserMain0()
     {
         printf("DONE\n");
     }
+    
+    // Flag to the simulation we're finished, after 10 more iterations
+    VTick(10, true);
 
     SLEEPFOREVER;
 
