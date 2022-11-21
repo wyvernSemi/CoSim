@@ -111,6 +111,14 @@ static void logGdbMsg(FILE *fp, wtrans_t &w, bool rnw)
 }
 
 // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+
+static bool check_exit_status(rv32* pCpu)
+{
+    return pCpu->regi_val(10) || pCpu->regi_val(17) != 93;
+}
+    
+// -------------------------------------------------------------------------
 // ISS memory access callback function
 // -------------------------------------------------------------------------
 
@@ -159,6 +167,8 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
 
 extern "C" void VUserMain0()
 {
+    bool error = false;
+    
     // Create a configuration object
     rv32i_cfg_s cfg;
 
@@ -198,7 +208,7 @@ extern "C" void VUserMain0()
             pCpu->run(cfg);
 
             // Check exit status
-            if (pCpu->regi_val(10) || pCpu->regi_val(17) != 93)
+            if (error = check_exit_status(pCpu))
             {
                 VPrint("*FAIL*: exit code = 0x%08x finish code = 0x%08x running %s\n",
                         pCpu->regi_val(10) >> 1, pCpu->regi_val(17), cfg.exec_fname);
@@ -225,6 +235,11 @@ extern "C" void VUserMain0()
             }
 
         }
+        else
+        {
+            VPrint("***ERROR in loading executable file\n");
+            error = true;
+        }
 
     }
     // If GDB mode configured, run with that
@@ -235,14 +250,14 @@ extern "C" void VUserMain0()
         WSADATA wsaData;
         WSAStartup(versionWanted, &wsaData);
 #endif
-        int error = 0;
 
         // Load an executable if specified in the configuration
         if (cfg.user_fname)
         {
             if (pCpu->read_elf(cfg.exec_fname))
             {
-                error        = 1;
+                VPrint("***ERROR in loading executable file\n");
+                error = true;
             }
         }
 
@@ -251,7 +266,8 @@ extern "C" void VUserMain0()
             // Start procssing commands from GDB
             if (rv32gdb_process_gdb(pCpu, cfg.gdb_ip_portnum, cfg))
             {
-                fprintf(stderr, "***ERROR in opening PTY\n");
+                VPrint("***ERROR in opening PTY\n");
+                error = true;
             }
         }
 
@@ -268,7 +284,7 @@ extern "C" void VUserMain0()
     delete pCpu;
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true);
+    VTick(10, true, error);
 
     SLEEPFOREVER;
 }

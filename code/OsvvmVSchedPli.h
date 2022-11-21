@@ -59,10 +59,7 @@
 #define VTRANS_PARAMS              int  node,     int  Interrupt,                                                         \
                                    int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
-                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone
-#define VTRANSBURST_PARAMS         int  node,     int  Interrupt,                                                         \
-                                   int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
-                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone
+                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone,     int* VPError
 #define VPROCUSER_PARAMS           int  node, int value
 #define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  uint8_t* data
 #define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  uint8_t  data
@@ -73,7 +70,6 @@
 extern VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
 extern VPROC_RTN_TYPE VSched          (VSCHED_PARAMS);
 extern VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
-extern VPROC_RTN_TYPE VTransBurst     (VTRANSBURST_PARAMS);
 extern VPROC_RTN_TYPE VProcUser       (VPROCUSER_PARAMS);
 extern VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);
 extern VPROC_RTN_TYPE VGetBurstWrByte (VGETBURSTWRBYTE_PARAMS);

@@ -100,13 +100,14 @@ extern "C" void VUserMain0()
     std::vector<wtrans_t> vec;
     wtrans_t              wtrans;
     int                   count = 800; 
+    bool                  error = false;
 
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
 
     FILE* fp = fopen("sktscript.txt", "w");
 
-    while (count != 0)
+    while (!error && count != 0)
     {
         count--;
         
@@ -148,6 +149,7 @@ extern "C" void VUserMain0()
             else
             {
                 VPrint("VUserMain0: ***ERROR*** read %s %08X from address %08X. Expected %08x\n", msg, rdata, wtrans.addr, wtrans.wdata);
+                error = true;
             }
         }
         // Do a write
@@ -184,7 +186,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true);
+    VTick(10, true, error);
 
     fclose(fp);
 

@@ -35,10 +35,12 @@ extern "C" int VTick(uint32_t, uint32_t)
 extern "C" void VUserMain0()
 {
     OsvvmCosimSkt skt;
+    bool error = false;
 
     if (skt.ProcessPkts() != OsvvmCosimSkt::OSVVM_COSIM_OK)
     {
         fprintf(stderr, "***ERROR: socket exited with bad status\n");
+        error = true;
     }
     else
     {
@@ -46,7 +48,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true);
+    VTick(10, true, error);
 
     SLEEPFOREVER;
 

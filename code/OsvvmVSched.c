@@ -185,6 +185,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 
     int VPDataOut_int,   VPAddr_int,   VPRw_int, VPTicks_int;
     int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int, VPDone_int;
+    int VPError_int;
 
     // Sample inputs and update node state
     if (ns[node]->send_buf.type != trans32_rd_burst && ns[node]->send_buf.type != trans32_wr_burst)
@@ -217,6 +218,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         VPBurstSize_int = ns[node]->send_buf.num_burst_bytes;
         VPTicks_int     = ns[node]->send_buf.ticks;
         VPDone_int      = ns[node]->send_buf.done;
+        VPError_int     = ns[node]->send_buf.error;
 
         switch(ns[node]->send_buf.type)
         {
@@ -287,6 +289,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     *VPBurstSize      = VPBurstSize_int;
     *VPTicks          = VPTicks_int;
     *VPDone           = VPDone_int;
+    *VPError          = VPError_int;
 
 }
 

@@ -71,7 +71,8 @@ constant DATA_WIDTH_MAX  : integer := 64 ;
 procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
   variable Ticks            : inout  integer ;
-  variable Done             : inout  integer
+  variable Done             : inout  integer ;
+  variable Error            : inout  integer
   ) ;
 
 procedure CoSimTransSingle (
@@ -119,7 +120,8 @@ procedure CoSimTrans (
   -- Transaction  interface
   signal   ManagerRec      : inout  AddressBusRecType ;
   variable Ticks           : inout  integer ;
-  variable Done            : inout  integer
+  variable Done            : inout  integer ;
+  variable Error           : inout  integer
   ) is
 
   variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
@@ -136,6 +138,7 @@ procedure CoSimTrans (
   variable VPBurstSize     : integer ;
   variable VPTicks         : integer ;
   variable VPDone          : integer ;
+  variable VPError         : integer ;
 
   variable Interrupt       : integer := 0 ; -- currently unused
 
@@ -161,10 +164,12 @@ procedure CoSimTrans (
              VPDataIn,  VPDataInHi,
              VPDataOut, VPDataOutHi, VPDataWidth,
              VPAddr,    VPAddrHi,    VPAddrWidth,
-             VPRW,      VPBurstSize, VPTicks, VPDone) ;
+             VPRW,      VPBurstSize, VPTicks,
+             VPDone,    VPError) ;
 
       Ticks := VPTicks ;
-      Done  := VPDone when Done = 0;  -- Sticky
+      Done  := VPDone  when Done  = 0;  -- Sticky
+      Error := VPError when Error = 0;  -- Sticky
 
       if VPBurstSize = 0 then
 

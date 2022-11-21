@@ -128,7 +128,8 @@ typedef enum trans_type_e
   trans64_rd_word,
   trans64_rd_dword,
   trans64_rd_qword,
-  trans64_rd_burst
+  trans64_rd_burst,
+  trans_idle
 
 } trans_type_e;
 
@@ -150,6 +151,7 @@ typedef struct
     uint32_t            rw;
     int                 ticks;
     int                 done;
+    int                 error;
 } send_buf_t, *psend_buf_t;
 
 typedef struct

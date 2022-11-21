@@ -53,6 +53,20 @@ extern "C"
 }
 #include "OsvvmVUser.h"
 
+// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+static void VInitSendBuf(send_buf_t &sbuf)
+{
+
+    sbuf.type            = trans_idle;
+    sbuf.prot            = 0;
+    sbuf.num_burst_bytes = 0;
+    sbuf.rw              = V_IDLE;
+    sbuf.ticks           = 0;
+    sbuf.done            = 0;
+    sbuf.error           = 0;
+}
+
 static void VUserInit (int node);
 
 // -------------------------------------------------------------------------
@@ -115,7 +129,7 @@ static void VUserInit (int node)
 
     // Load VProc shared object to make symbols global
     void* hdlvp = dlopen("VProc.so", RTLD_LAZY | RTLD_GLOBAL);
-    
+
     // Load user shared object to get handle to lookup VUsermain function symbols
     void* hdlvu = dlopen("VUser.so", RTLD_LAZY | RTLD_GLOBAL);
 
@@ -223,13 +237,12 @@ int VWrite (uint32_t addr, uint32_t data, int delta, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_wr_word;
     sbuf.addr            = addr;
-    sbuf.prot            = 0;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = delta ? DELTA_CYCLE : 0;
-    sbuf.done            = 0;
+    sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -250,13 +263,12 @@ int VRead (uint32_t addr, uint32_t *rdata, int delta, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_rd_word;
     sbuf.addr            = addr;
-    sbuf.prot            = 0;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = delta ? DELTA_CYCLE : 0;
-    sbuf.done            = 0;
+    sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -277,13 +289,12 @@ uint8_t VTransWrite (uint32_t addr, uint8_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_wr_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -304,13 +315,12 @@ void VTransRead (uint32_t addr, uint8_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_rd_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -328,13 +338,12 @@ uint16_t VTransWrite (uint32_t addr, uint16_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_wr_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -355,13 +364,12 @@ void VTransRead (uint32_t addr, uint16_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_rd_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -380,13 +388,12 @@ uint32_t VTransWrite (uint32_t addr, uint32_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_wr_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -407,13 +414,12 @@ void VTransRead (uint32_t addr, uint32_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_rd_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -432,13 +438,12 @@ uint8_t VTransWrite (uint64_t addr, uint8_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_wr_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -459,13 +464,12 @@ void VTransRead (uint64_t addr, uint8_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_rd_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -484,13 +488,12 @@ uint16_t VTransWrite (uint64_t addr, uint16_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_wr_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -511,13 +514,12 @@ void VTransRead (uint64_t addr, uint16_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_rd_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -536,13 +538,12 @@ uint32_t VTransWrite (uint64_t addr, uint32_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_wr_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -563,13 +564,12 @@ void VTransRead (uint64_t addr, uint32_t *rdata, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_rd_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -588,13 +588,12 @@ uint64_t VTransWrite (uint64_t addr, uint64_t data, int prot, uint32_t node)
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_wr_dword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     *((uint64_t*)sbuf.data) = data;
 
@@ -615,13 +614,12 @@ void VTransRead (uint64_t addr, uint64_t *rdata, int prot, uint32_t node)
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_rd_dword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
-    sbuf.num_burst_bytes = 0;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -636,13 +634,13 @@ void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_wr_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
     {
@@ -662,13 +660,13 @@ void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_wr_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_WRITE;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
     {
@@ -688,13 +686,13 @@ void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans32_rd_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -714,13 +712,13 @@ void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
 
+    VInitSendBuf(sbuf);
+
     sbuf.type            = trans64_rd_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.rw              = V_READ;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
-    sbuf.ticks           = 0;
-    sbuf.done            = 0;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -739,15 +737,16 @@ void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
 //
 // -------------------------------------------------------------------------
 
-int VTick (uint32_t ticks, bool done, uint32_t node)
+int VTick (uint32_t ticks, bool done, bool error, uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
-    sbuf.rw              = V_IDLE;
-    sbuf.num_burst_bytes = 0;
+    VInitSendBuf(sbuf);
+
     sbuf.ticks           = ticks;
-    sbuf.done            = done ? 1 : 0;
+    sbuf.done            = done  ? 1 : 0;
+    sbuf.error           = error ? 1 : 0;
 
     VExch(&sbuf, &rbuf, node);
 

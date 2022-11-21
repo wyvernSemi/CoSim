@@ -149,7 +149,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we've finished after a small delay
-    VTick(10, true);
+    VTick(10, true, error);
 
     // If ever got this far then sleep forever
     SLEEPFOREVER;

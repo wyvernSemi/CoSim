@@ -71,7 +71,8 @@ package OsvvmVprocPkg is
     VPRw        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
-    VPDone      : out integer
+    VPDone      : out integer ;
+    VPError     : out integer
   ) ;
   attribute foreign of VTrans : procedure is "VTrans VProc.so" ;
 
@@ -133,7 +134,8 @@ package body OsvvmVprocPkg is
     VPRw        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
-    VPDone      : out integer
+    VPDone      : out integer ;
+    VPError     : out integer
   ) is
   begin
     report "ERROR: foreign subprogram out_params not called" ;
