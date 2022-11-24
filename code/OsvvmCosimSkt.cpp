@@ -201,7 +201,7 @@ OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
     char errmsg[1024];
 
     sprintf(errmsg, "OSVVM_COSIM_SKT: Using TCP port number: %d\n", portno + attempts);
-    io_printf(errmsg, portno);
+    VPrint(errmsg, portno);
 
     // Listen for connections (blocking)
     if (int status = listen(svrskt, MAXBACKLOG) < 0)

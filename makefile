@@ -75,6 +75,16 @@ VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_
 
 USRFLAGS           =
 
+SIM                = MODELSIM
+
+ifeq ("${SIM}", "GHDL")
+  ARCHFLAG           = -m64
+  PLILIBARGS         = 
+else
+  ARCHFLAG           = -m32
+  PLILIBARGS         = -L${MODEL_TECH} -lmtipli
+endif
+
 RV32EXE            = test.exe
 
 ifeq ("${USRCDIR}", "tests/iss")
@@ -109,9 +119,8 @@ endif
 CC                 = gcc
 C++                = g++
 CFLAGS             = -fPIC                                 \
-                     -m32                                  \
+                     ${ARCHFLAG}                           \
                      -g                                    \
-                     ${USRFLAGS}                           \
                      -I${SRCDIR}                           \
                      -I${USRCDIR}                          \
                      -I${MODEL_TECH}/../include            \
@@ -132,10 +141,10 @@ ${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
 	@${C++} -c ${CFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.c ${USER_INCL}
-	@${CC} -Wno-write-strings -c ${CFLAGS} $< -o $@
+	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS}$< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.cpp ${USER_INCL}
-	@${C++} ${CPPSTD} -Wno-write-strings -c ${CFLAGS} $< -o $@
+	@${C++} ${CPPSTD} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VLIB} : ${VOBJS} ${VOBJDIR}
 	@ar cr ${VLIB} ${VOBJS}
@@ -165,8 +174,7 @@ ${VPROC_PLI}: ${VLIB}
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
             -lpthread                                   \
-            -L${MODEL_TECH}                             \
-            -lmtipli                                    \
+            ${PLILIBARGS}                               \
             -L${TESTDIR} -lvproc                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
@@ -178,8 +186,8 @@ ${VUSER_PLI}: ${VULIB} ${RV32TEST}
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
             -lpthread                                   \
-            -L${MODEL_TECH}                             \
-            -lmtipli                                    \
+            ${PLILIBARGS}                               \
+            ${USRFLAGS}                                 \
             -L${TESTDIR} -lvuser                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \

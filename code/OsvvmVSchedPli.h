@@ -48,12 +48,6 @@
 #ifndef _OSVVM_VSCHED_PLI_H_
 #define _OSVVM_VSCHED_PLI_H_
 
-#  ifdef DEBUG
-#  define debug_io_printf printf
-#  else
-#  define debug_io_printf //
-#  endif
-
 #define VINIT_PARAMS               int  node
 #define VSCHED_PARAMS              int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPRw,int* VPTicks
 #define VTRANS_PARAMS              int  node,     int  Interrupt,                                                         \

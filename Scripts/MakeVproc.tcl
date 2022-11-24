@@ -40,6 +40,25 @@
 #
 
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+proc mk_vproc_common {srcrootdir testname libname simname} {
+
+if {"$libname" eq ""} {
+  set flags ""
+} else {
+  set flags "-I ./include -L ./lib -l${libname}"
+}
+
+exec make --no-print-directory -C $srcrootdir        \
+          SIM=$simname                               \
+          USRCDIR=$testname                          \
+          OPDIR=$::osvvm::CurrentSimulationDirectory \
+          USRFLAGS=${flags}
+
+}
+
+# -------------------------------------------------------------------------
 # mk_vproc_clean
 #
 #   Do a make clean on the VProc test directory
@@ -47,7 +66,8 @@
 # -------------------------------------------------------------------------
 
 proc mk_vproc_clean {srcrootdir testname} {
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory  clean
+  exec make --no-print-directory -C $srcrootdir \
+            USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory  clean
 }
 
 # -------------------------------------------------------------------------
@@ -58,10 +78,10 @@ proc mk_vproc_clean {srcrootdir testname} {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc {srcrootdir testname } {
+proc mk_vproc {srcrootdir testname {libname ""} } {
 
-  mk_vproc_clean $srcrootdir $testname
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
+  mk_vproc_clean  $srcrootdir $testname
+  mk_vproc_common $srcrootdir $testname $libname $::osvvm::ScriptBaseName
 }
 
 # -------------------------------------------------------------------------
@@ -72,35 +92,20 @@ proc mk_vproc {srcrootdir testname } {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_noclean {srcrootdir testname} {
+proc mk_vproc_noclean {srcrootdir testname {libname ""} {simname "MODELSIM"}} {
 
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
-}
-
-# ------------------------------------------------------------------------
-# mk_vproc_lib
-#
-#   Do a clean make compile for the specified VProc
-#   test directory, linking in the specified library
-#   from CoSim/lib with headers in CoSim/include
-#
-# ------------------------------------------------------------------------
-proc mk_vproc_lib {srcrootdir testname libname} {
-
-  mk_vproc_clean $srcrootdir $testname
-  set flags "-I ${srcrootdir}/include -L ${srcrootdir}/lib -l${libname}"
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname \
-       OPDIR=$::osvvm::CurrentSimulationDirectory                 \
-       USRFLAGS=${flags}
+   mk_vproc_common $srcrootdir $testname $libname $::osvvm::ScriptBaseName
 }
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 
-proc mk_vproc_skt {srcrootdir testname } {
+proc mk_vproc_skt {srcrootdir testname {libname ""} {simname "MODELSIM"} } {
 
-  mk_vproc_clean $srcrootdir $testname
-  exec make --no-print-directory -C $srcrootdir USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory 
+  mk_vproc $srcrootdir $testname $libname
+  
   set rc [ exec python3 $srcrootdir/Scripts/client_gui.py -b -w 2 -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 & ]
   puts "Running client_gui.py batch mode"
 }
+
+

@@ -128,7 +128,9 @@ extern EXTC void VRegUser      (pVUserCB_t func, uint32_t node);
 // If compiled under C++, io_printf() uses PLI_BYTE* which can't have const char* cast,
 // so use buffers for a format string and single string buffer argument, and sprintf to
 // format the string into the msg buffer
-# define VPrint(...) {char __msg[4096], fmt[10]; strcpy(fmt, "%s");sprintf(__msg, __VA_ARGS__); io_printf(fmt, __msg);}
+//# define VPrint(...) {char __msg[4096], fmt[10]; strcpy(fmt, "%s");sprintf(__msg, __VA_ARGS__); io_printf(fmt, __msg);}
+# define VPrint(...) {printf(__VA_ARGS__);}
+
 # endif
 
 #ifdef DEBUG

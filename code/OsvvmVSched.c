@@ -61,35 +61,35 @@ pSchedState_t ns[VP_MAX_NODES];
 VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 {
 
-    io_printf("VInit()\n");
+    VPrint("VInit()\n");
 
     // Range check node number
     if (node < 0 || node >= VP_MAX_NODES)
     {
-        io_printf("***Error: VInit() got out of range node number (%d)\n", node);
+        VPrint("***Error: VInit() got out of range node number (%d)\n", node);
         exit(VP_USER_ERR);
     }
 
-    debug_io_printf("VInit(): node = %d\n", node);
+    DebugVPrint("VInit(): node = %d\n", node);
 
     // Allocate some space for the node state and update pointer
     ns[node] = (pSchedState_t) malloc(sizeof(SchedState_t));
 
     // Set up semaphores for this node
-    debug_io_printf("VInit(): initialising semaphores for node %d\n", node);
+    DebugVPrint("VInit(): initialising semaphores for node %d\n", node);
 
     if (sem_init(&(ns[node]->snd), 0, 0) == -1)
     {
-        io_printf("***Error: VInit() failed to initialise semaphore\n");
+        VPrint("***Error: VInit() failed to initialise semaphore\n");
         exit(1);
     }
     if (sem_init(&(ns[node]->rcv), 0, 0) == -1)
     {
-        io_printf("***Error: VInit() failed to initialise semaphore\n");
+        VPrint("***Error: VInit() failed to initialise semaphore\n");
         exit(1);
     }
 
-    debug_io_printf("VInit(): initialising semaphores for node %d---Done\n", node);
+    DebugVPrint("VInit(): initialising semaphores for node %d---Done\n", node);
 
     // Issue a new thread to run the user code
     VUser(node);
@@ -104,16 +104,16 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 
 int VHalt (int data, int reason)
 {
-    debug_io_printf("VHalt(): data = %d reason = %d\n", data, reason);
+    DebugVPrint("VHalt(): data = %d reason = %d\n", data, reason);
 
     if (reason == reason_endofcompile) {
     } else if (reason == reason_finish) {
     } else if (reason == reason_startofsave) {
     } else if (reason == reason_save) {
     } else if (reason == reason_restart) {
-        debug_io_printf("VHalt(): restart\n");
+        DebugVPrint("VHalt(): restart\n");
     } else if (reason != reason_finish) {
-        debug_io_printf("VHalt(): not called for a halt reason (%d)\n", reason);
+        DebugVPrint("VHalt(): not called for a halt reason (%d)\n", reason);
         return 0;
     }
 }
@@ -135,11 +135,11 @@ VPROC_RTN_TYPE VSched (VSCHED_PARAMS)
     ns[node]->rcv_buf.interrupt = Interrupt;
 
     // Send message to VUser with VPDataIn value
-    debug_io_printf("VSched(): setting rcv[%d] semaphore\n", node);
+    DebugVPrint("VSched(): setting rcv[%d] semaphore\n", node);
     sem_post(&(ns[node]->rcv));
 
     // Wait for a message from VUser process with output data
-    debug_io_printf("VSched(): waiting for snd[%d] semaphore\n", node);
+    DebugVPrint("VSched(): waiting for snd[%d] semaphore\n", node);
     sem_wait(&(ns[node]->snd));
 
     // Update outputs of $vsched task
@@ -160,10 +160,10 @@ VPROC_RTN_TYPE VSched (VSCHED_PARAMS)
               break;
         }
 
-        debug_io_printf("VSched(): VPTicks=%08x\n", VPTicks_int);
+        DebugVPrint("VSched(): VPTicks=%08x\n", VPTicks_int);
     }
 
-    debug_io_printf("VSched(): returning to simulation from node %d\n\n", node);
+    DebugVPrint("VSched(): returning to simulation from node %d\n\n", node);
 
     // Export outputs over FLI
     *VPDataOut        = VPDataOut_int;
@@ -200,11 +200,11 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     ns[node]->rcv_buf.interrupt  = Interrupt;
 
     // Send message to VUser with VPDataIn value
-    debug_io_printf("VTrans(): setting rcv[%d] semaphore\n", node);
+    DebugVPrint("VTrans(): setting rcv[%d] semaphore\n", node);
     sem_post(&(ns[node]->rcv));
 
     // Wait for a message from VUser process with output data
-    debug_io_printf("VTrans(): waiting for snd[%d] semaphore\n", node);
+    DebugVPrint("VTrans(): waiting for snd[%d] semaphore\n", node);
     sem_wait(&(ns[node]->snd));
 
     // Update outputs of VTrans procedure
@@ -273,10 +273,10 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
               break;
         }
 
-        debug_io_printf("VTrans(): VPTicks=%08x\n", VPTicks_int);
+        DebugVPrint("VTrans(): VPTicks=%08x\n", VPTicks_int);
     }
 
-    debug_io_printf("VTrans(): returning to simulation from node %d\n\n", node);
+    DebugVPrint("VTrans(): returning to simulation from node %d\n\n", node);
     
     DebugVPrint("===> addr=%08x rnw=%d burst=%d ticks=%d\n", VPAddr_int, VPRw_int, VPBurstSize_int, VPTicks_int);
 
