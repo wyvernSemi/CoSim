@@ -78,14 +78,15 @@ USRFLAGS           =
 SIM                = MODELSIM
 
 ifeq ("${SIM}", "GHDL")
-  ARCHFLAG           = -m64
-  PLILIBARGS         = 
+  ARCHFLAG         = -m64
+  PLILIBARGS       = 
 else
-  ARCHFLAG           = -m32
-  PLILIBARGS         = -L${MODEL_TECH} -lmtipli
+  ARCHFLAG         = -m32
+  PLILIBARGS       = -L${MODEL_TECH} -lmtipli
 endif
 
 RV32EXE            = test.exe
+RV32CMD            = cp tests/iss/test.exe ${OPDIR}
 
 ifeq ("${USRCDIR}", "tests/iss")
   RV32TEST = ${RV32EXE}
@@ -108,12 +109,10 @@ ifeq (${OSTYPE}, Linux)
   CFLAGS_SO        = -shared -lpthread -lrt -rdynamic
   CPPSTD           = -std=c++11
   WLIB             =
-  RV32CMD          = cp tests/iss/test.exe ${OPDIR}
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
   CPPSTD           =
-  WLIB             = -lWs2_32
-  RV32CMD          = copy tests/iss/test.exe ${OPDIR}
+  WLIB             = -lWs2_32 -l:vproc.so
 endif
 
 CC                 = gcc
@@ -178,6 +177,7 @@ ${VPROC_PLI}: ${VLIB}
             -L${TESTDIR} -lvproc                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
+            -ldl                                        \
             -o $@
 
 ${VUSER_PLI}: ${VULIB} ${RV32TEST}
@@ -191,6 +191,7 @@ ${VUSER_PLI}: ${VULIB} ${RV32TEST}
             -L${TESTDIR} -lvuser                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
+            -ldl                                        \
             -o $@
 
 #------------------------------------------------------

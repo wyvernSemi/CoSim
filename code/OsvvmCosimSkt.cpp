@@ -76,9 +76,9 @@
 # include <termios.h>
 #endif
 
+#include "OsvvmCosim.h"
 #include "OsvvmCosimSktHdr.h"
 #include "OsvvmCosimSkt.h"
-#include "OsvvmVUser.h"
 
 // -------------------------------------------------------------------------
 // DEFINES
@@ -92,11 +92,13 @@
 // STATIC VARIABLES
 // -------------------------------------------------------------------------
 
-OsvvmCosimSkt::OsvvmCosimSkt (const int  PortNumber,
+OsvvmCosimSkt::OsvvmCosimSkt (const int  NodeNum,
+                              const int  PortNumber,
                               const bool LittleEndian,
                               const char Eop,
                               const char Sop,
                               const int  SfxBytes) :
+    node(NodeNum),
     portnum(PortNumber),
     ack_char(GDB_ACK_CHAR),
     sop_char(Sop),
@@ -309,6 +311,7 @@ inline bool OsvvmCosimSkt::write_cmd (const osvvm_cosim_skt_t skt_hdl, const cha
 
 bool OsvvmCosimSkt::proc_cmd (CmdAttrType &cmd_rec)
 {
+    OsvvmCosim cosim(node);
 
     if (cmd_rec.Detach || cmd_rec.Kill)
     {
@@ -324,9 +327,9 @@ bool OsvvmCosimSkt::proc_cmd (CmdAttrType &cmd_rec)
                 uint16_t rdata16;
                 uint8_t  rdata8;
 
-                case 32: VTransRead((uint32_t)cmd_rec.Addr, (uint32_t*)&rdata32); cmd_rec.Data = rdata32; break;
-                case 16: VTransRead((uint32_t)cmd_rec.Addr, (uint16_t*)&rdata16); cmd_rec.Data = rdata16; break;
-                case  8: VTransRead((uint32_t)cmd_rec.Addr,  (uint8_t*)&rdata8);  cmd_rec.Data = rdata8;  break;
+                case 32: cosim.transRead((uint32_t)cmd_rec.Addr, (uint32_t*)&rdata32); cmd_rec.Data = rdata32; break;
+                case 16: cosim.transRead((uint32_t)cmd_rec.Addr, (uint16_t*)&rdata16); cmd_rec.Data = rdata16; break;
+                case  8: cosim.transRead((uint32_t)cmd_rec.Addr,  (uint8_t*)&rdata8);  cmd_rec.Data = rdata8;  break;
                 default: cmd_rec.Error = OSVVM_COSIM_ERR; return true;
             }
         }
@@ -334,9 +337,9 @@ bool OsvvmCosimSkt::proc_cmd (CmdAttrType &cmd_rec)
         {
              switch(cmd_rec.DataWidth)
              {
-                 case 32: VTransWrite((uint32_t)cmd_rec.Addr, (uint32_t)cmd_rec.Data); break;
-                 case 16: VTransWrite((uint32_t)cmd_rec.Addr, (uint16_t)cmd_rec.Data); break;
-                 case  8: VTransWrite((uint32_t)cmd_rec.Addr,   (uint8_t)cmd_rec.Data); break;
+                 case 32: cosim.transWrite((uint32_t)cmd_rec.Addr, (uint32_t)cmd_rec.Data); break;
+                 case 16: cosim.transWrite((uint32_t)cmd_rec.Addr, (uint16_t)cmd_rec.Data); break;
+                 case  8: cosim.transWrite((uint32_t)cmd_rec.Addr,  (uint8_t)cmd_rec.Data); break;
                  default: cmd_rec.Error = OSVVM_COSIM_ERR; return true;
              }
         }

@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-#include "OsvvmVUser.h"
+#include "OsvvmCosim.h"
 #include "OsvvmCosimSkt.h"
 
 static int node = 0;
@@ -34,7 +34,8 @@ extern "C" int VTick(uint32_t, uint32_t)
 
 extern "C" void VUserMain0()
 {
-    OsvvmCosimSkt skt;
+    OsvvmCosim    cosim(node);
+    OsvvmCosimSkt skt(node);
     bool error = false;
 
     if (skt.ProcessPkts() != OsvvmCosimSkt::OSVVM_COSIM_OK)
@@ -48,7 +49,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true, error);
+    cosim.tick(10, true, error);
 
     SLEEPFOREVER;
 

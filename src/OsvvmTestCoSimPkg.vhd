@@ -96,12 +96,40 @@ procedure CoSimTransBurst (
   variable VPBurstSize      : in     integer
   ) ;
 
+function squelchUndef (
+           vec              : in     std_logic_vector
+  ) return std_logic_vector ;
+
 end package OsvvmTestCoSimPkg ;
 
 -- /////////////////////////////////////////////////////////////////////////////////////////
 -- /////////////////////////////////////////////////////////////////////////////////////////
 
 package body OsvvmTestCoSimPkg is
+
+  ------------------------------------------------------------
+  -- Utility function to convert a std_logic_vector's bits
+  -- from 'U' to '0' prior to conversion to integer to
+  -- avoid warnings in NUMERIC_STD.TO_INTEGER
+  ------------------------------------------------------------
+  function squelchUndef (
+           vec              : in  std_logic_vector 
+  ) return std_logic_vector is
+
+  variable result           : std_logic_vector(vec'length-1 downto 0) ;
+
+  begin
+    for i in 0 to vec'length-1 loop
+      if vec(i) = 'U' then
+        result(i) := '0' ;
+      else
+        result(i) := vec(i) ;
+      end if ;
+    end loop;
+
+    return result ;
+
+  end function squelchUndef ;
 
   ------------------------------------------------------------
   -- Co-simulation wrapper procedure to send read and write
@@ -146,7 +174,7 @@ procedure CoSimTrans (
 
     -- RdData won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
-    RdData       := SafeResize(ManagerRec.DataFromModel, RdData'length) ;
+    RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
 
     if Ticks <= 0 then
 
@@ -287,6 +315,7 @@ procedure CoSimTransBurst (
   variable RdData           : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
   variable WrDataInt        : integer ;
   variable RdDataInt        : integer ;
+  variable WrDataSigned     : signed (DATA_WIDTH_MAX-1 downto 0);
 
   begin
 
@@ -311,8 +340,9 @@ procedure CoSimTransBurst (
 
         -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
         for bidx in 0 to VPBurstSize-1 loop
+          RdData := (others => '0');
           Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-          RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
+          RdDataInt := to_integer(unsigned(RdData)) ;
           VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
         end loop;
 
@@ -321,7 +351,8 @@ procedure CoSimTransBurst (
         -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
         for bidx in 0 to VPBurstSize-1 loop
           VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-          Push(ManagerRec.WriteBurstFifo, std_logic_vector(to_signed(WrDataInt, 8))) ;
+          WrDataSigned := to_signed(WrDataInt, WrDataSigned'length);
+          Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrDataSigned(7 downto 0))) ;
         end loop ;
 
         -- Initiate the write burst transfer of the appropriate address size

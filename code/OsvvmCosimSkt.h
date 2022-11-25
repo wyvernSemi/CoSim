@@ -103,7 +103,8 @@ public:
            } CmdAttrType;
 
     // Constructor
-                             OsvvmCosimSkt (const int  PortNumber   = DEFAULT_TCP_PORTNUM,
+                             OsvvmCosimSkt (const int  NodeNum      = 0,
+                                            const int  PortNumber   = DEFAULT_TCP_PORTNUM,
                                             const bool LittleEndian = false,
                                             const char Eop          = GDB_EOP_CHAR,
                                             const char Sop          = GDB_SOP_CHAR,
@@ -189,6 +190,7 @@ private:
     const  char              eop_char;
     const  char              ack_char;
     const  int               suffix_bytes;
+    const  int               node;
 
 };
 

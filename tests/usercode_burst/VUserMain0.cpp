@@ -44,7 +44,7 @@
 #include <vector>
 
 // Import VProc user API
-#include "OsvvmVUser.h"
+#include "OsvvmCosim.h"
 
 // I am node 0 context
 static int node  = 0;
@@ -78,6 +78,7 @@ extern "C" void VUserMain0()
 
     std::vector<wtrans_t> vec;
     wtrans_t              wtrans;
+    OsvvmCosim            cosim(node);
 
     uint8_t rbuf[max_burst_size];
     bool    error = false;
@@ -120,7 +121,7 @@ extern "C" void VUserMain0()
             vec.push_back(wtrans);
 
             // Generate a write burst transaction
-            VTransBurstWrite(wtrans.addr, wtrans.wdata, wtrans.size);
+            cosim.transBurstWrite(wtrans.addr, wtrans.wdata, wtrans.size);
 
         }
         // If reading...
@@ -131,7 +132,7 @@ extern "C" void VUserMain0()
             vec.erase(vec.begin()); 
  
             // Read back fro the write address the transaction data stored
-            VTransBurstRead(wtrans.addr, rbuf, wtrans.size);
+            cosim.transBurstRead(wtrans.addr, rbuf, wtrans.size);
 
             // Compare the data read from memory with that in the write transaction buffer.
             // If a failure, report and end the generation of transactions.
@@ -149,7 +150,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we've finished after a small delay
-    VTick(10, true, error);
+    cosim.tick(10, true, error);
 
     // If ever got this far then sleep forever
     SLEEPFOREVER;

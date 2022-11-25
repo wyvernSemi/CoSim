@@ -44,7 +44,7 @@
 #include <vector>
 
 // Import VProc user API
-#include "OsvvmVUser.h"
+#include "OsvvmCosim.h"
 
 // I am node 0 context
 static int node  = 0;
@@ -101,6 +101,7 @@ extern "C" void VUserMain0()
     wtrans_t              wtrans;
     int                   count = 800; 
     bool                  error = false;
+    OsvvmCosim            cosim(0);
 
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
@@ -136,9 +137,9 @@ extern "C" void VUserMain0()
             // Do a 32-bit read and place returned data in rdata
             switch(wtrans.size)
             {
-                case  8: VTransRead(wtrans.addr, &rdata8);  rdata = rdata8;  msg = "byte";  break;
-                case 16: VTransRead(wtrans.addr, &rdata16); rdata = rdata16; msg = "hword"; break;
-                case 32: VTransRead(wtrans.addr, &rdata);                    msg = "word";  break;
+                case  8: cosim.transRead(wtrans.addr, &rdata8);  rdata = rdata8;  msg = "byte";  break;
+                case 16: cosim.transRead(wtrans.addr, &rdata16); rdata = rdata16; msg = "hword"; break;
+                case 32: cosim.transRead(wtrans.addr, &rdata);                    msg = "word";  break;
             }
 
             if (rdata == wtrans.wdata)
@@ -173,9 +174,9 @@ extern "C" void VUserMain0()
             // Do a 32-bit write transaction
             switch(wtrans.size)
             {
-                case  8: VTransWrite(wtrans.addr,  (uint8_t)wtrans.wdata); msg = "byte";  break;
-                case 16: VTransWrite(wtrans.addr, (uint16_t)wtrans.wdata); msg = "hword"; break;
-                case 32: VTransWrite(wtrans.addr, (uint32_t)wtrans.wdata); msg = "word";  break;
+                case  8: cosim.transWrite(wtrans.addr,  (uint8_t)wtrans.wdata); msg = "byte";  break;
+                case 16: cosim.transWrite(wtrans.addr, (uint16_t)wtrans.wdata); msg = "hword"; break;
+                case 32: cosim.transWrite(wtrans.addr, (uint32_t)wtrans.wdata); msg = "word";  break;
             }
 
             // Display write transaction display information
@@ -186,7 +187,7 @@ extern "C" void VUserMain0()
     }
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true, error);
+    cosim.tick(10, true, error);
 
     fclose(fp);
 

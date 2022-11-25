@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-#include "OsvvmVUser.h"
+#include "OsvvmCosim.h"
 #include "rv32.h"
 #include "rv32_cpu_gdb.h"
 
@@ -124,23 +124,24 @@ static bool check_exit_status(rv32* pCpu)
 
 static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, const rv32i_time_t time)
 {
-    int      cycle_count = 5;
-    uint8_t  rdata8;
-    uint16_t rdata16;
-    uint32_t rdata32;
-    wtrans_t trans;
+    int        cycle_count = 5;
+    uint8_t    rdata8;
+    uint16_t   rdata16;
+    uint32_t   rdata32;
+    wtrans_t   trans;
+    OsvvmCosim cosim(node);
 
     // Select the co-simulation call based on the access type
     switch(type)
     {
-        case MEM_WR_ACCESS_BYTE  : VTransWrite(byte_addr,  (uint8_t)data)           ; break;
-        case MEM_WR_ACCESS_HWORD : VTransWrite(byte_addr, (uint16_t)data)           ; break;
-        case MEM_WR_ACCESS_WORD  : VTransWrite(byte_addr, (uint32_t)data)           ; break;
-        case MEM_WR_ACCESS_INSTR : VTransWrite(byte_addr, (uint32_t)data)           ; break;
-        case MEM_RD_ACCESS_BYTE  : VTransRead(byte_addr,  &rdata8);  data = rdata8  ; break;
-        case MEM_RD_ACCESS_HWORD : VTransRead(byte_addr,  &rdata16); data = rdata16 ; break;
-        case MEM_RD_ACCESS_WORD  : VTransRead(byte_addr,  &rdata32); data = rdata32 ; break;
-        case MEM_RD_ACCESS_INSTR : VTransRead(byte_addr,  &rdata32); data = rdata32 ; break;
+        case MEM_WR_ACCESS_BYTE  : cosim.transWrite(byte_addr,  (uint8_t)data)           ; break;
+        case MEM_WR_ACCESS_HWORD : cosim.transWrite(byte_addr, (uint16_t)data)           ; break;
+        case MEM_WR_ACCESS_WORD  : cosim.transWrite(byte_addr, (uint32_t)data)           ; break;
+        case MEM_WR_ACCESS_INSTR : cosim.transWrite(byte_addr, (uint32_t)data)           ; break;
+        case MEM_RD_ACCESS_BYTE  : cosim.transRead(byte_addr,  &rdata8);  data = rdata8  ; break;
+        case MEM_RD_ACCESS_HWORD : cosim.transRead(byte_addr,  &rdata16); data = rdata16 ; break;
+        case MEM_RD_ACCESS_WORD  : cosim.transRead(byte_addr,  &rdata32); data = rdata32 ; break;
+        case MEM_RD_ACCESS_INSTR : cosim.transRead(byte_addr,  &rdata32); data = rdata32 ; break;
         default: cycle_count = RV32I_EXT_MEM_NOT_PROCESSED; break;
     }
 
@@ -167,7 +168,8 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
 
 extern "C" void VUserMain0()
 {
-    bool error = false;
+    bool        error = false;
+    OsvvmCosim  cosim(node);
     
     // Create a configuration object
     rv32i_cfg_s cfg;
@@ -284,7 +286,7 @@ extern "C" void VUserMain0()
     delete pCpu;
     
     // Flag to the simulation we're finished, after 10 more iterations
-    VTick(10, true, error);
+    cosim.tick(10, true, error);
 
     SLEEPFOREVER;
 }

@@ -44,10 +44,30 @@
 
 proc mk_vproc_common {srcrootdir testname libname simname} {
 
+# Get the OS that we are running on
+set osname [string tolower [exec uname]]
+
+# Select the RISC-V ISS library required
+if {$::osvvm::ScriptBaseName eq "GHDL"} {
+  analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+  if {"$osname" eq "linux"} {
+    set rvlib ${libname}x64
+  } else {
+    set rvlib ${libname}win64
+  }
+} else {
+  analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
+  if {"$osname" eq "linux"} {
+    set rvlib ${libname}
+  } else {
+    set rvlib ${libname}win32
+  }
+}
+
 if {"$libname" eq ""} {
   set flags ""
 } else {
-  set flags "-I ./include -L ./lib -l${libname}"
+  set flags "-I ./include -L ./lib -l${rvlib}"
 }
 
 exec make --no-print-directory -C $srcrootdir        \
@@ -98,14 +118,30 @@ proc mk_vproc_noclean {srcrootdir testname {libname ""} {simname "MODELSIM"}} {
 }
 
 # -------------------------------------------------------------------------
+# mk_vproc_skt
+#
+# Do a clean make compile for the spceified VProc test directory
+# and run the client_gui.py python script in batch mode in the background
+#
 # -------------------------------------------------------------------------
+
 
 proc mk_vproc_skt {srcrootdir testname {libname ""} {simname "MODELSIM"} } {
 
   mk_vproc $srcrootdir $testname $libname
   
-  set rc [ exec python3 $srcrootdir/Scripts/client_gui.py -b -w 2 -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 & ]
+  set pathprefix [string range $srcrootdir 0 1]
+  
+  # In Windows, replace any leading c: with /c
+  if {$pathprefix eq "c:" || $pathprefix eq "C:" } {
+    set cosimdir [string replace $srcrootdir 0 1 "/c"]
+  } else {
+    set cosimdir $srcrootdir
+  }
+  
+  set rc [ exec python3 $cosimdir/Scripts/client_batch.py -w 2 -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 & ]
   puts "Running client_gui.py batch mode"
 }
+
 
 

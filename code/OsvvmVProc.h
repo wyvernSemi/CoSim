@@ -49,12 +49,6 @@
 #include <stdlib.h>
 #include <strings.h>
 
-#if defined(WIN32) &&  defined(WIN64)
-#include <windows.h>
-#define dlopen(x, y)  LoadLibrary(x)
-#define dlsym(x,y) GetProcAddress((HMODULE)x, y)
-#else
-
 # ifndef __USE_GNU
 # define __USE_GNU
 # include <dlfcn.h>
@@ -62,8 +56,6 @@
 # else
 # include <dlfcn.h>
 # endif
-
-#endif
 
 #include <pthread.h>
 #include <sched.h>

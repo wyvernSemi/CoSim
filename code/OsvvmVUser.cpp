@@ -96,7 +96,7 @@ extern "C" int VUser (int node)
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
     // Set off the user code thread
-    if (status = pthread_create(&thread, NULL, (pThreadFunc_t)VUserInit, (void *)((long)node)))
+    if (status = pthread_create(&thread, NULL, (pThreadFunc_t)VUserInit, (void *)((long long)node)))
     {
         DebugVPrint("VUser(): pthread_create returned %d\n", status);
         return 1;

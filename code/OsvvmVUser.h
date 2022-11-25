@@ -115,15 +115,16 @@ extern EXTC void VRegUser      (pVUserCB_t func, uint32_t node);
 // two lines to be advanced, so replace new lines with carriage returns
 // which seems to work
 # ifdef _WIN32
-# define VPrint(format, ...) {int len;                                             \
-                              char formbuf[256];                                   \
-                              strncpy(formbuf, format, 255);                       \
-                              len = strlen(formbuf);                               \
-                              for(int i = 0; i < len; i++)                         \
-                                if (formbuf[i] == '\n')                            \
-                                  formbuf[i] = '\r';                               \
-                              printf (formbuf, ##__VA_ARGS__);                     \
-                              }
+
+#define VPrint(format, ...) {int len;                                             \
+                             char formbuf[256];                                   \
+                             strncpy(formbuf, format, 255);                       \
+                             len = strlen(formbuf);                               \
+                             for(int i = 0; i < len; i++)                         \
+                               if (formbuf[i] == '\n')                            \
+                                 formbuf[i] = '\r';                               \
+                             printf (formbuf, ##__VA_ARGS__);                     \
+                             }
 # else
 // If compiled under C++, io_printf() uses PLI_BYTE* which can't have const char* cast,
 // so use buffers for a format string and single string buffer argument, and sprintf to
