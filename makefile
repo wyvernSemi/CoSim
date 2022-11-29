@@ -75,11 +75,14 @@ VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_
 
 USRFLAGS           =
 
-SIM                = MODELSIM
+SIM                = ModelSim
 
 ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
   PLILIBARGS       = 
+else ifeq ("${SIM}", "QuestaSim")
+  ARCHFLAG         = -m64
+  PLILIBARGS       = -L${MODEL_TECH} -lmtipli
 else
   ARCHFLAG         = -m32
   PLILIBARGS       = -L${MODEL_TECH} -lmtipli

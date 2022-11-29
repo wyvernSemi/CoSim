@@ -42,14 +42,19 @@
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 
-proc mk_vproc_common {srcrootdir testname libname simname} {
+proc mk_vproc_common {srcrootdir testname libname} {
 
 # Get the OS that we are running on
 set osname [string tolower [exec uname]]
 
 # Select the RISC-V ISS library required
-if {$::osvvm::ScriptBaseName eq "GHDL"} {
-  analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "QuestaSim"} {
+
+  if {$::osvvm::ToolName eq "GHDL"} {
+    analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+  } else {
+    analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
+  }
   if {"$osname" eq "linux"} {
     set rvlib ${libname}x64
   } else {
@@ -71,7 +76,7 @@ if {"$libname" eq ""} {
 }
 
 exec make --no-print-directory -C $srcrootdir        \
-          SIM=$simname                               \
+          SIM=$::osvvm::ToolName                     \
           USRCDIR=$testname                          \
           OPDIR=$::osvvm::CurrentSimulationDirectory \
           USRFLAGS=${flags}
@@ -101,7 +106,7 @@ proc mk_vproc_clean {srcrootdir testname} {
 proc mk_vproc {srcrootdir testname {libname ""} } {
 
   mk_vproc_clean  $srcrootdir $testname
-  mk_vproc_common $srcrootdir $testname $libname $::osvvm::ScriptBaseName
+  mk_vproc_common $srcrootdir $testname $libname
 }
 
 # -------------------------------------------------------------------------
@@ -112,9 +117,9 @@ proc mk_vproc {srcrootdir testname {libname ""} } {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_noclean {srcrootdir testname {libname ""} {simname "MODELSIM"}} {
+proc mk_vproc_noclean {srcrootdir testname {libname ""}} {
 
-   mk_vproc_common $srcrootdir $testname $libname $::osvvm::ScriptBaseName
+   mk_vproc_common $srcrootdir $testname $libname
 }
 
 # -------------------------------------------------------------------------
@@ -126,7 +131,7 @@ proc mk_vproc_noclean {srcrootdir testname {libname ""} {simname "MODELSIM"}} {
 # -------------------------------------------------------------------------
 
 
-proc mk_vproc_skt {srcrootdir testname {libname ""} {simname "MODELSIM"} } {
+proc mk_vproc_skt {srcrootdir testname {libname ""} } {
 
   mk_vproc $srcrootdir $testname $libname
   

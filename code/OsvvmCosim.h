@@ -71,10 +71,10 @@ public:
       void     transRead       (const uint64_t addr, uint32_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
       void     transRead       (const uint64_t addr, uint64_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
 
-      void     transBurstWrite (const uint32_t addr, uint8_t  *data, int bytesize, int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
-      void     transBurstWrite (const uint64_t addr, uint8_t  *data, int bytesize, int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
-      void     transBurstRead  (const uint32_t addr, uint8_t  *data, int bytesize, int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
-      void     transBurstRead  (const uint64_t addr, uint8_t  *data, int bytesize, int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
+      void     transBurstWrite (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
+      void     transBurstWrite (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
+      void     transBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
+      void     transBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
 
       void     regInterruptCB  (const int level, pVUserInt_t func) {VRegInterrupt(level, func, node);}
 

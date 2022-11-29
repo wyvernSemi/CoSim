@@ -342,7 +342,7 @@ procedure CoSimTransBurst (
         for bidx in 0 to VPBurstSize-1 loop
           RdData := (others => '0');
           Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-          RdDataInt := to_integer(unsigned(RdData)) ;
+          RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
           VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
         end loop;
 
