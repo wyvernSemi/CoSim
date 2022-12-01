@@ -80,6 +80,9 @@ SIM                = ModelSim
 ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
   PLILIBARGS       = 
+else ifeq ("${SIM}", "NVC")
+  ARCHFLAG         = -m64
+  PLILIBARGS       =
 else ifeq ("${SIM}", "QuestaSim")
   ARCHFLAG         = -m64
   PLILIBARGS       = -L${MODEL_TECH} -lmtipli

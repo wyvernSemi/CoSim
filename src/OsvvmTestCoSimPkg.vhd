@@ -59,7 +59,6 @@ package OsvvmTestCoSimPkg is
 
 constant WEbit           : integer := 0 ;
 constant RDbit           : integer := 1 ;
-constant NodeNum         : integer := 0  ; -- Always use node 0 for now
 constant ADDR_WIDTH      : integer := 32 ;
 constant DATA_WIDTH      : integer := 32 ;
 constant ADDR_WIDTH_MAX  : integer := 64 ;
@@ -72,7 +71,8 @@ procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
   variable Ticks            : inout  integer ;
   variable Done             : inout  integer ;
-  variable Error            : inout  integer
+  variable Error            : inout  integer ;
+  variable NodeNum          : in     integer := 0
   ) ;
 
 procedure CoSimTransSingle (
@@ -93,7 +93,8 @@ procedure CoSimTransBurst (
   variable VPAddrHi         : in     integer ;
   variable VPAddrWidth      : in     integer ;
   variable VPRW             : in     integer ;
-  variable VPBurstSize      : in     integer
+  variable VPBurstSize      : in     integer ;
+  variable NodeNum          : in     integer
   ) ;
 
 function squelchUndef (
@@ -149,7 +150,8 @@ procedure CoSimTrans (
   signal   ManagerRec      : inout  AddressBusRecType ;
   variable Ticks           : inout  integer ;
   variable Done            : inout  integer ;
-  variable Error           : inout  integer
+  variable Error           : inout  integer ;
+  variable NodeNum         : in     integer := 0
   ) is
 
   variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
@@ -209,7 +211,7 @@ procedure CoSimTrans (
         CoSimTransBurst (ManagerRec,
                          VPDataWidth,
                          VPAddr,    VPAddrHi,    VPAddrWidth,
-                         VPRW,      VPBurstSize) ;
+                         VPRW,      VPBurstSize, NodeNum) ;
       end if;
 
     else
@@ -308,7 +310,8 @@ procedure CoSimTransBurst (
   variable VPAddrHi         : in     integer ;
   variable VPAddrWidth      : in     integer ;
   variable VPRW             : in     integer ;
-  variable VPBurstSize      : in     integer
+  variable VPBurstSize      : in     integer ;
+  variable NodeNum          : in     integer
   ) is
 
   variable Address          : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;

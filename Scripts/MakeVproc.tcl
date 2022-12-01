@@ -48,20 +48,14 @@ proc mk_vproc_common {srcrootdir testname libname} {
 set osname [string tolower [exec uname]]
 
 # Select the RISC-V ISS library required
-if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "QuestaSim"} {
+if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "NVC" || $::osvvm::ToolName eq "QuestaSim"} {
 
-  if {$::osvvm::ToolName eq "GHDL"} {
-    analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
-  } else {
-    analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
-  }
   if {"$osname" eq "linux"} {
     set rvlib ${libname}x64
   } else {
     set rvlib ${libname}win64
   }
 } else {
-  analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
   if {"$osname" eq "linux"} {
     set rvlib ${libname}
   } else {
@@ -130,7 +124,6 @@ proc mk_vproc_noclean {srcrootdir testname {libname ""}} {
 #
 # -------------------------------------------------------------------------
 
-
 proc mk_vproc_skt {srcrootdir testname {libname ""} } {
 
   mk_vproc $srcrootdir $testname $libname
@@ -148,5 +141,21 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
   puts "Running client_gui.py batch mode"
 }
 
+# -------------------------------------------------------------------------
+# analyzeForeignProcs
+#
+# Analyse the foreign procesure packages based on the running simulator 
+#
+# -------------------------------------------------------------------------
+proc analyzeForeignProcs {} {
 
+  if {$::osvvm::ToolName eq "NVC"} {
+    analyze    ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
+    SetExtendedRunOptions --load=./VProc.so
+  } elseif {$::osvvm::ToolName eq "GHDL"} {
+    analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+  } else {
+    analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
+  }
+}
 
