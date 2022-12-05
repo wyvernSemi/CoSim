@@ -67,11 +67,16 @@ constant DATA_WIDTH_MAX  : integer := 64 ;
   ------------------------------------------------------------
   ------------------------------------------------------------
 
+procedure CoSimInit (
+  variable NodeNum          : in     integer := 0
+  ) ;
+
 procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
   variable Ticks            : inout  integer ;
   variable Done             : inout  integer ;
   variable Error            : inout  integer ;
+  variable IntReq           : in     boolean := false;
   variable NodeNum          : in     integer := 0
   ) ;
 
@@ -114,7 +119,7 @@ package body OsvvmTestCoSimPkg is
   -- avoid warnings in NUMERIC_STD.TO_INTEGER
   ------------------------------------------------------------
   function squelchUndef (
-           vec              : in  std_logic_vector 
+           vec              : in  std_logic_vector
   ) return std_logic_vector is
 
   variable result           : std_logic_vector(vec'length-1 downto 0) ;
@@ -131,6 +136,20 @@ package body OsvvmTestCoSimPkg is
     return result ;
 
   end function squelchUndef ;
+
+  ------------------------------------------------------------
+  -- Co-simulation software initialisation procedure for
+  -- a specified node. Must be called, once per node, before
+  -- any CoSimTrans calls
+  ------------------------------------------------------------
+
+  procedure CoSimInit (
+  variable NodeNum         : in     integer := 0
+  ) is
+
+  begin
+    VInit(NodeNum);
+  end procedure CoSimInit ;
 
   ------------------------------------------------------------
   -- Co-simulation wrapper procedure to send read and write
@@ -151,6 +170,7 @@ procedure CoSimTrans (
   variable Ticks           : inout  integer ;
   variable Done            : inout  integer ;
   variable Error           : inout  integer ;
+  variable IntReq          : in     boolean := false;
   variable NodeNum         : in     integer := 0
   ) is
 
@@ -170,13 +190,14 @@ procedure CoSimTrans (
   variable VPDone          : integer ;
   variable VPError         : integer ;
 
-  variable Interrupt       : integer := 0 ; -- currently unused
+  variable Interrupt       : integer ;
 
   begin
 
     -- RdData won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
     RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
+    Interrupt    := 1 when IntReq else 0;
 
     if Ticks <= 0 then
 
@@ -217,6 +238,7 @@ procedure CoSimTrans (
     else
 
       Ticks := Ticks - 1 ;
+      WaitForClock(ManagerRec) ;
 
     end if ;
 
