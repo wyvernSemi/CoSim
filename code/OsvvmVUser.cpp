@@ -46,12 +46,15 @@
 
 #include <stdint.h>
 #include <errno.h>
+#include <mutex>
 
 extern "C"
 {
 #include "OsvvmVProc.h"
 }
 #include "OsvvmVUser.h"
+
+std::mutex acc_mx;
 
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
@@ -179,6 +182,9 @@ static void VUserInit (int node)
 
 static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 {
+    // Lock mutex as code is critical if accessed from multiple threads
+    acc_mx.lock();
+    
     int status;
     // Send message to simulator
     ns[node]->send_buf = *psbuf;
@@ -231,12 +237,15 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
     // (This could be in the same cycle as the interrupt)
     }
     while (prbuf->interrupt > 0);
+    
+    // Unlock mutex
+    acc_mx.unlock();
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }
 
 // -------------------------------------------------------------------------
-// VExch()
+// VWrite()
 //
 // Invokes a write message exchange
 //
