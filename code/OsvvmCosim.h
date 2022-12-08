@@ -53,7 +53,7 @@ class OsvvmCosim
 public:
                OsvvmCosim      (int nodeIn = 0) : node(nodeIn) {};
 
-      void     tick            (const int ticks, const bool done, const bool error)           {VTick(ticks, done, error, node);}
+      void     tick            (const int ticks, const bool done = false, const bool error = false) {VTick(ticks, done, error, node);}
 
       uint8_t  transWrite      (const uint32_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
       uint16_t transWrite      (const uint32_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
@@ -76,7 +76,7 @@ public:
       void     transBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
       void     transBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
 
-      void     regInterruptCB  (const int level, pVUserInt_t func) {VRegInterrupt(level, func, node);}
+      void     regInterruptCB  (pVUserInt_t func, const int level=1) {VRegInterrupt(level, func, node);}
 
       int      getNodeNumber   () {return node;}
 

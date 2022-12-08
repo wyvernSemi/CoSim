@@ -134,11 +134,19 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
   if {$pathprefix eq "c:" || $pathprefix eq "C:" } {
     set cosimdir [string replace $srcrootdir 0 1 "/c"]
   } else {
-    set cosimdir $srcrootdir
+   set cosimdir $srcrootdir
   }
   
-  set rc [ exec python3 $cosimdir/Scripts/client_batch.py -w 2 -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 & ]
+  if {$::osvvm::ToolName eq "NVC"} {
+    set wait_time 10
+  } else {
+    set wait_time 2
+  }
+  
   puts "Running client_gui.py batch mode"
+  set pid [exec python3 $srcrootdir/Scripts/client_batch.py -w $wait_time -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 &]
+  
+  return
 }
 
 # -------------------------------------------------------------------------
@@ -150,12 +158,14 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
 proc analyzeForeignProcs {} {
 
   if {$::osvvm::ToolName eq "NVC"} {
-    analyze    ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
+    analyze ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
     SetExtendedRunOptions --load=./VProc.so
   } elseif {$::osvvm::ToolName eq "GHDL"} {
-    analyze    ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+    analyze ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
   } else {
-    analyze    ../../../CoSim/src/OsvvmVprocPkg.vhd
+    analyze ../../../CoSim/src/OsvvmVprocPkg.vhd
   }
+  
+  analyze ../../../CoSim/src/OsvvmTestCoSimPkg.vhd
 }
 

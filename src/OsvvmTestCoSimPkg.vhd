@@ -197,7 +197,9 @@ procedure CoSimTrans (
     -- RdData won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
     RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
-    Interrupt    := 1 when IntReq else 0;
+    
+    -- Process interrupt input
+    Interrupt    := 1 when IntReq = true else 0;
 
     if Ticks <= 0 then
 
