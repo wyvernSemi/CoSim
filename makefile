@@ -92,9 +92,9 @@ else
 endif
 
 RV32EXE            = test.exe
-RV32CMD            = cp tests/iss/test.exe ${OPDIR}
+RV32CMD            = cp ${USRCDIR}/test.exe ${OPDIR}
 
-ifeq ("${USRCDIR}", "tests/iss")
+ifneq ("$(wildcard ${USRCDIR}/test.exe)", "")
   RV32TEST = ${RV32EXE}
 else
   RV32TEST = dummy
