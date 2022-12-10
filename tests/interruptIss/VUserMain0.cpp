@@ -31,7 +31,7 @@ typedef struct {
 // Local file pointer for optionally generating TCP/IP socket script file for each transaction
 static FILE *sktfp = NULL;
 
-static bool IntReq = 0;
+static bool IntReq = false;
 
 // -------------------------------------------------------------------------
 // Dump registers using calls to rv32 object

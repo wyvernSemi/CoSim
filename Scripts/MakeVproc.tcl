@@ -159,7 +159,7 @@ proc analyzeForeignProcs {} {
 
   if {$::osvvm::ToolName eq "NVC"} {
     analyze ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
-    SetExtendedRunOptions --load=./VProc.so
+    set ::env(NVC_FOREIGN_OBJ) VProc.so
   } elseif {$::osvvm::ToolName eq "GHDL"} {
     analyze ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
   } else {
