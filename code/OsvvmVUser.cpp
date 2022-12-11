@@ -89,12 +89,20 @@ extern "C" int VUser (int node)
     DebugVPrint("VUser(): node %d\n", node);
 
     // Interrupt table initialisation
-    for (jdx = 0; jdx < 8; jdx++)
+    for (jdx = 0; jdx < MAX_INTERRUPT_LEVEL+1; jdx++)
     {
         ns[node]->VInt_table[jdx] = NULL;
     }
 
     ns[node]->VUserCB = NULL;
+
+    // Load VProc shared object to make symbols global
+    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    if (hdlvp == NULL)
+    {
+        VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
+    }
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
@@ -127,21 +135,23 @@ static void VUserInit (int node)
 
     DebugVPrint("VUserInit(%d)\n", node);
 
+    // Wait for first message from simulator
+    DebugVPrint("VUserInit(): waiting for first message semaphore rcv[%d]\n", node);
+    if ((status = sem_wait(&(ns[node]->rcv))) == -1)
+    {
+        printf("***Error: bad sem_post status (%d) on node %d (VUserInit)\n", status, node);
+        exit(1);
+    }
+
+#ifndef DISABLE_VUSERMAIN_CALL
+
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
-    // Load VProc shared object to make symbols global
-    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
-    
-    if (hdlvp == NULL)
-    {
-        VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
-    }
-
     // Load user shared object to get handle to lookup VUsermain function symbols
     void* hdlvu = dlopen("./VUser.so", RTLD_LAZY | RTLD_GLOBAL);
-    
-    if (hdlvp == NULL)
+
+    if (hdlvu == NULL)
     {
         VPrint("***Error: failed to load VUser.so. %s\n", dlerror());
     }
@@ -155,19 +165,15 @@ static void VUserInit (int node)
 
     DebugVPrint("VUserInit(): got user function (%s) for node %d (%x)\n", funcname, node, VUserMain_func);
 
-    // Wait for first message from simulator
-    DebugVPrint("VUserInit(): waiting for first message semaphore rcv[%d]\n", node);
-    if ((status = sem_wait(&(ns[node]->rcv))) == -1)
-    {
-        printf("***Error: bad sem_post status (%d) on node %d (VUserInit)\n", status, node);
-        exit(1);
-    }
-
     DebugVPrint("VUserInit(): calling user code for node %d\n", node);
 
     // Call user program
     DebugVPrint("VUserInit(): calling VUserMain%d\n", node);
     VUserMain_func();
+
+#endif
+
+    while(true);
 }
 
 // -------------------------------------------------------------------------
@@ -184,7 +190,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     acc_mx.lock();
-    
+
     int status;
     // Send message to simulator
     ns[node]->send_buf = *psbuf;
@@ -237,7 +243,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
     // (This could be in the same cycle as the interrupt)
     }
     while (prbuf->interrupt > 0);
-    
+
     // Unlock mutex
     acc_mx.unlock();
 

@@ -152,14 +152,21 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
 # -------------------------------------------------------------------------
 # analyzeForeignProcs
 #
-# Analyse the foreign procesure packages based on the running simulator 
+# Analyse the foreign procedure packages based on the running simulator 
 #
 # -------------------------------------------------------------------------
 proc analyzeForeignProcs {} {
 
+# Get the OS that we are running on
+set osname [string tolower [exec uname]]
+
   if {$::osvvm::ToolName eq "NVC"} {
     analyze ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
-    set ::env(NVC_FOREIGN_OBJ) VProc.so
+    if {"$osname" ne "linux"} {
+      set ::env(NVC_FOREIGN_OBJ) VProc.so
+    } else {
+      SetExtendedRunOptions --load=./VProc.so
+    }
   } elseif {$::osvvm::ToolName eq "GHDL"} {
     analyze ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
   } else {

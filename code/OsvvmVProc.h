@@ -90,7 +90,7 @@
 #define DEFAULT_STR_BUF_SIZE    32
 
 #define MIN_INTERRUPT_LEVEL     1
-#define MAX_INTERRUPT_LEVEL     7
+#define MAX_INTERRUPT_LEVEL     255
 
 #define DATABUF_SIZE            4096
 
