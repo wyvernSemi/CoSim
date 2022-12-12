@@ -54,13 +54,16 @@ extern "C"
 }
 #include "OsvvmVUser.h"
 
-std::mutex acc_mx;
+static std::mutex acc_mx;
 
 // -------------------------------------------------------------------------
+// VInitSendBuf()
+//
+// Initialise a send_buf_t record
+//
 // -------------------------------------------------------------------------
 static void VInitSendBuf(send_buf_t &sbuf)
 {
-
     sbuf.type            = trans_idle;
     sbuf.prot            = 0;
     sbuf.num_burst_bytes = 0;
@@ -143,7 +146,7 @@ static void VUserInit (int node)
         exit(1);
     }
 
-#ifndef DISABLE_VUSERMAIN_CALL
+#ifndef DISABLE_VUSERMAIN_THREAD
 
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
@@ -652,6 +655,9 @@ void VTransRead (uint64_t addr, uint64_t *rdata, int prot, uint32_t node)
 }
 
 // -------------------------------------------------------------------------
+// VTransBurstWrite()
+//
+// Invokes a write burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
 void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
@@ -678,6 +684,9 @@ void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
 }
 
 // -------------------------------------------------------------------------
+// VTransBurstWrite()
+//
+// Invokes a write burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
 void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
@@ -704,6 +713,9 @@ void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
 }
 
 // -------------------------------------------------------------------------
+// VTransBurstRead()
+//
+// Invokes a read burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
 void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
@@ -730,6 +742,9 @@ void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
 }
 
 // -------------------------------------------------------------------------
+// VTransBurstRead()
+//
+// Invokes a read burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
 void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)

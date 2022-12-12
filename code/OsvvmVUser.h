@@ -65,7 +65,12 @@ extern "C"
 #define DELTA_CYCLE             -1
 #define NO_DELTA_CYCLE          0
 #define GO_TO_SLEEP             0x7fffffff
+
+#ifdef DISABLE_VUSERMAIN_THREAD
+#define SLEEPFOREVER            { return; }
+#else
 #define SLEEPFOREVER            { while(1) VTick(GO_TO_SLEEP, node); }
+#endif
                                 
 #define MAX_INT_LEVEL           7
 #define MIN_INT_LEVEL           1

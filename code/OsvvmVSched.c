@@ -96,29 +96,6 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 }
 
 // -------------------------------------------------------------------------
-// VHalt()
-//
-// Called for a 'reason'. Holding procedure to catch 'finish'
-// in case of any tidying up required.
-// -------------------------------------------------------------------------
-
-int VHalt (int data, int reason)
-{
-    DebugVPrint("VHalt(): data = %d reason = %d\n", data, reason);
-
-    if (reason == reason_endofcompile) {
-    } else if (reason == reason_finish) {
-    } else if (reason == reason_startofsave) {
-    } else if (reason == reason_save) {
-    } else if (reason == reason_restart) {
-        DebugVPrint("VHalt(): restart\n");
-    } else if (reason != reason_finish) {
-        DebugVPrint("VHalt(): not called for a halt reason (%d)\n", reason);
-        return 0;
-    }
-}
-
-// -------------------------------------------------------------------------
 // VSched()
 //
 // Main routine called whenever $vsched task invoked, on

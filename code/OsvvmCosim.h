@@ -53,7 +53,14 @@ class OsvvmCosim
 public:
                OsvvmCosim      (int nodeIn = 0) : node(nodeIn) {};
 
-      void     tick            (const int ticks, const bool done = false, const bool error = false) {VTick(ticks, done, error, node);}
+      void     tick            (const int ticks, const bool done = false, const bool error = false)
+      {
+#ifndef DISABLE_VUSERMAIN_THREAD
+          VTick(ticks, done, error, node);
+#else
+          VTick(ticks, false, error, node);
+#endif
+      }
 
       uint8_t  transWrite      (const uint32_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
       uint16_t transWrite      (const uint32_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}

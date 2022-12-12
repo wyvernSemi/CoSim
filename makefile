@@ -40,8 +40,6 @@
 #  limitations under the License.
 #
 
-# $MODEL_TECH environment variable must be set
-
 # Define the maximum number of supported VProcs in the compile pli library
 MAX_NUM_VPROC      = 64
 
@@ -79,16 +77,12 @@ SIM                = ModelSim
 
 ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
-  PLILIBARGS       = 
 else ifeq ("${SIM}", "NVC")
   ARCHFLAG         = -m64
-  PLILIBARGS       =
 else ifeq ("${SIM}", "QuestaSim")
   ARCHFLAG         = -m64
-  PLILIBARGS       = -L${MODEL_TECH} -lmtipli
 else
   ARCHFLAG         = -m32
-  PLILIBARGS       = -L${MODEL_TECH} -lmtipli
 endif
 
 RV32EXE            = test.exe
@@ -128,7 +122,6 @@ CFLAGS             = -fPIC                                 \
                      -g                                    \
                      -I${SRCDIR}                           \
                      -I${USRCDIR}                          \
-                     -I${MODEL_TECH}/../include            \
                      -DVP_MAX_NODES=${MAX_NUM_VPROC}       \
                      -DMODELSIM                            \
                      -D_REENTRANT
@@ -140,13 +133,13 @@ CFLAGS             = -fPIC                                 \
 all: ${VPROC_PLI} ${VUSER_PLI}
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.c ${SRC_INCL}
-	@${CC} -c ${CFLAGS} $< -o $@
+	@${CC} -c ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
-	@${C++} -c ${CFLAGS} $< -o $@
+	@${C++} -c ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.c ${USER_INCL}
-	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS}$< -o $@
+	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.cpp ${USER_INCL}
 	@${C++} ${CPPSTD} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
@@ -179,7 +172,6 @@ ${VPROC_PLI}: ${VLIB}
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
             -lpthread                                   \
-            ${PLILIBARGS}                               \
             -L${TESTDIR} -lvproc                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
@@ -192,7 +184,6 @@ ${VUSER_PLI}: ${VULIB} ${RV32TEST}
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
             -lpthread                                   \
-            ${PLILIBARGS}                               \
             ${USRFLAGS}                                 \
             -L${TESTDIR} -lvuser                        \
             -Wl,-no-whole-archive                       \

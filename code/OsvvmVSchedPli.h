@@ -43,7 +43,6 @@
 // =========================================================================
 
 #include <string.h>
-#include "veriuser.h"
 
 #ifndef _OSVVM_VSCHED_PLI_H_
 #define _OSVVM_VSCHED_PLI_H_
