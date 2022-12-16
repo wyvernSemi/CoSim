@@ -83,7 +83,9 @@ public:
       void     transBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
       void     transBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
 
-      void     regInterruptCB  (pVUserInt_t func, const int level=1) {VRegInterrupt(level, func, node);}
+      void     regInterruptCB  (pVUserInt_t func, const int level = 1)                        {VRegInterrupt(level, func, node);}
+      
+      void     waitForSim      (void)                                                         { VWaitForSim(node); }
 
       int      getNodeNumber   () {return node;}
 

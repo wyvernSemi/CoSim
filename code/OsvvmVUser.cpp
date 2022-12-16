@@ -46,6 +46,7 @@
 
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 #include <mutex>
 
 extern "C"
@@ -109,6 +110,7 @@ extern "C" int VUser (int node)
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
+#ifndef DISABLE_VUSERMAIN_THREAD
     // Set off the user code thread
     if (status = pthread_create(&thread, NULL, (pThreadFunc_t)VUserInit, (void *)((long long)node)))
     {
@@ -117,8 +119,28 @@ extern "C" int VUser (int node)
     }
 
     DebugVPrint("VUser(): spawned user thread for node %d\n", node);
-
+#endif
     return 0;
+}
+
+// -------------------------------------------------------------------------
+// VWaitOnFirstMessage()
+//
+// Wait on receive semaphore to indicate simulator is initialised and ready
+// to accept transfers from user code.
+//
+// -------------------------------------------------------------------------
+static void VWaitOnFirstMessage(uint32_t node)
+{
+    int status;
+
+    // Wait for first message from simulator
+    DebugVPrint("VWaitForSim(): waiting for first message semaphore rcv[%d]\n", node);
+    if ((status = sem_wait(&(ns[node]->rcv))) == -1)
+    {
+        printf("***Error: bad sem_post status (%d) on node %d (VUserInit)\n", status, node);
+        exit(1);
+    }
 }
 
 // -------------------------------------------------------------------------
@@ -138,15 +160,7 @@ static void VUserInit (int node)
 
     DebugVPrint("VUserInit(%d)\n", node);
 
-    // Wait for first message from simulator
-    DebugVPrint("VUserInit(): waiting for first message semaphore rcv[%d]\n", node);
-    if ((status = sem_wait(&(ns[node]->rcv))) == -1)
-    {
-        printf("***Error: bad sem_post status (%d) on node %d (VUserInit)\n", status, node);
-        exit(1);
-    }
-
-#ifndef DISABLE_VUSERMAIN_THREAD
+    VWaitOnFirstMessage(node);
 
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
@@ -173,8 +187,6 @@ static void VUserInit (int node)
     // Call user program
     DebugVPrint("VUserInit(): calling VUserMain%d\n", node);
     VUserMain_func();
-
-#endif
 
     while(true);
 }
@@ -251,6 +263,46 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
     acc_mx.unlock();
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
+}
+
+// -------------------------------------------------------------------------
+// VWaitForSim()
+//
+// Wait for the simulator to initialise and have sent the first message
+//
+// -------------------------------------------------------------------------
+
+void VWaitForSim(uint32_t node)
+{
+#ifdef DISABLE_VUSERMAIN_THREAD
+
+    int count = 0;
+
+    // Wait until the node's state is initialised (with a time out)
+    while(ns[node] == NULL && count < FIVESEC_TIMEOUT)
+    {
+        usleep(HUNDRED_MILLISECS);
+        count++;
+    }
+    
+    usleep(HUNDRED_MILLISECS);
+
+    // If timed out, generate an error
+    if (count == FIVESEC_TIMEOUT)
+    {
+        VPrint("***ERROR: timed out waiting for simulation\n");
+        exit(1);
+    }
+    else
+    {
+        // Wait for the first message from the simulator
+        VWaitOnFirstMessage(node);
+    }
+#else
+    // When running VUserMain in a thread is not disabled then do nothing
+    return;
+#endif
+
 }
 
 // -------------------------------------------------------------------------

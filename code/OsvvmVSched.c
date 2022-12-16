@@ -51,8 +51,7 @@
 #include "OsvvmVSchedPli.h"
 
 // Pointers to state for each node (up to VP_MAX_NODES)
-pSchedState_t ns[VP_MAX_NODES];
-
+pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
 
 /////////////////////////////////////////////////////////////
 // Main routine called whenever $vinit task invoked from

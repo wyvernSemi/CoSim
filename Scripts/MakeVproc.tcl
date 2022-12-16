@@ -40,6 +40,47 @@
 #
 
 # -------------------------------------------------------------------------
+# gen_lib_flags
+#
+# Generates the appropriate flags for a given OS if a library was specified
+#
+# -------------------------------------------------------------------------
+
+proc gen_lib_flags {libname} {
+
+  # Get the OS that we are running on
+  set osname [string tolower [exec uname]]
+  
+  # Select the RISC-V ISS library required
+  if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "NVC" || $::osvvm::ToolName eq "QuestaSim"} {
+  
+    if {"$osname" eq "linux"} {
+      set rvlib ${libname}x64
+    } else {
+      set rvlib ${libname}win64
+    }
+  } else {
+    if {"$osname" eq "linux"} {
+      set rvlib ${libname}
+    } else {
+      set rvlib ${libname}win32
+    }
+  }
+  
+  if {"$libname" eq ""} {
+    set flags ""
+  } else {
+    set flags "-I ./include -L ./lib -l${rvlib}"
+  }
+
+  return ${flags}
+}
+
+# -------------------------------------------------------------------------
+# mk_vproc_common
+#
+# Common make operations that executes the make program
+#
 # -------------------------------------------------------------------------
 
 proc mk_vproc_common {srcrootdir testname libname} {
@@ -47,27 +88,7 @@ proc mk_vproc_common {srcrootdir testname libname} {
 # Get the OS that we are running on
 set osname [string tolower [exec uname]]
 
-# Select the RISC-V ISS library required
-if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "NVC" || $::osvvm::ToolName eq "QuestaSim"} {
-
-  if {"$osname" eq "linux"} {
-    set rvlib ${libname}x64
-  } else {
-    set rvlib ${libname}win64
-  }
-} else {
-  if {"$osname" eq "linux"} {
-    set rvlib ${libname}
-  } else {
-    set rvlib ${libname}win32
-  }
-}
-
-if {"$libname" eq ""} {
-  set flags ""
-} else {
-  set flags "-I ./include -L ./lib -l${rvlib}"
-}
+set flags [ gen_lib_flags ${libname} ]
 
 exec make --no-print-directory -C $srcrootdir        \
           SIM=$::osvvm::ToolName                     \
@@ -145,6 +166,26 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
   
   puts "Running client_gui.py batch mode"
   set pid [exec python3 $srcrootdir/Scripts/client_batch.py -w $wait_time -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 &]
+  
+  return
+}
+
+# -------------------------------------------------------------------------
+# mk_vproc_ghdl_main
+#
+# Do a clean make specific to the callable GHDL environment 
+# using the wrapper makefile.ghdl, which will call makefile.
+#
+# -------------------------------------------------------------------------
+
+proc mk_vproc_ghdl_main {srcrootdir testname {libname ""} } {
+
+  exec make -f $srcrootdir/makefile.ghdl clean
+  
+  set flags [ gen_lib_flags ${libname} ]
+  
+  exec make -f $srcrootdir/makefile.ghdl \
+            USRFLAGS=${flags}
   
   return
 }

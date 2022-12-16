@@ -39,30 +39,37 @@
 
 #  limitations under the License.
 #
+# --------------------------------------------------------------------------
+#
+# User overridable variables: make VAR=NEW_VALUE ...
+#
+#   USRCDIR     : Directory, relative to OsvvmLibraries/CoSim, where the test directory is located
+#   OPDIR       : Directory for compilation output
+#   USRFLAGS    : Additional user defined compile and link flags
+#   SIM         : The target simulator. One of GHDL, NVC, QuestaSim, or ModelSim
+#
+# --------------------------------------------------------------------------
 
-# Define the maximum number of supported VProcs in the compile pli library
-MAX_NUM_VPROC      = 64
-
-SRCDIR             = code
 USRCDIR            = usercode
 OPDIR              = .
+USRFLAGS           =
+SIM                = ModelSim
+
+# Derived directory locations
+SRCDIR             = code
 TESTDIR            = ${OPDIR}
 VOBJDIR            = ${TESTDIR}/obj
-
-MEMMODELDIR        = .
 
 # VPROC C source code
 VPROC_C            = $(wildcard ${SRCDIR}/*.c*)
 VPROC_C_BASE       = $(notdir $(filter %c, ${VPROC_C}))
 VPROC_CPP_BASE     = $(notdir $(filter %cpp, ${VPROC_C}))
 
-# Memory model C code
-MEM_C              =
 
 # Test user code
 USER_C             = $(wildcard ${USRCDIR}/*.c*)
-
-USER_CPP_BASE      = $(notdir $(filter %cpp, ${USER_C}))
+EXCLFILE           = 
+USER_CPP_BASE      = $(patsubst ${EXCLFILE},,$(notdir $(filter %cpp, ${USER_C})))
 USER_C_BASE        = $(notdir $(filter %c, ${USER_C}))
 
 SRC_INCL           = $(wildcard ${SRCDIR}/*.h)
@@ -70,10 +77,6 @@ USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_BASE:%.cpp=%.o})
-
-USRFLAGS           =
-
-SIM                = ModelSim
 
 ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
@@ -114,6 +117,9 @@ else
   CPPSTD           =
   WLIB             = -lWs2_32 -l:vproc.so
 endif
+
+# Define the maximum number of supported VProcs in the compile pli library
+MAX_NUM_VPROC      = 16
 
 CC                 = gcc
 C++                = g++

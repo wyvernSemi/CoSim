@@ -1,0 +1,175 @@
+#  File Name:         makefile
+#  Purpose:           make file for compiling GHDL cosimulation with
+#                     callable simulator
+#  Revision:          OSVVM MODELS STANDARD VERSION
+#
+#  Maintainer:        Simon Southwell email:  simon@gmail.com
+#  Contributor(s):
+#     Simon Southwell     email:  simon.southwell@gmail.com
+#
+#  Description
+#    Tcl procedures supporting compiling of Co-cimuation C/C++ code
+#    using make
+#
+#  Developed by:
+#        SynthWorks Design Inc.
+#        VHDL Training Classes
+#        OSVVM Methodology and Model Library
+#        11898 SW 128th Ave.  Tigard, Or  97223
+#        http://www.SynthWorks.com
+#
+#  Revision History:
+#    Date      Version    Description
+#    10/2022   2022.10    Initial version
+#
+#
+#  This file is part of OSVVM.
+#
+#  Copyright (c) 2022 by SynthWorks Design Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+
+#  limitations under the License.
+#
+# --------------------------------------------------------------------------
+#
+# User overridable variables: make VAR=NEW_VALUE ...
+#
+#   OSVVMDIR    : Absolute path to OsvvmLibraries directory
+#   GHDLROOT    : Absolute path to GHDL lib directory
+#   USRCDIR     : Top level directory above the directories containing the test source code
+#   TEST        : The directory containing the test source code, relative to ${USRCDIR}
+#   COSIMDIR    : The path to OsvvmLibraries/CoSim, if different from ${USRCDIR}
+#   OPDIR       : Directory for compilation output, if not the directory from which make was run
+#   USRFLAGS    : Additional user defined compile and link flags
+#   VHDLLIB     : The path, relative to the run directory, to the VHDL_LIBS/<version>/ directory
+#   TBLIBRARY   : Name of library containing top level test component
+#   TESTBENCH   : Name of top level test component
+#
+# This makefile assumes all the relevant OsvvmLibraries and test files
+# have already been analysed into libraries in ${VHDLLIB}
+#
+# --------------------------------------------------------------------------
+
+#
+# User overridable variables (see above)
+#
+OSVVMDIR           = /c/git/OSVVM/OsvvmLibraries
+GHDLROOT           = /mingw64/lib/ghdl
+
+USRCDIR            = ${OSVVMDIR}/CoSim
+TEST               = tests/ghdl_main
+COSIMDIR           = ${USRCDIR}
+OPDIR              = ${CURDIR}
+
+USRFLAGS           =
+
+VHDLLIB            = VHDL_LIBS/GHDL-3.0.0-dev
+TBLIBRARY          = osvvm_tbaxi4
+TESTBENCH          = TbAxi4_CoSim
+
+#
+# Directory with test code to be compiled
+#
+MAINSRC            = main.cpp
+
+#
+# gcc linker flags required by GHDL code
+#
+GHDLFLAGS          = ${GHDLROOT}/libgrt.a                                 \
+                     -ldbghelp                                            \
+                     -L.                                                  \
+                     -L/mingw64/lib/gcc/x86_64-w64-mingw32/12.2.0/adalib/ \
+                     -lz                                                  \
+                     -Wl,--stack=0x2000000
+
+#
+# Test bench name in lower
+#
+LCTB               = $(shell echo ${TESTBENCH} | tr A-Z a-z)
+
+#
+# Compilation outputs
+#
+SIMEXE             = ${LCTB}.exe
+COSIMCODE          = VProc.so
+USRCODE            = VUser.so
+TBLIB              = libtb.a
+
+#
+# Compilers
+#
+CC                 = gcc
+AR                 = ar
+MAKE               = make
+GHDL               = ghdl
+
+#------------------------------------------------------
+# BUILD RULES
+#------------------------------------------------------
+
+all: ${SIMEXE}
+
+#
+# Co-simulation code compiled in the same way as normal, but with
+# DISABLE_VUSERMAIN_THREAD defined
+#
+${USRCODE} ${COSIMCODE}:
+	@${MAKE} -C ${COSIMDIR}                                               \
+                --no-print-directory                                      \
+                SIM=GHDL                                                  \
+                USRCDIR=${USRCDIR}/${TEST}                                \
+                OPDIR=${OPDIR}                                            \
+                EXCLFILE=${MAINSRC}                                       \
+                USRFLAGS="-I./include -L./lib -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
+
+#
+# Collect all the user objects in VHDL_LIBS and all the relevant objects
+# for the libraries into a new static library
+#
+${TBLIB}: obj/${MAINSRC:%.cpp=%.o}
+	@rm -f $@
+	@${AR} crs $@ $<                                                      \
+                   `find VHDL_LIBS             -name "*.o"`               \
+                   `find ${GHDLROOT}/std/v08/  -name "*.o"`               \
+                   `find ${GHDLROOT}/ieee/v08/ -name "*.o"`
+
+#
+# Elaborate the test bench to generate the top level object file
+#
+e~${LCTB}.o: ${COSIMCODE}
+	${GHDL} -e --std=08                                                  \
+             --work=${TBLIBRARY}                                          \
+             --workdir=${VHDLLIB}/${TBLIBRARY}/v08                        \
+             -P${VHDLLIB}                                                 \
+             ${TESTBENCH}
+
+# Remove executable generated by GHDL elaboration as this won't work
+	@rm -f ${LCTB}.exe
+
+#
+# Generate a new executable with all user code and the GHDL required libraries
+#
+${SIMEXE}: e~${LCTB}.o ${COSIMCODE} ${USRCODE} ${TBLIB}
+	@${CC} $^                                                             \
+           ${GHDLFLAGS}                                                   \
+           -o ${SIMEXE}
+
+obj/${MAINSRC:%.cpp=%.o}: ${USRCDIR}/${TEST}/${MAINSRC}
+	@g++ -c -I${COSIMDIR}/code $< -o $@
+
+#------------------------------------------------------
+# CLEANING RULES
+#------------------------------------------------------
+
+clean:
+	@rm -rf obj lib*.a ${TBLIB} ${COSIMCODE} ${USRCODE} ${SIMEXE} e~${LCTB}.o

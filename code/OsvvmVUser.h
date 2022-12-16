@@ -75,6 +75,9 @@ extern "C"
 #define MAX_INT_LEVEL           7
 #define MIN_INT_LEVEL           1
 
+#define HUNDRED_MILLISECS       1000000
+#define FIVESEC_TIMEOUT         (50*HUNDRED_MILLISECS)
+
 // Pointer to pthread_create compatible function
 typedef void *(*pThreadFunc_t)(void *);
 
@@ -84,6 +87,7 @@ typedef void *(*pThreadFunc_t)(void *);
 extern int      VWrite           (uint32_t addr,  uint32_t  data, int delta, uint32_t node = 0);
 extern int      VRead            (uint32_t addr,  uint32_t *data, int delta, uint32_t node = 0);
 extern int      VTick            (uint32_t ticks, bool      done = false,    bool     error = false, uint32_t  node = 0);
+extern void     VWaitForSim      (uint32_t node = 0);
 
 // Overloaded write and read transaction functions for 32 bit architecture for byte,
 // half-word and, words
