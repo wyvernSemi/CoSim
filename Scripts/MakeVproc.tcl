@@ -111,41 +111,41 @@ proc mk_vproc_clean {srcrootdir testname} {
 }
 
 # -------------------------------------------------------------------------
-# mk_vproc
+# MkVproc
 #
 #   Do a clean make compile for the specified VProc
 #   test directory
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc {srcrootdir testname {libname ""} } {
+proc MkVproc {srcrootdir testname {libname ""} } {
 
   mk_vproc_clean  $srcrootdir $testname
   mk_vproc_common $srcrootdir $testname $libname
 }
 
 # -------------------------------------------------------------------------
-# mk_vproc_noclean
+# MkVprocNoClean
 #
 #   Do a make compile for the VProc test directory
 #   without a clean
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_noclean {srcrootdir testname {libname ""}} {
+proc MkVprocNoClean {srcrootdir testname {libname ""}} {
 
    mk_vproc_common $srcrootdir $testname $libname
 }
 
 # -------------------------------------------------------------------------
-# mk_vproc_skt
+# MkVprocSkt
 #
 # Do a clean make compile for the spceified VProc test directory
 # and run the client_gui.py python script in batch mode in the background
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_skt {srcrootdir testname {libname ""} } {
+proc MkVprocSkt {srcrootdir testname {libname ""} } {
 
   mk_vproc $srcrootdir $testname $libname
   
@@ -171,14 +171,14 @@ proc mk_vproc_skt {srcrootdir testname {libname ""} } {
 }
 
 # -------------------------------------------------------------------------
-# mk_vproc_ghdl_main
+# MkVprocGhdlMain
 #
 # Do a clean make specific to the callable GHDL environment 
 # using the wrapper makefile.ghdl, which will call makefile.
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_ghdl_main {srcrootdir testname {libname ""} } {
+proc MkVprocGhdlMain {srcrootdir testname {libname ""} } {
 
   exec make -f $srcrootdir/makefile.ghdl clean
   
@@ -196,7 +196,7 @@ proc mk_vproc_ghdl_main {srcrootdir testname {libname ""} } {
 # Analyse the foreign procedure packages based on the running simulator 
 #
 # -------------------------------------------------------------------------
-proc analyzeForeignProcs {} {
+proc AnalyzeForeignProcs {} {
 
 # Get the OS that we are running on
 set osname [string tolower [exec uname]]
