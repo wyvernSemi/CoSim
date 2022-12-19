@@ -72,7 +72,7 @@ extern "C"
 #define SLEEPFOREVER            { while(1) VTick(GO_TO_SLEEP, node); }
 #endif
                                 
-#define MAX_INT_LEVEL           7
+#define MAX_INT_LEVEL           256
 #define MIN_INT_LEVEL           1
 
 #define HUNDRED_MILLISECS       1000000

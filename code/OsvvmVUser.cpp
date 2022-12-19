@@ -228,7 +228,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
         {
             DebugVPrint("VExch(): node %d processing interrupt (%d)\n", node, prbuf->interrupt);
 
-            if (prbuf->interrupt >= 8)
+            if (prbuf->interrupt >= MAX_INT_LEVEL)
             {
                 printf("***Error: invalid interrupt level %d (VExch)\n", prbuf->interrupt);
                 exit(1);

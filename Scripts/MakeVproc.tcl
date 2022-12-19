@@ -196,24 +196,24 @@ proc MkVprocGhdlMain {srcrootdir testname {libname ""} } {
 # Analyse the foreign procedure packages based on the running simulator 
 #
 # -------------------------------------------------------------------------
-proc AnalyzeForeignProcs {} {
+proc AnalyzeForeignProcs {{top_level  ../../..}} {
 
 # Get the OS that we are running on
 set osname [string tolower [exec uname]]
 
   if {$::osvvm::ToolName eq "NVC"} {
-    analyze ../../../CoSim/src/OsvvmVprocNvcPkg.vhd
+    analyze $top_level/CoSim/src/OsvvmVprocNvcPkg.vhd
     if {"$osname" ne "linux"} {
       set ::env(NVC_FOREIGN_OBJ) VProc.so
     } else {
       SetExtendedRunOptions --load=./VProc.so
     }
   } elseif {$::osvvm::ToolName eq "GHDL"} {
-    analyze ../../../CoSim/src/OsvvmVprocGhdlPkg.vhd
+    analyze $top_level/CoSim/src/OsvvmVprocGhdlPkg.vhd
   } else {
-    analyze ../../../CoSim/src/OsvvmVprocPkg.vhd
+    analyze $top_level/CoSim/src/OsvvmVprocPkg.vhd
   }
   
-  analyze ../../../CoSim/src/OsvvmTestCoSimPkg.vhd
+  analyze $top_level/CoSim/src/OsvvmTestCoSimPkg.vhd
 }
 
