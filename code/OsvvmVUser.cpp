@@ -55,7 +55,7 @@ extern "C"
 }
 #include "OsvvmVUser.h"
 
-static std::mutex acc_mx;
+static std::mutex acc_mx[VP_MAX_NODES];
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -153,7 +153,6 @@ static void VWaitOnFirstMessage(uint32_t node)
 
 static void VUserInit (int node)
 {
-    //handle_t hdl;
     pVUserMain_t VUserMain_func;
     char funcname[DEFAULT_STR_BUF_SIZE];
     int status;
@@ -180,7 +179,7 @@ static void VUserInit (int node)
         exit(1);
     }
 
-    DebugVPrint("VUserInit(): got user function (%s) for node %d (%x)\n", funcname, node, VUserMain_func);
+    DebugVPrint("VUserInit(): got user function (%s) for node %d (%p)\n", funcname, node, VUserMain_func);
 
     DebugVPrint("VUserInit(): calling user code for node %d\n", node);
 
@@ -204,7 +203,7 @@ static void VUserInit (int node)
 static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
-    acc_mx.lock();
+    acc_mx[node].lock();
 
     int status;
     // Send message to simulator
@@ -260,7 +259,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
     while (prbuf->interrupt > 0);
 
     // Unlock mutex
-    acc_mx.unlock();
+    acc_mx[node].unlock();
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }

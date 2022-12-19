@@ -60,7 +60,7 @@ pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
 VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 {
 
-    VPrint("VInit()\n");
+    VPrint("VInit(%d)\n", node);
 
     // Range check node number
     if (node < 0 || node >= VP_MAX_NODES)

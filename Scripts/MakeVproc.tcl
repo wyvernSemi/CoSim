@@ -147,7 +147,7 @@ proc MkVprocNoClean {srcrootdir testname {libname ""}} {
 
 proc MkVprocSkt {srcrootdir testname {libname ""} } {
 
-  mk_vproc $srcrootdir $testname $libname
+  MkVproc $srcrootdir $testname $libname
   
   set pathprefix [string range $srcrootdir 0 1]
   
