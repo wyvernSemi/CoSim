@@ -44,8 +44,8 @@
 #
 # User overridable variables: make VAR=NEW_VALUE ...
 #
-#   OSVVMDIR    : Absolute path to OsvvmLibraries directory
-#   GHDLROOT    : Absolute path to GHDL lib directory
+#   OSVVMDIR    : Absolute path to the OsvvmLibraries directory
+#   GHDLROOT    : Absolute path to the GHDL lib directory
 #   USRCDIR     : Top level directory above the directories containing the test source code
 #   TEST        : The directory containing the test source code, relative to ${USRCDIR}
 #   COSIMDIR    : The path to OsvvmLibraries/CoSim, if different from ${USRCDIR}
@@ -60,13 +60,23 @@
 #
 # --------------------------------------------------------------------------
 
+# Get OS type
+OSTYPE:=$(shell uname)
+
+# Set OS specific variables between Linux and Windows (MinGW)
+ifeq (${OSTYPE}, Linux)
+  OSVVMDIR         = /git/OsvvmLibraries
+  GHDLROOT         = /usr/lib/ghdl
+else
+  OSVVMDIR         = /c/git/OsvvmLibraries
+  GHDLROOT         = /mingw64/lib/ghdl
+endif
+
 #
 # User overridable variables (see above)
 #
-OSVVMDIR           = /c/git/OSVVM/OsvvmLibraries
-GHDLROOT           = /mingw64/lib/ghdl
 
-USRCDIR            = ${OSVVMDIR}/CoSim
+USRCDIR            = /git/OSVVM/OsvvmLibraries/CoSim
 TEST               = tests/ghdl_main
 COSIMDIR           = ${USRCDIR}
 OPDIR              = ${CURDIR}
