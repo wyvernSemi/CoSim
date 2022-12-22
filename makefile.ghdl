@@ -76,7 +76,7 @@ endif
 # User overridable variables (see above)
 #
 
-USRCDIR            = /git/OSVVM/OsvvmLibraries/CoSim
+USRCDIR            = ${OSVVMDIR}/CoSim
 TEST               = tests/ghdl_main
 COSIMDIR           = ${USRCDIR}
 OPDIR              = ${CURDIR}
