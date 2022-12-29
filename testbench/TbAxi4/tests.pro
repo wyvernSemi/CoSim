@@ -51,6 +51,9 @@ simulate   TbAxi4_CoSim [generic TEST_NAME iss]
 
 # MkVprocSkt ${::osvvm::SCRIPT_DIR}/../CoSim tests/socket
 # simulate   TbAxi4_CoSim
+# 
+# EndSimulation
+# after 1000
 
 #if {$::osvvm::ToolName eq "GHDL"} {
 #
