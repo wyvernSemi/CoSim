@@ -39,6 +39,8 @@
 #  limitations under the License.
 #
 
+namespace eval ::osvvm {
+
 # -------------------------------------------------------------------------
 # gen_lib_flags
 #
@@ -190,30 +192,9 @@ proc MkVprocGhdlMain {srcrootdir testname {libname ""} } {
   return
 }
 
-# -------------------------------------------------------------------------
-# analyzeForeignProcs
-#
-# Analyse the foreign procedure packages based on the running simulator 
-#
-# -------------------------------------------------------------------------
-proc AnalyzeForeignProcs {{top_level  ../../..}} {
 
-# Get the OS that we are running on
-set osname [string tolower [exec uname]]
+# use of namespace hides local proc
+namespace export MkVproc MkVprocNoClean MkVprocSkt MkVprocGhdlMain
 
-  if {$::osvvm::ToolName eq "NVC"} {
-    analyze $top_level/CoSim/src/OsvvmVprocNvcPkg.vhd
-    if {"$osname" ne "linux"} {
-      set ::env(NVC_FOREIGN_OBJ) VProc.so
-    } else {
-      SetExtendedRunOptions --load=./VProc.so
-    }
-  } elseif {$::osvvm::ToolName eq "GHDL"} {
-    analyze $top_level/CoSim/src/OsvvmVprocGhdlPkg.vhd
-  } else {
-    analyze $top_level/CoSim/src/OsvvmVprocPkg.vhd
-  }
-  
-  analyze $top_level/CoSim/src/OsvvmTestCoSimPkg.vhd
+# end namespace ::osvvm
 }
-
