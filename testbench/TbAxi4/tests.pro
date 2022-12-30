@@ -1,9 +1,10 @@
-#  File Name:               cosim.pro
+#  File Name:               tests.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
 #  Contributor(s):
 #     Simon Southwell       simon.southwell@gmail.com
+#     Jim Lewis             jim@synthworks.com
 #
 #
 #  Description:
@@ -17,7 +18,9 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#     9/2022   2023.01    Initial version
+#    12/2022   2023.01    Refactored to source scripts in Scripts/StartUpShared.tcl and 
+#                         analyze CoSim by calling CoSim/CoSim.pro in OsvvmLibraries/OsvvmLibraries.pro
+#     9/2022   --         Initial version
 #
 #
 #  This file is part of OSVVM.
