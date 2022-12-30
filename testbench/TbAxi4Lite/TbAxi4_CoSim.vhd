@@ -39,18 +39,6 @@
 --  limitations under the License.
 --
 
-library osvvm_tbcosim ;
-  use osvvm_tbcosim.OsvvmVprocPkg.all ;
-  use osvvm_tbcosim.OsvvmTestCoSimPkg.all;
-
-library osvvm_axi4 ;
-
-  use osvvm_axi4.Axi4OptionsPkg.all ;
-  use osvvm_axi4.Axi4ModelPkg.all ;
-  use osvvm_axi4.Axi4InterfaceCommonPkg.all ;
-  use osvvm_axi4.Axi4LiteInterfacePkg.all ;
-  use osvvm_axi4.Axi4CommonPkg.all ;
-
 architecture CoSim of TestCtrl is
     
   signal TestDone       : integer_barrier := 1 ;
