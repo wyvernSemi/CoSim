@@ -1,6 +1,6 @@
 --
---  File Name:         TbAxi4.vhd
---  Design Unit Name:  TbAxi4
+--  File Name:         TbAddressBus.vhd
+--  Design Unit Name:  TbAddressBus
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -50,9 +50,9 @@ library osvvm ;
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
 
-entity TbAxi4 is
-end entity TbAxi4 ;
-architecture TestHarness of TbAxi4 is
+entity TbAddressBus is
+end entity TbAddressBus ;
+architecture TestHarness of TbAddressBus is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
