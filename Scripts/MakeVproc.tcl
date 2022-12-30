@@ -188,7 +188,7 @@ proc MkVprocGhdlMain {srcrootdir testname {libname ""} } {
   
   exec make -f $srcrootdir/makefile.ghdl \
             USRFLAGS=${flags}            \
-            TBLIBRARY=osvvm_CoSim_TbAxi4
+            TBLIBRARY=$::osvvm::VhdlWorkingLibrary
   
   return
 }
