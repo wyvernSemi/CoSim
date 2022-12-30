@@ -38,22 +38,22 @@
 #
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_size
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_burst
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/iss rv32
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVprocSkt $::osvvm::OsvvmCoSimDirectory  tests/socket
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 #if {$::osvvm::ToolName eq "GHDL"} {
 #
 #  MkVprocGhdlMain  $::osvvm::CurrentWorkingDirectory/../../../CoSim tests/ghdl_main
 #
 #  set ::osvvm::GhdlRunCmd "-r"
-#  simulate        TbAxi4_CoSim
+#  simulate        TbAb_CoSim
 #  unset ::osvvm::GhdlRunCmd
 #}
