@@ -42,18 +42,18 @@
 # library and TestSuite set by higher level scripts
 
 # Uses OSVVM Interrupt Handling 
-# analyze TbAxi4_InterruptCosim1.vhd
+# analyze TbAb_InterruptCosim1.vhd
 # MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interrupt
-# simulate TbAxi4_InterruptCosim1
+# simulate TbAb_InterruptCosim1
 
 # Use Interrupt Handling in Vproc
-analyze TbAxi4_InterruptCoSim2.vhd
+analyze TbAb_InterruptCoSim2.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptCB
-simulate TbAxi4_InterruptCoSim2
+simulate TbAb_InterruptCoSim2
 
 # Use Interrupt Handling in Vproc
-analyze TbAxi4_InterruptCoSim3.vhd
+analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptIss rv32
-simulate TbAxi4_InterruptCoSim3
+simulate TbAb_InterruptCoSim3
 
 

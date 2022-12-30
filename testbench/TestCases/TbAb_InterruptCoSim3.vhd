@@ -1,5 +1,5 @@
 --
---  File Name:         TbAxi4_InterruptCoSim3.vhd
+--  File Name:         TbAb_InterruptCoSim3.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
@@ -54,14 +54,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAxi4_InterruptCoSim3") ;
+    SetTestName("TbAb_InterruptCoSim3") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_InterruptCoSim3.txt") ;
+    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim3.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -76,7 +76,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAxi4_InterruptCoSim3.txt", "../AXI4/Axi4/testbench/validated_results/TbAxi4_InterruptCoSim3.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_InterruptCoSim3.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim3.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -167,7 +167,7 @@ begin
 
 end InterruptCoSim3 ;
 
-Configuration TbAxi4_InterruptCoSim3 of TbAxi4Memory is
+Configuration TbAb_InterruptCoSim3 of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
       use entity work.TestCtrl(InterruptCoSim3) ;
@@ -176,4 +176,4 @@ Configuration TbAxi4_InterruptCoSim3 of TbAxi4Memory is
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAxi4_InterruptCoSim3 ;
+end TbAb_InterruptCoSim3 ;
