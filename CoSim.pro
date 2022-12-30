@@ -4,6 +4,7 @@
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
 #  Contributor(s):
 #     Simon Southwell       simon.southwell@gmail.com
+#     Jim Lewis             jim@synthworks.com
 #
 #
 #  Description:
@@ -37,7 +38,7 @@
 #  limitations under the License.
 #
 
-library    osvvm_tbcosim
+library    osvvm_cosim
 # AnalyzeForeignProcs
 
 if {$::osvvm::ToolName eq "NVC"} {
@@ -56,25 +57,4 @@ if {$::osvvm::ToolName eq "NVC"} {
 }
 
 analyze src/OsvvmTestCoSimPkg.vhd
-
-
-# proc AnalyzeForeignProcs {{top_level  ../../..}} {
-# 
-# # Get the OS that we are running on
-# set osname [string tolower [exec uname]]
-# 
-#   if {$::osvvm::ToolName eq "NVC"} {
-#     analyze $top_level/CoSim/src/OsvvmVprocNvcPkg.vhd
-#     if {"$osname" ne "linux"} {
-#       set ::env(NVC_FOREIGN_OBJ) VProc.so
-#     } else {
-#       SetExtendedRunOptions --load=./VProc.so
-#     }
-#   } elseif {$::osvvm::ToolName eq "GHDL"} {
-#     analyze $top_level/CoSim/src/OsvvmVprocGhdlPkg.vhd
-#   } else {
-#     analyze $top_level/CoSim/src/OsvvmVprocPkg.vhd
-#   }
-#   
-#   analyze $top_level/CoSim/src/OsvvmTestCoSimPkg.vhd
-# }
+analyze src/CoSimContext.vhd
