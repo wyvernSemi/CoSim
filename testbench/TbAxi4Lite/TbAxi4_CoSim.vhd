@@ -1,5 +1,5 @@
 --
---  File Name:           TbAxi4_CoSim.vhd
+--  File Name:           TbAb_CoSim.vhd
 --  Design Unit Name:    Architecture of TestCtrl
 --  Revision:            OSVVM MODELS STANDARD VERSION
 --
@@ -55,7 +55,7 @@ begin
   ControlProc : process
   begin
     -- Initialization of test
---    SetAlertLogName("TbAxi4_CoSim") ;
+--    SetAlertLogName("TbAb_CoSim") ;
     SetAlertLogName("CoSim_" & TEST_NAME) ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
@@ -63,7 +63,7 @@ begin
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
     TranscriptOpen(OSVVM_RESULTS_DIR & GetTestName & ".txt") ;
---    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_CoSim.txt") ;
+--    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_CoSim.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -77,7 +77,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAxi4_CoSim.txt", "../sim_shared/validated_results/TbAxi4_CoSim.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_CoSim.txt", "../sim_shared/validated_results/TbAb_CoSim.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -142,10 +142,10 @@ begin
 
 end CoSim ;
 
-Configuration TbAxi4_CoSim of TbAxi4Cosim is
+Configuration TbAb_CoSim of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
       use entity work.TestCtrl(CoSim) ;
     end for ;
   end for ;
-end TbAxi4_CoSim ;
+end TbAb_CoSim ;
