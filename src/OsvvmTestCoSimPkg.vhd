@@ -52,8 +52,8 @@ library OSVVM ;
 library OSVVM_Common ;
   use OSVVM_Common.AddressBusTransactionPkg.all ;
 
-library osvvm_tbcosim ;
-  use osvvm_TbCosim.OsvvmVprocPkg.all ;
+library osvvm_cosim ;
+  use osvvm_cosim.OsvvmVprocPkg.all ;
 
 package OsvvmTestCoSimPkg is
 
