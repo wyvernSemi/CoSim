@@ -37,16 +37,16 @@
 #  limitations under the License.
 #
 
-MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim  tests/usercode_size
+MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_size
 simulate   TbAxi4_CoSim
 
-MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim  tests/usercode_burst
+MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_burst
 simulate   TbAxi4_CoSim
 
-MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim  tests/iss rv32
+MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/iss rv32
 simulate   TbAxi4_CoSim
 
-MkVprocSkt ${::osvvm::SCRIPT_DIR}/../CoSim  tests/socket
+MkVprocSkt $::osvvm::OsvvmCoSimDirectory  tests/socket
 simulate   TbAxi4_CoSim
 
 #if {$::osvvm::ToolName eq "GHDL"} {
