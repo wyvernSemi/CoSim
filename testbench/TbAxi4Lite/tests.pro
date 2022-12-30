@@ -37,20 +37,20 @@
 #  limitations under the License.
 #
 
-MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim tests/usercode_size
+MkVproc    $::osvvm::OsvvmCoSimDirectory tests/usercode_size
 TestName   CoSim_usercode_size
 simulate   TbAxi4_CoSim [generic TEST_NAME usercode_size]
 
-# MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim tests/usercode_burst
+# MkVproc    $::osvvm::OsvvmCoSimDirectory tests/usercode_burst
 # TestName   CoSim_usercode_burst
 # simulate   TbAxi4_CoSim [generic TEST_NAME usercode_burst]
 
  
-MkVproc    ${::osvvm::SCRIPT_DIR}/../CoSim tests/iss rv32
+MkVproc    $::osvvm::OsvvmCoSimDirectory tests/iss rv32
 TestName   CoSim_iss
 simulate   TbAxi4_CoSim [generic TEST_NAME iss]
 
-# MkVprocSkt ${::osvvm::SCRIPT_DIR}/../CoSim tests/socket
+# MkVprocSkt $::osvvm::OsvvmCoSimDirectory tests/socket
 # simulate   TbAxi4_CoSim
 # 
 # EndSimulation
