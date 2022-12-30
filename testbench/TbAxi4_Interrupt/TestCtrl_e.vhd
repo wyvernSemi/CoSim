@@ -55,6 +55,9 @@ library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ; 
   use osvvm.ScoreboardPkg_slv.all ;
 
+library osvvm_cosim ;
+  context osvvm_cosim.CoSimContext ;
+
 use work.OsvvmTestCommonPkg.all ;
 
 entity TestCtrl is
