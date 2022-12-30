@@ -1,4 +1,4 @@
-#  File Name:         testbench.pro
+#  File Name:         TestCases.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -8,13 +8,7 @@
 #
 #
 #  Description:
-#        Script to run one Co-simulation Interrupt test
-#
-#  Developed for:
-#        SynthWorks Design Inc.
-#        VHDL Training Classes
-#        11898 SW 128th Ave.  Tigard, Or  97223
-#        http://www.SynthWorks.com
+#        Script to run Co-simulation Interrupt tests
 #
 #  Revision History:
 #    Date      Version    Description
@@ -24,7 +18,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 by OSVVM Authors
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

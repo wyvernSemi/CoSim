@@ -6,27 +6,20 @@
 --  Maintainer:        Simon Southwell  email: simon.southwell@gmail.com
 --  Contributor(s):
 --     Simon Southwell      simon.southwell@gmail.com
---     Jim Lewis            jim@synthworks.com
 --
 --
 --  Description:
 --      Test interrupt handling done in OSVVM Interrupt Handler.
 --      CoSim interface drives ManagerProc and InterruptProc
 --
---
---  Developed by:
---        SynthWorks Design Inc.
---        VHDL Training Classes
---        http://www.SynthWorks.com
---
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Initial revision
+--    10/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by SynthWorks Design Inc.
+--  Copyright (c) 2022 by OSVVM Authors
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.

@@ -10,8 +10,7 @@
 --
 --
 --  Description:
---      Simple AXI Lite Manager Model
---
+--      Test Harness for Axi4LiteManager + Axi4LiteMemory
 --
 --  Developed by:
 --        SynthWorks Design Inc.
@@ -20,7 +19,7 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    01/2023   2021.01    Updated Entity Name to TbAddressBusMemory
+--    12/2022   2023.01    Updated Entity Name to TbAddressBusMemory
 --    12/2020   2020.12    Updated signal and port names
 --    01/2020   2020.01    Updated license notice
 --    04/2018   2018       Initial revision
