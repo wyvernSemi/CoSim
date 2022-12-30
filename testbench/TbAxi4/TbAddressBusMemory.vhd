@@ -1,6 +1,6 @@
 --
---  File Name:         TbAxi4Memory.vhd
---  Design Unit Name:  TbAxi4Memory
+--  File Name:         TbAddressBusMemory.vhd
+--  Design Unit Name:  TbAddressBusMemory
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -52,12 +52,12 @@ library osvvm ;
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
 
-entity TbAxi4Memory is
+entity TbAddressBusMemory is
   generic (
     TEST_NAME : string := "" 
   ) ;
-end entity TbAxi4Memory ;
-architecture TestHarness of TbAxi4Memory is
+end entity TbAddressBusMemory ;
+architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
