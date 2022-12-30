@@ -1,15 +1,17 @@
 --
---  File Name:         TbAxi4_Interrupt1.vhd
+--  File Name:         TbAxi4_InterruptCoSim1.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+--  Maintainer:        Simon Southwell  email: simon.southwell@gmail.com
 --  Contributor(s):
---     Jim Lewis      jim@synthworks.com
+--     Simon Southwell      simon.southwell@gmail.com
+--     Jim Lewis            jim@synthworks.com
 --
 --
 --  Description:
---      Test transaction source
+--      Test interrupt handling done in OSVVM Interrupt Handler.
+--      CoSim interface drives ManagerProc and InterruptProc
 --
 --
 --  Developed by:
@@ -19,13 +21,12 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Updated for new interrupt handler
---    04/2021   2021.04    Initial revision
+--    10/2022   2022.10    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2021-2022 by SynthWorks Design Inc.
+--  Copyright (c) 2022 by SynthWorks Design Inc.
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -40,11 +41,7 @@
 --  limitations under the License.
 --
 
-library osvvm_tbcosim ;
-  use osvvm_tbcosim.OsvvmVprocPkg.all ;
-  use osvvm_tbcosim.OsvvmTestCoSimPkg.all;
-
-architecture InterruptCosim1 of TestCtrl is
+architecture InterruptCoSim1 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
 
@@ -58,14 +55,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAxi4_InterruptCosim1") ;
+    SetTestName("TbAxi4_InterruptCoSim1") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_InterruptCosim1.txt") ;
+    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_InterruptCoSim1.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -80,7 +77,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAxi4_InterruptCosim1.txt", "../AXI4/Axi4/testbench/validated_results/TbAxi4_InterruptCosim1.txt", "") ;
+    -- AlertIfDiff("./results/TbAxi4_InterruptCoSim1.txt", "../AXI4/Axi4/testbench/validated_results/TbAxi4_InterruptCoSim1.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -187,15 +184,15 @@ begin
   end process SubordinateProc ;
 
 
-end InterruptCosim1 ;
+end InterruptCoSim1 ;
 
-Configuration TbAxi4_InterruptCosim1 of TbAxi4Memory is
+Configuration TbAxi4_InterruptCoSim1 of TbAxi4Memory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(InterruptCosim1) ;
+      use entity work.TestCtrl(InterruptCoSim1) ;
     end for ;
 --!!    for Subordinate_1 : Axi4Subordinate
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAxi4_InterruptCosim1 ;
+end TbAxi4_InterruptCoSim1 ;
