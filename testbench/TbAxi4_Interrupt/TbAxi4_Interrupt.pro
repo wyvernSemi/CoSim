@@ -41,7 +41,6 @@
 TestSuite  CoSim_Axi4_Interrupt
 library    osvvm_CoSim_Axi4_Interrupt
 
-analyze OsvvmTestCommonPkg.vhd
-analyze TestCtrl_e.vhd
-analyze TbAxi4.vhd
-analyze TbAxi4Memory.vhd
+analyze    OsvvmTestCommonPkg.vhd
+analyze    TestCtrl_e.vhd
+analyze    TbAddressBusMemory.vhd
