@@ -1,4 +1,4 @@
-#  File Name:               cosim.pro
+#  File Name:               tests.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
@@ -22,7 +22,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
