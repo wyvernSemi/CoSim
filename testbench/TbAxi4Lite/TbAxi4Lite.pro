@@ -44,4 +44,4 @@ analyze    OsvvmTestCommonPkg.vhd
 analyze    TestCtrl_e.vhd
 analyze    TbAddressBusMemory.vhd
 
-analyze    TbAb_CoSim.vhd
+analyze    ../TestCases/TbAb_CoSim.vhd
