@@ -30,7 +30,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
+
+if {$::osvvm::ToolName eq "NVC"} {
+  set osname [string tolower [exec uname]]
+  if {"$osname" ne "linux"} {
+    set ::env(NVC_FOREIGN_OBJ) VProc.so
+  } else {
+    SetExtendedRunOptions --load=./VProc.so
+  }
+}
 
 # Analyze Axi4Lite testbench and run tests on it
 include  ./testbench/TbAxi4Lite
