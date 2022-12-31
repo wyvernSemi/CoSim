@@ -13,12 +13,12 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Initial revision
+--    10/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by OSVVM Authors
+--  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
