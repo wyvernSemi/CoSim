@@ -9,12 +9,6 @@
 #  Description:
 #        Script to run Axi4 Lite co-sim API test  
 #
-#  Developed for:
-#        SynthWorks Design Inc.
-#        VHDL Training Classes
-#        11898 SW 128th Ave.  Tigard, Or  97223
-#        http://www.SynthWorks.com
-#
 #  Revision History:
 #    Date      Description
 #    01/2023   Relocated testbenches to be under CoSim
@@ -23,7 +17,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2019 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2019 - 2020 by [OSVVM Authors](AUTHORS.md)  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

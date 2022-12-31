@@ -11,21 +11,13 @@
 #    Tcl procedures supporting compiling of Co-cimuation C/C++ code
 #    using make
 #
-#  Developed by:
-#        SynthWorks Design Inc.
-#        VHDL Training Classes
-#        OSVVM Methodology and Model Library
-#        11898 SW 128th Ave.  Tigard, Or  97223
-#        http://www.SynthWorks.com
-#
 #  Revision History:
 #    Date      Version    Description
-#    10/2022   2022.10    Initial version
-#
+#    10/2022   2023.01    Initial version
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022 by [OSVVM Authors](AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
