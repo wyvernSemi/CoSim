@@ -13,20 +13,14 @@
 //      Simulator co-simulation virtual procedure C++ class for user
 //      side code. Virtualises away top level VP user thread routines.
 //
-//
-//  Developed by:
-//        SynthWorks Design Inc.
-//        VHDL Training Classes
-//        http://www.SynthWorks.com
-//
 //  Revision History:
 //    Date      Version    Description
-//    11/2022   2022       Initial revision
+//    11/2022   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by SynthWorks Design Inc.
+//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
