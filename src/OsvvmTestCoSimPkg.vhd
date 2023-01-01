@@ -116,10 +116,10 @@ package body OsvvmTestCoSimPkg is
            vec              : in  std_logic_vector
   ) return std_logic_vector is
 
-  variable result           : std_logic_vector(vec'length-1 downto 0) ;
+  variable result           : std_logic_vector(vec'range) ;
 
   begin
-    for i in 0 to vec'length-1 loop
+    for i in vec'range loop
       if vec(i) = 'U' then
         result(i) := '0' ;
       else
@@ -168,7 +168,8 @@ procedure CoSimTrans (
   variable NodeNum         : in     integer := 0
   ) is
 
-  variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+--  variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+  variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
 
   variable VPDataIn        : integer ;
   variable VPDataInHi      : integer ;
@@ -190,7 +191,8 @@ procedure CoSimTrans (
 
     -- RdData won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
-    RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
+--    RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;  -- MetaTo01 makes meta values 0.
+    RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
     
     -- Process interrupt input
     Interrupt    := 1 when IntReq = true else 0;
@@ -202,7 +204,8 @@ procedure CoSimTrans (
         VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
         VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
       else
-        VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
+--        VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;  -- what if data is 16 bits?
+        VPDataIn   := to_integer(signed(RdData)) ;
         VPDataInHi := 0 ;
       end if;
 
@@ -233,8 +236,9 @@ procedure CoSimTrans (
 
     else
 
-      Ticks := Ticks - 1 ;
-      WaitForClock(ManagerRec) ;
+--      Ticks := Ticks - 1 ;
+      WaitForClock(ManagerRec, Ticks) ;
+      Ticks := 0 ; 
 
     end if ;
 
@@ -274,43 +278,45 @@ procedure CoSimTransSingle (
     if VPRW /= 0 then
       if to_unsigned(VPRW, 2)(RDbit)
       then
-        if VPAddrWidth = 64 then
-          case VPDataWidth is
-          when 64 => Read  (ManagerRec, Address, RdData) ;
-          when 32 => Read  (ManagerRec, Address, RdData(31 downto 0)) ;
-          when 16 => Read  (ManagerRec, Address, RdData(15 downto 0)) ;
-          when  8 => Read  (ManagerRec, Address, RdData( 7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (64 bit arch)");
-          end case ;
-        elsif VPAddrWidth = 32 then
-          case VPDataWidth is
-          when 32 => Read  (ManagerRec, Address(31 downto 0), RdData(31 downto 0)) ;
-          when 16 => Read  (ManagerRec, Address(31 downto 0), RdData(15 downto 0)) ;
-          when  8 => Read  (ManagerRec, Address(31 downto 0), RdData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (32 bit arch)");
-          end case ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim read transaction");
-        end if ;
+        Read  (ManagerRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
+        -- if VPAddrWidth = 64 then
+        --   case VPDataWidth is
+        --   when 64 => Read  (ManagerRec, Address, RdData) ;
+        --   when 32 => Read  (ManagerRec, Address, RdData(31 downto 0)) ;
+        --   when 16 => Read  (ManagerRec, Address, RdData(15 downto 0)) ;
+        --   when  8 => Read  (ManagerRec, Address, RdData( 7 downto 0)) ;
+        --   when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (64 bit arch)");
+        --   end case ;
+        -- elsif VPAddrWidth = 32 then
+        --   case VPDataWidth is
+        --   when 32 => Read  (ManagerRec, Address(31 downto 0), RdData(31 downto 0)) ;
+        --   when 16 => Read  (ManagerRec, Address(31 downto 0), RdData(15 downto 0)) ;
+        --   when  8 => Read  (ManagerRec, Address(31 downto 0), RdData(7 downto 0)) ;
+        --   when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (32 bit arch)");
+        --   end case ;
+        -- else
+        --   AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim read transaction");
+        -- end if ;
       else
-        if VPAddrWidth = 64 then
-          case VPDataWidth is
-          when 64 => Write (ManagerRec, Address, WrData) ;
-          when 32 => Write (ManagerRec, Address, WrData(31 downto 0)) ;
-          when 16 => Write (ManagerRec, Address, WrData(15 downto 0)) ;
-          when  8 => Write (ManagerRec, Address, WrData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (64 bit arch)");
-          end case ;
-        elsif VPAddrWidth = 32 then
-          case VPDataWidth is
-          when 32 => Write (ManagerRec, Address(31 downto 0), WrData(31 downto 0)) ;
-          when 16 => Write (ManagerRec, Address(31 downto 0), WrData(15 downto 0)) ;
-          when  8 => Write (ManagerRec, Address(31 downto 0), WrData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (32 bit arch)");
-          end case ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim write transaction");
-        end if ;
+        Write (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
+        -- if VPAddrWidth = 64 then
+        --   case VPDataWidth is
+        --   when 64 => Write (ManagerRec, Address, WrData) ;
+        --   when 32 => Write (ManagerRec, Address, WrData(31 downto 0)) ;
+        --   when 16 => Write (ManagerRec, Address, WrData(15 downto 0)) ;
+        --   when  8 => Write (ManagerRec, Address, WrData(7 downto 0)) ;
+        --   when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (64 bit arch)");
+        --   end case ;
+        -- elsif VPAddrWidth = 32 then
+        --   case VPDataWidth is
+        --   when 32 => Write (ManagerRec, Address(31 downto 0), WrData(31 downto 0)) ;
+        --   when 16 => Write (ManagerRec, Address(31 downto 0), WrData(15 downto 0)) ;
+        --   when  8 => Write (ManagerRec, Address(31 downto 0), WrData(7 downto 0)) ;
+        --   when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (32 bit arch)");
+        --   end case ;
+        -- else
+        --   AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim write transaction");
+        -- end if ;
       end if ;
     end if ;
 
@@ -350,14 +356,15 @@ procedure CoSimTransBurst (
       if to_unsigned(VPRW, 2)(RDbit)
       then
 
-        -- Initiate the read burst transfer of the appropriate address size
-        if VPAddrWidth = 64 then
-          ReadBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
-        elsif VPAddrWidth = 32 then
-          ReadBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst read transaction");
-        end if ;
+        ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+        -- -- Initiate the read burst transfer of the appropriate address size
+        -- if VPAddrWidth = 64 then
+        --   ReadBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
+        -- elsif VPAddrWidth = 32 then
+        --   ReadBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
+        -- else
+        --   AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst read transaction");
+        -- end if ;
 
         -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
         for bidx in 0 to VPBurstSize-1 loop
@@ -376,14 +383,15 @@ procedure CoSimTransBurst (
           Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrDataSigned(7 downto 0))) ;
         end loop ;
 
-        -- Initiate the write burst transfer of the appropriate address size
-        if VPAddrWidth = 64 then
-          WriteBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
-        elsif VPAddrWidth = 32 then
-          WriteBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst write transaction");
-        end if ;
+        WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+        -- -- Initiate the write burst transfer of the appropriate address size
+        -- if VPAddrWidth = 64 then
+        --   WriteBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
+        -- elsif VPAddrWidth = 32 then
+        --   WriteBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
+        -- else
+        --   AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst write transaction");
+        -- end if ;
 
       end if ;
 
