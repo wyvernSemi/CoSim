@@ -1,4 +1,4 @@
-#  File Name:         RunCoSimTests.pro
+#  File Name:         RunAllTests.pro
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell      email:  simon.southwell@gmail.com
@@ -10,14 +10,14 @@
 #        Script to run Axi4 Lite co-sim API test  
 #
 #  Revision History:
-#    Date      Description
-#    01/2023   Relocated testbenches to be under CoSim
-#    10/2022   Compile Script for OSVVM co-sim
+#    Date      Version   Description
+#    01/2023   2023.01   Relocated testbenches to be under CoSim
+#    10/2022             Compile Script for OSVVM co-sim
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2019 - 2020 by [OSVVM Authors](AUTHORS.md)  
+#  Copyright (c) 2022 by [OSVVM Authors](AUTHORS.md)  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -30,7 +30,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-# 
+#
+
+if {$::osvvm::ToolName eq "NVC"} {
+  set osname [string tolower [exec uname]]
+  if {"$osname" ne "linux"} {
+    set ::env(NVC_FOREIGN_OBJ) VProc.so
+  } else {
+    SetExtendedRunOptions --load=./VProc.so
+  }
+}
 
 # # Analyze Axi4Lite testbench and run tests on it
 # include  ./testbench/TbAxi4Lite
@@ -41,8 +50,11 @@
 include  ./testbench/TbAxi4
 # # include  ./tests
 # include  ./testbench/TbAxi4/tests.pro
-include  ./testbench/TestCases
-
+include  ./testbench/TbAxi4/RunDemoTests.pro
+# include  ./testbench/TestCases
+# include  ./testbench/TestCases/RunDemoTests.pro
+# 
 # # Analyze Axi4 testbench and run tests on it
 # include ./testbench/TbAxi4_Interrupt
 # include ./testbench/TestCases_Interrupt
+# include ./testbench/TestCases_Interrupt/RunDemoTests.pro
