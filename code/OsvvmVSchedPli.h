@@ -42,11 +42,11 @@
 #define _OSVVM_VSCHED_PLI_H_
 
 #define VINIT_PARAMS               int  node
-#define VSCHED_PARAMS              int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPRw,int* VPTicks
+#define VSCHED_PARAMS              int  node, int Interrupt, int VPDataIn, int* VPDataOut, int* VPAddr, int* VPOp,int* VPTicks
 #define VTRANS_PARAMS              int  node,     int  Interrupt,                                                         \
                                    int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
-                                   int* VPRw,     int* VPBurstSize, int* VPTicks,      int* VPDone,     int* VPError
+                                   int* VPOp,     int* VPBurstSize, int* VPTicks,      int* VPDone,     int* VPError
 #define VPROCUSER_PARAMS           int  node, int value
 #define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  uint8_t* data
 #define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  uint8_t  data

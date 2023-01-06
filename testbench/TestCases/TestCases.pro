@@ -37,17 +37,17 @@
 
 # Uses OSVVM Interrupt Handling 
 # analyze TbAb_InterruptCosim1.vhd
-# MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interrupt
+# MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interrupt
 # simulate TbAb_InterruptCosim1
 
 # Use Interrupt Handling in Vproc
 analyze TbAb_InterruptCoSim2.vhd
-MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptCB
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
 simulate TbAb_InterruptCoSim2
 
 # Use Interrupt Handling in Vproc
 analyze TbAb_InterruptCoSim3.vhd
-MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptIss rv32
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
 simulate TbAb_InterruptCoSim3
 
 

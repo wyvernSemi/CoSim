@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <string>
 
 #include "OsvvmCosim.h"
 #include "rv32.h"
@@ -117,7 +118,7 @@ static bool check_exit_status(rv32* pCpu)
 {
     return pCpu->regi_val(10) || pCpu->regi_val(17) != 93;
 }
-    
+
 // -------------------------------------------------------------------------
 // ISS memory access callback function
 // -------------------------------------------------------------------------
@@ -149,7 +150,7 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
     if (sktfp != NULL)
     {
         bool rnw = (type >= MEM_RD_ACCESS_BYTE);
-        
+
         trans.addr = byte_addr;
         trans.wdata = data;
         trans.size  = (type == MEM_WR_ACCESS_BYTE  || type == MEM_RD_ACCESS_BYTE)  ?  8 :
@@ -169,8 +170,9 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
 extern "C" void VUserMain0()
 {
     bool        error = false;
-    OsvvmCosim  cosim(node);
-    
+    std::string test_name("CoSim_iss");
+    OsvvmCosim  cosim(node, test_name);
+
     // Create a configuration object
     rv32i_cfg_s cfg;
 
@@ -191,7 +193,7 @@ extern "C" void VUserMain0()
     // Configure GDB debugging mode
     cfg.gdb_mode             = false;
     cfg.gdb_ip_portnum       = 0xc000;
-    
+
     // Open up a socket script file
     sktfp = fopen("sktscript.txt", "w");
 
@@ -217,7 +219,7 @@ extern "C" void VUserMain0()
             }
             else
             {
-                VPrint("PASS: exit code = 0x%08x running %s\n", 
+                VPrint("PASS: exit code = 0x%08x running %s\n",
                         pCpu->regi_val(10), cfg.exec_fname);
             }
 
@@ -284,7 +286,7 @@ extern "C" void VUserMain0()
         fclose(cfg.dbg_fp);
     }
     delete pCpu;
-    
+
     // Flag to the simulation we're finished, after 10 more iterations
     cosim.tick(10, true, error);
 

@@ -98,10 +98,9 @@ begin
 
     -- CoSim variables
     variable RnW            : integer ;
-    variable Ticks          : integer := 0 ;
     variable Done           : integer := 0 ;
     variable Error          : integer := 0 ;
-    variable IntReq         : boolean := false ;
+    variable IntReq         : integer := 0 ;
     variable NodeNum        : integer := Node ;
   begin
     -- Initialize Randomization Objects
@@ -120,17 +119,17 @@ begin
     OperationLoop : loop
 
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
-      if WaitForClockRV.DistInt((8, 2)) = 1 and Ticks = 0 then
+      if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
 
       -- Call CoSimTrans procedure to generate an access from the running VProc program
-      CoSimTrans (ManagerRec, Ticks, Done, Error, IntReq, NodeNum);
+      CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
       
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
       -- Finish when counts == 0
-      exit when Ticks = 0 and Done /= 0;
+      exit when Done /= 0;
 
     end loop OperationLoop ;
 

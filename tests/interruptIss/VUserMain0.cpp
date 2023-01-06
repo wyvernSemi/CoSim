@@ -113,7 +113,7 @@ static void logGdbMsg(FILE *fp, wtrans_t &w, bool rnw)
 }
 
 // -------------------------------------------------------------------------
-// Checks rewgister status for test code exit pass/fail
+// Checks register status for test code exit pass/fail
 // -------------------------------------------------------------------------
 
 static bool check_exit_status(rv32* pCpu)
@@ -125,10 +125,11 @@ static bool check_exit_status(rv32* pCpu)
 // Co-simulation software interrupt callback
 // -------------------------------------------------------------------------
 
-int cosim_int_callback(void)
+int cosim_int_callback(int int_vec)
 {
-    // Callback called at each change of the interrupt signal
-    IntReq = !IntReq;
+    DebugVPrint("cosim_int_callback(): interrupt = %d\n", int_vec);
+    
+    IntReq = int_vec & 1;
     
     return 0;
 }

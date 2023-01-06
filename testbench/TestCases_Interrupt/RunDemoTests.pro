@@ -44,7 +44,7 @@
 # simulate TbAb_InterruptCoSim2
 
 analyze TbAb_InterruptCoSim3.vhd
-MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptIss rv32
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
 simulate TbAb_InterruptCoSim3
 
 

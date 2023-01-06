@@ -46,7 +46,7 @@ package OsvvmVprocPkg is
     VPDataIn  : in  integer ;
     VPDataOut : out integer ;
     VPAddr    : out integer ;
-    VPRw      : out integer ;
+    VPOp      : out integer ;
     VPTicks   : out integer
   ) ;
   attribute foreign of VSched : procedure is "VSched VProc.so" ;
@@ -62,7 +62,7 @@ package OsvvmVprocPkg is
     VPAddr      : out integer ;
     VPAddrHi    : out integer ;
     VPAddrWidth : out integer ;
-    VPRw        : out integer ;
+    VPOp        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
     VPDone      : out integer ;
@@ -107,7 +107,7 @@ package body OsvvmVprocPkg is
     VPDataIn  : in  integer ;
     VPDataOut : out integer ;
     VPAddr    : out integer ;
-    VPRw      : out integer ;
+    VPOp      : out integer ;
     VPTicks   : out integer
   ) is
   begin
@@ -125,7 +125,7 @@ package body OsvvmVprocPkg is
     VPAddr      : out integer ;
     VPAddrHi    : out integer ;
     VPAddrWidth : out integer ;
-    VPRw        : out integer ;
+    VPOp        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
     VPDone      : out integer ;

@@ -58,7 +58,8 @@ extern "C"
 
 #define DELTA_CYCLE             -1
 #define NO_DELTA_CYCLE          0
-#define GO_TO_SLEEP             0x7fffffff
+//#define GO_TO_SLEEP             0x7fffffff
+#define GO_TO_SLEEP             0x10
 
 #ifdef DISABLE_VUSERMAIN_THREAD
 #define SLEEPFOREVER            { return; }
@@ -82,6 +83,7 @@ extern int      VWrite           (uint32_t addr,  uint32_t  data, int delta, uin
 extern int      VRead            (uint32_t addr,  uint32_t *data, int delta, uint32_t node = 0);
 extern int      VTick            (uint32_t ticks, bool      done = false,    bool     error = false, uint32_t  node = 0);
 extern void     VWaitForSim      (uint32_t node = 0);
+extern void     VSetTestName     (const char* data, const int bytesize, const uint32_t node);
 
 // Overloaded write and read transaction functions for 32 bit architecture for byte,
 // half-word and, words
@@ -110,9 +112,9 @@ extern void     VTransBurstRead  (uint64_t addr, uint8_t  *data, int bytesize, i
 
 #endif
 
-extern EXTC int  VUser         (int node);
-extern EXTC void VRegInterrupt (int level, pVUserInt_t func, uint32_t node);
-extern EXTC void VRegUser      (pVUserCB_t func, uint32_t node);
+extern EXTC int  VUser               (int node);
+extern EXTC void VRegInterrupt       (pVUserInt_t func, uint32_t node);
+extern EXTC void VRegUser            (pVUserCB_t func, uint32_t node);
 
 // In windows using the FLI, a \n in the printf format string causes
 // two lines to be advanced, so replace new lines with carriage returns

@@ -65,7 +65,7 @@ static int interrupt_count = 0;
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
 
-int interruptCB(void)
+int interruptCB(int int_vec)
 {
     VPrint("interruptCB() called\n");
     interrupt_count++;
@@ -89,7 +89,7 @@ extern "C" void VUserMain0()
     uint32_t              wdata = 0;
     OsvvmCosim            cosim(node);
     
-    cosim.regInterruptCB(interruptCB, 1);
+    cosim.regInterruptCB(interruptCB);
 
     for (int loop = 0; loop < 4; loop++)
     {

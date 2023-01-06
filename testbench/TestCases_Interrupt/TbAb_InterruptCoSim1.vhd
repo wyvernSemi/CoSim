@@ -83,11 +83,10 @@ begin
   ------------------------------------------------------------
   ManagerProc : process
     variable Data   : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
-    variable Ticks  : integer := 0 ;
     variable Done   : integer := 0 ;
     variable Error  : integer := 0 ;
     variable Node   : integer := 0 ;
-    variable Int    : boolean := false ;
+    variable Int    : integer := 0 ;
   begin
     wait until nReset = '1' ;
     WaitForClock(ManagerRec, 2) ;
@@ -103,7 +102,7 @@ begin
       log("Main Starting Writes.  Loop #" & to_string(i)) ;
 
       for j in 0 to 3 loop
-        CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
+        CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
       end loop ;
 
       -- Do WaitForClock Cycles mixed with Interrupt Handling
@@ -122,7 +121,7 @@ begin
       log("Main Starting Reads.  Loop #" & to_string(i)) ;
 
       for j in 0 to 3 loop
-        CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
+        CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
         AlertIf(Error /= 0, "CoSimTrans node 0 flagged an error") ;
       end loop ;
 
@@ -140,18 +139,17 @@ begin
   --   Generate transactions for AxiSubordinate
   ------------------------------------------------------------
   InterruptProc : process
-    variable Ticks  : integer := 0;
     variable Done   : integer := 0;
     variable Error  : integer := 0;
     variable Node   : integer := 1;
-    variable Int    : boolean := false ;
+    variable Int    : integer := 0 ;
   begin
     WaitForClock(InterruptRec, 1) ;
     blankline(2) ;
     log("Interrupt Handler Started") ;
 
     for i in 0 to 7 loop
-      CoSimTrans (InterruptRec, Ticks, Done, Error, Int, Node) ;
+      CoSimTrans (InterruptRec, Done, Error, Int, Node) ;
       AlertIf(Error /= 0, "CoSimTrans node 1 flagged an error") ;
     end loop ;
 

@@ -78,17 +78,17 @@ proc gen_lib_flags {libname} {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_common {srcrootdir testname libname} {
+proc mk_vproc_common {testname libname} {
 
 # Get the OS that we are running on
 set osname [string tolower [exec uname]]
 
 set flags [ gen_lib_flags ${libname} ]
 
-exec make --no-print-directory -C $srcrootdir        \
-          SIM=$::osvvm::ToolName                     \
-          USRCDIR=$testname                          \
-          OPDIR=$::osvvm::CurrentSimulationDirectory \
+exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
+          SIM=$::osvvm::ToolName                                \
+          USRCDIR=$testname                         \
+          OPDIR=$::osvvm::CurrentSimulationDirectory            \
           USRFLAGS=${flags}
 
 }
@@ -100,8 +100,8 @@ exec make --no-print-directory -C $srcrootdir        \
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_clean {srcrootdir testname} {
-  exec make --no-print-directory -C $srcrootdir \
+proc mk_vproc_clean {testname} {
+  exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
             USRCDIR=$testname OPDIR=$::osvvm::CurrentSimulationDirectory  clean
 }
 
@@ -113,10 +113,10 @@ proc mk_vproc_clean {srcrootdir testname} {
 #
 # -------------------------------------------------------------------------
 
-proc MkVproc {srcrootdir testname {libname ""} } {
+proc MkVproc {testname {libname ""} } {
 
-  mk_vproc_clean  $srcrootdir $testname
-  mk_vproc_common $srcrootdir $testname $libname
+  mk_vproc_clean  $testname
+  mk_vproc_common $testname $libname
 }
 
 # -------------------------------------------------------------------------
@@ -127,9 +127,9 @@ proc MkVproc {srcrootdir testname {libname ""} } {
 #
 # -------------------------------------------------------------------------
 
-proc MkVprocNoClean {srcrootdir testname {libname ""}} {
+proc MkVprocNoClean {testname {libname ""}} {
 
-   mk_vproc_common $srcrootdir $testname $libname
+   mk_vproc_common $testname $libname
 }
 
 # -------------------------------------------------------------------------
@@ -140,18 +140,9 @@ proc MkVprocNoClean {srcrootdir testname {libname ""}} {
 #
 # -------------------------------------------------------------------------
 
-proc MkVprocSkt {srcrootdir testname {libname ""} } {
+proc MkVprocSkt {testname {libname ""} } {
 
-  MkVproc $srcrootdir $testname $libname
-  
-  set pathprefix [string range $srcrootdir 0 1]
-  
-  # In Windows, replace any leading c: with /c
-  if {$pathprefix eq "c:" || $pathprefix eq "C:" } {
-    set cosimdir [string replace $srcrootdir 0 1 "/c"]
-  } else {
-   set cosimdir $srcrootdir
-  }
+  MkVproc $testname $libname
   
   if {$::osvvm::ToolName eq "NVC"} {
     set wait_time 10
@@ -160,7 +151,7 @@ proc MkVprocSkt {srcrootdir testname {libname ""} } {
   }
   
   puts "Running client_gui.py batch mode"
-  set pid [exec python3 $srcrootdir/Scripts/client_batch.py -w $wait_time -s $srcrootdir/$testname/sktscript.txt  > skt.log 2>@1 &]
+  set pid [exec python3 $::osvvm::OsvvmCoSimDirectory/Scripts/client_batch.py -w $wait_time -s $testname/sktscript.txt  > skt.log 2>@1 &]
   
   return
 }
@@ -173,13 +164,13 @@ proc MkVprocSkt {srcrootdir testname {libname ""} } {
 #
 # -------------------------------------------------------------------------
 
-proc MkVprocGhdlMain {srcrootdir testname {libname ""} } {
+proc MkVprocGhdlMain {testname {libname ""} } {
 
-  exec make -f $srcrootdir/makefile.ghdl clean
+  exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl clean
   
   set flags [ gen_lib_flags ${libname} ]
   
-  exec make -f $srcrootdir/makefile.ghdl \
+  exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl \
             USRFLAGS=${flags}            \
             TBLIBRARY=$::osvvm::VhdlWorkingLibrary
   

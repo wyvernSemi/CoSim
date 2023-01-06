@@ -119,6 +119,47 @@ typedef enum trans_type_e
 
 } trans_type_e;
 
+typedef enum addr_bus_trans_op_e
+{
+    NOT_DRIVEN = 0,
+    WAIT_FOR_CLOCK,
+    WAIT_FOR_TRANSACTION,
+    WAIT_FOR_WRITE_TRANSACTION,
+    WAIT_FOR_READ_TRANSACTION,
+    GET_TRANSACTION_COUNT,
+    GET_WRITE_TRANSACTION_COUNT,
+    GET_READ_TRANSACTION_COUNT,
+    GET_ALERTLOG_ID,
+    SET_BURST_MODE,
+    GET_BURST_MODE,
+    SET_MODEL_OPTIONS,
+    GET_MODEL_OPTIONS,
+    INTERRUPT_RETURN,
+    WRITE_OP,
+    WRITE_ADDRESS,
+    WRITE_DATA,
+    ASYNC_WRITE,
+    ASYNC_WRITE_ADDRESS,
+    ASYNC_WRITE_DATA,
+    READ_OP,
+    READ_ADDRESS,
+    READ_DATA,
+    READ_CHECK,
+    READ_DATA_CHECK,
+    ASYNC_READ,
+    ASYNC_READ_ADDRESS,
+    ASYNC_READ_DATA,
+    ASYNC_READ_DATA_CHECK,
+    WRITE_AND_READ,
+    ASYNC_WRITE_AND_READ,
+    WRITE_BURST,
+    ASYNC_WRITE_BURST,
+    READ_BURST,
+    MULTIPLE_DRIVER_DETECT,
+    
+    SET_TEST_NAME = 1024
+} addr_bus_trans_op_t;
+
 typedef enum arch_e
 {
     arch32,
@@ -128,13 +169,13 @@ typedef enum arch_e
 
 typedef struct
 {
+    addr_bus_trans_op_t op;
     trans_type_e        type;
     uint32_t            prot;
     uint64_t            addr;
     uint8_t             data[16];
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
-    uint32_t            rw;
     int                 ticks;
     int                 done;
     int                 error;
@@ -154,7 +195,7 @@ typedef struct
 typedef void * handle_t;
 
 // Interrupt function pointer type
-typedef int  (*pVUserInt_t)      (void);
+typedef int  (*pVUserInt_t)      (int);
 typedef int  (*pVUserCB_t)       (int);
 
 typedef struct
@@ -163,7 +204,8 @@ typedef struct
     sem_t               rcv;
     send_buf_t          send_buf;
     rcv_buf_t           rcv_buf;
-    pVUserInt_t         VInt_table[MAX_INTERRUPT_LEVEL+1];
+    pVUserInt_t         VIntVecCB;
+    unsigned int        last_int;
     pVUserCB_t          VUserCB;
 } SchedState_t, *pSchedState_t;
 

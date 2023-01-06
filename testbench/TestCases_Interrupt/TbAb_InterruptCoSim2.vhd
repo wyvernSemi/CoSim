@@ -82,12 +82,10 @@ begin
   ------------------------------------------------------------
   ManagerProc : process
     variable Data        : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
-    variable Ticks       : integer := 0 ;
     variable Done        : integer := 0 ;
     variable Error       : integer := 0 ;
     variable Node        : integer := 0 ;
-    variable Int         : boolean := false ;
-    variable gIntReqLast : boolean := false ;
+    variable Int         : integer := 0 ;
     variable WaitForClockRV : RandomPType ;
   begin
     wait until nReset = '1' ;
@@ -97,28 +95,26 @@ begin
     CoSimInit(Node);
 
     OperationLoop : loop
-    
+
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
-      if WaitForClockRV.DistInt((8, 2)) = 1 and Ticks = 0 then
+      if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
-      
-      -- Inspect interrupt state and flag when global signal changes
-      Int         := true when gIntReq /= gIntReqLast else false ;
-       -- Remember the global interrupt state for next iteration 
-      gIntReqLast := gIntReq;
+
+      -- Inspect interrupt state and and convert to integer
+      Int         := 1 when gIntReq else 0 ;
 
       -- Call co-simulation procedure
-      CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
+      CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
 
       -- Alter if an error
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
       -- Finish when counts == 0
-      exit when Ticks = 0 and Done /= 0;
+      exit when Done /= 0;
 
     end loop OperationLoop ;
- 
+
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(ManagerRec, 2) ;
     WaitForBarrier(TestDone) ;
@@ -131,13 +127,13 @@ begin
   ------------------------------------------------------------
   InterruptProc : process
   begin
-  
+
     wait until nReset = '1' ;
-  
+
     IntReq <= '1' after 105 ns , '0' after 155 ns ;
-  
+
     wait ;
-  
+
   end process InterruptProc ;
 
   ------------------------------------------------------------

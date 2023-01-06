@@ -51,13 +51,6 @@ library osvvm_cosim ;
 
 package OsvvmTestCoSimPkg is
 
-  constant WEbit           : integer := 0 ;
-  constant RDbit           : integer := 1 ;
-  
--- See package body
---  constant ADDR_WIDTH_MAX  : integer := 64 ;
---  constant DATA_WIDTH_MAX  : integer := 64 ;
-
   ------------------------------------------------------------
   ------------------------------------------------------------
 
@@ -67,10 +60,9 @@ procedure CoSimInit (
 
 procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
-  variable Ticks            : inout  integer ;
   variable Done             : inout  integer ;
   variable Error            : inout  integer ;
-  variable IntReq           : in     boolean := false;
+  variable IntReq           : in     integer := 0 ;
   variable NodeNum          : in     integer := 0
   ) ;
 
@@ -88,6 +80,7 @@ procedure CoSimTrans (
     constant VPDataOutHi     : in     integer ;
     constant VPDataWidth     : in     integer ;
     constant VPBurstSize     : in     integer ;
+    constant VPTicks         : in     integer ;
     constant NodeNum         : in     integer
   ) ;
 
@@ -99,43 +92,6 @@ end package OsvvmTestCoSimPkg ;
 package body OsvvmTestCoSimPkg is
   constant ADDR_WIDTH_MAX  : integer := 64 ;
   constant DATA_WIDTH_MAX  : integer := 64 ;
-
-  ------------------------------------------------------------
-  -- Temporary Kludge to allow prototyping of CoSimDispatchOneTransaction
-  ------------------------------------------------------------
-  procedure ToOperationValue (
-    variable VPOperation   : out    integer ;
-    variable VPDataOut     : inout  integer ;
-    constant VPTicks       : in     integer ;
-    constant VPBurstSize   : in     integer ;
-    constant VPRW          : in     integer 
-  ) is
-  begin
-    --!!--!!  This is a kludge to emulate adding VpOperation
-    -- This translates VPTicks, VPBurstSize, and VPRW to proposed VPOperation
-    -- Assumes that only the Tick command ever sets the VPTicks value (ie: not set by transRead, TransWrite, ...) 
-    if VPTicks > 0 then 
-      VPOperation := AddressBusOperationType'pos(WAIT_FOR_CLOCK) ; 
-      VPDataOut    := VPTicks ; 
-    elsif VpBurstSize = 0 then 
-      if VPRW /= 0 then
-        if to_unsigned(VPRW, 2)(RDbit) then
-          VPOperation := AddressBusOperationType'pos(READ_OP) ;
-        else
-          VPOperation := AddressBusOperationType'pos(WRITE_OP) ;
-        end if ; 
-      end if ; 
-    else 
-      if VPRW /= 0 then
-        if to_unsigned(VPRW, 2)(RDbit) then
-          VPOperation := AddressBusOperationType'pos(READ_BURST) ;
-        else
-          VPOperation := AddressBusOperationType'pos(WRITE_BURST) ;
-        end if ; 
-      end if ; 
-    end if ;
-  end procedure ToOperationValue ;
-
 
   ------------------------------------------------------------
   -- Co-simulation software initialisation procedure for
@@ -166,10 +122,9 @@ package body OsvvmTestCoSimPkg is
   procedure CoSimTrans (
     -- Transaction  interface
     signal   ManagerRec      : inout  AddressBusRecType ;
-    variable Ticks           : inout  integer ;  -- Deprecated
     variable Done            : inout  integer ;
     variable Error           : inout  integer ;
-    variable IntReq          : in     boolean := false;  -- Now that we have global signals, should we use them instead
+    variable IntReq          : in     integer := 0;
     variable NodeNum         : in     integer := 0
     ) is
 
@@ -183,65 +138,47 @@ package body OsvvmTestCoSimPkg is
     variable VPAddr          : integer ;
     variable VPAddrHi        : integer ;
     variable VPAddrWidth     : integer ;
-    variable VPRW            : integer ;
+    variable VPOp            : integer ;
     variable VPBurstSize     : integer ;
     variable VPTicks         : integer ;
     variable VPDone          : integer ;
     variable VPError         : integer ;
     variable VPOperation     : integer ;
 
-    variable Interrupt       : integer ;
-
   begin
-
---!! Question: WRT VPTicks, 
---     the only call that sets it is Tick command. ie: It is not set by transRead, TransWrite, .
---     If this is not true, then this code breaks the functionality.
-
-
---!! Question: use global signal here instead?
-    -- Process interrupt input
-    Interrupt    := 1 when IntReq = true else 0;
 
     -- RdData won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
     RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
-    
+
     -- Sample the read data from last access, saved in RdData inout port
     if ManagerRec.DataWidth > 32 then
       VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
       VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
---        VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;  -- what if data is 16 bits?
-      VPDataIn   := to_integer(signed(RdData)) ;
+      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
       VPDataInHi := 0 ;
     end if;
 
     -- Call VTrans to generate a new access
-    VTrans(NodeNum,   Interrupt,
+    VTrans(NodeNum,   IntReq,
            VPDataIn,  VPDataInHi,
            VPDataOut, VPDataOutHi, VPDataWidth,
            VPAddr,    VPAddrHi,    VPAddrWidth,
-           VPRW,      VPBurstSize, VPTicks,
+           VPOp,      VPBurstSize, VPTicks,
            VPDone,    VPError) ;
 
---!! Deprecated    Ticks := VPTicks ;  -- Deprecated
-    Ticks := 0 ;  -- Deprecated
     Done  := VPDone  when Done  = 0;  -- Sticky
     Error := VPError when Error = 0;  -- Sticky
 
---!!--!!  This is a kludge to prototype adding VpOperation and calling CoSimDispatchOneTransaction
-    ToOperationValue(VPOperation, VPDataOut, VpTicks, VpBurstSize, VpRW) ; 
-
--- During a Tick operation, the Ticks count is on VPDataOut.
-    CoSimDispatchOneTransaction(ManagerRec, 
-                           VPOperation, 
-                           VPAddr,      VPAddrHi,    VPAddrWidth,
-                           VPDataOut,   VPDataOutHi, VPDataWidth,
-                           VPBurstSize, NodeNum) ;
+    CoSimDispatchOneTransaction(ManagerRec,
+                                VPOp,
+                                VPAddr,      VPAddrHi,    VPAddrWidth,
+                                VPDataOut,   VPDataOutHi, VPDataWidth,
+                                VPBurstSize, VPTicks,     NodeNum) ;
 
   end procedure CoSimTrans ;
-    
+
   ------------------------------------------------------------
   -- Co-simulation procedure to dispatch one transactions
   ------------------------------------------------------------
@@ -256,18 +193,16 @@ package body OsvvmTestCoSimPkg is
     constant VPDataOutHi     : in     integer ;
     constant VPDataWidth     : in     integer ;
     constant VPBurstSize     : in     integer ;
+    constant VPTicks         : in     integer ;
     constant NodeNum         : in     integer
   ) is
 
     variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
     variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
     variable Address         : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
---    variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
---    variable WrData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
---    variable Address         : std_logic_vector (ManagerRec.Address'range) ;
-    variable WrByteData      : signed (7 downto 0) ;
-    variable RdDataInt       : integer ; 
-    variable WrDataInt       : integer ; 
+    variable WrByteData      : signed (DATA_WIDTH_MAX-1 downto 0) ;
+    variable RdDataInt       : integer ;
+    variable WrDataInt       : integer ;
 
   begin
 
@@ -277,13 +212,13 @@ package body OsvvmTestCoSimPkg is
 
     WrData(31 downto 0 )  := std_logic_vector(to_signed(VPDataOut,   32)) ;
     WrData(63 downto 32)  := std_logic_vector(to_signed(VPDataOutHi, 32)) ;
-    
---    if IsAddressBusMitValue(VpOperation) then 
-    if VpOperation < 1024 then 
-      case AddressBusOperationType'val(VpOperation) is 
+
+--    if IsAddressBusMitValue(VpOperation) then
+    if VpOperation < 1024 then
+      case AddressBusOperationType'val(VpOperation) is
         when WAIT_FOR_CLOCK =>
-          WaitForClock(ManagerRec, VPDataOut) ;
-        
+          WaitForClock(ManagerRec, VPTicks) ;
+
         when READ_OP =>
           Read  (ManagerRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
 
@@ -317,20 +252,26 @@ package body OsvvmTestCoSimPkg is
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
 
       end case ;
-    else 
-      null ; 
+
+      -- If VPTicks non-zero for transaction operations do wait for clock after the transaction
+      -- executed
+      if AddressBusOperationType'val(VpOperation) /= WAIT_FOR_CLOCK and VPTicks /= 0 then
+        WaitForClock(ManagerRec, VPTicks) ;
+      end if ;
+    else
+      null ;
 --
 --!! Note:  Below is a Conceptual model for adding non-transaction calls through the interface
 --      case CoSimOperationType'val(VpOperation - 1024) is
 --        when SET_TEST_NAME =>
 --          -- can we pass string values through the interface?
 --          -- is this the place to do it?
---          FetchStringValueFromCoSim(TestName) ; 
---          SetTestName(TestName) ; 
+--          FetchStringValueFromCoSim(TestName) ;
+--          SetTestName(TestName) ;
 --        when ...
---        when others => 
+--        when others =>
 --      end case ;
-          
+
     end if ;
 
   end procedure CoSimDispatchOneTransaction ;

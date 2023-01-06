@@ -59,10 +59,10 @@ static std::mutex acc_mx[VP_MAX_NODES];
 // -------------------------------------------------------------------------
 static void VInitSendBuf(send_buf_t &sbuf)
 {
+    sbuf.op              = NOT_DRIVEN;
     sbuf.type            = trans_idle;
     sbuf.prot            = 0;
     sbuf.num_burst_bytes = 0;
-    sbuf.rw              = V_IDLE;
     sbuf.ticks           = 0;
     sbuf.done            = 0;
     sbuf.error           = 0;
@@ -86,11 +86,9 @@ extern "C" int VUser (int node)
 
     DebugVPrint("VUser(): node %d\n", node);
 
-    // Interrupt table initialisation
-    for (jdx = 0; jdx < MAX_INTERRUPT_LEVEL+1; jdx++)
-    {
-        ns[node]->VInt_table[jdx] = NULL;
-    }
+    // Interrupt callback initialisation    
+    ns[node]->VIntVecCB  = NULL;
+    ns[node]->last_int   = 0;
 
     ns[node]->VUserCB = NULL;
 
@@ -197,60 +195,35 @@ static void VUserInit (int node)
 static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
+    // for the same node.
     acc_mx[node].lock();
 
     int status;
+    
     // Send message to simulator
     ns[node]->send_buf = *psbuf;
     DebugVPrint("VExch(): setting snd[%d] semaphore\n", node);
+    
     if ((status = sem_post(&(ns[node]->snd))) == -1)
     {
         printf("***Error: bad sem_post status (%d) on node %d (VExch)\n", status, node);
         exit(1);
     }
 
-    do
+    // Wait for response message from simulator
+    DebugVPrint("VExch(): waiting for rcv[%d] semaphore\n", node);
+    sem_wait(&(ns[node]->rcv));
+
+    // Get the pointer to the receive response buffer
+    *prbuf = ns[node]->rcv_buf;
+    
+    // Call user registered interrupt vector callback if the interrupt vector changes
+    if ((prbuf->interrupt != ns[node]->last_int) && ns[node]->VIntVecCB != NULL)
     {
-        // Wait for response message from simulator
-        DebugVPrint("VExch(): waiting for rcv[%d] semaphore\n", node);
-        sem_wait(&(ns[node]->rcv));
-
-        *prbuf = ns[node]->rcv_buf;
-
-        // Check if this is an interrupt
-        if (prbuf->interrupt > 0)
-        {
-            DebugVPrint("VExch(): node %d processing interrupt (%d)\n", node, prbuf->interrupt);
-
-            if (prbuf->interrupt >= MAX_INT_LEVEL)
-            {
-                printf("***Error: invalid interrupt level %d (VExch)\n", prbuf->interrupt);
-                exit(1);
-            }
-
-            if (ns[node]->VInt_table[prbuf->interrupt] == NULL)
-            {
-                printf("***Error: interrupt to unregistered level %d on node %d (VExch)\n", prbuf->interrupt, node);
-                exit(1);
-            }
-
-            // Call user registered interrupt function
-            psbuf->ticks = (*(ns[node]->VInt_table[prbuf->interrupt]))();
-            ns[node]->send_buf = *psbuf;
-            DebugVPrint("VExch(): interrupt send_buf[node].ticks = %d\n", ns[node]->send_buf.ticks);
-
-            // Send new message to simulation
-            DebugVPrint("VExch(): setting snd[%d] semaphore (interrupt)\n", node);
-            if ((status = sem_post(&(ns[node]->snd))) == -1)
-            {
-                printf("***Error: bad sem_post status (%d) on node %d (VExch)\n", status, node);
-                exit(1);
-            }
-        }
-    // If the response was an interrupt, go back and wait for IO message response.
-    // (This could be in the same cycle as the interrupt)
+        psbuf->ticks = (*(ns[node]->VIntVecCB))(prbuf->interrupt);
     }
-    while (prbuf->interrupt > 0);
+    
+    ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
     acc_mx[node].unlock();
@@ -314,7 +287,7 @@ int VWrite (uint32_t addr, uint32_t data, int delta, uint32_t node)
 
     sbuf.type            = trans32_wr_word;
     sbuf.addr            = addr;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
     sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
 
     *((uint32_t*)sbuf.data) = data;
@@ -340,7 +313,7 @@ int VRead (uint32_t addr, uint32_t *rdata, int delta, uint32_t node)
 
     sbuf.type            = trans32_rd_word;
     sbuf.addr            = addr;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
     sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
 
     VExch(&sbuf, &rbuf, node);
@@ -367,7 +340,7 @@ uint8_t VTransWrite (uint32_t addr, uint8_t data, int prot, uint32_t node)
     sbuf.type            = trans32_wr_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -393,7 +366,7 @@ void VTransRead (uint32_t addr, uint8_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans32_rd_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -416,7 +389,7 @@ uint16_t VTransWrite (uint32_t addr, uint16_t data, int prot, uint32_t node)
     sbuf.type            = trans32_wr_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -442,7 +415,7 @@ void VTransRead (uint32_t addr, uint16_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans32_rd_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -466,7 +439,7 @@ uint32_t VTransWrite (uint32_t addr, uint32_t data, int prot, uint32_t node)
     sbuf.type            = trans32_wr_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -492,7 +465,7 @@ void VTransRead (uint32_t addr, uint32_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans32_rd_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -516,7 +489,7 @@ uint8_t VTransWrite (uint64_t addr, uint8_t data, int prot, uint32_t node)
     sbuf.type            = trans64_wr_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -542,7 +515,7 @@ void VTransRead (uint64_t addr, uint8_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans64_rd_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -566,7 +539,7 @@ uint16_t VTransWrite (uint64_t addr, uint16_t data, int prot, uint32_t node)
     sbuf.type            = trans64_wr_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -592,7 +565,7 @@ void VTransRead (uint64_t addr, uint16_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans64_rd_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -616,7 +589,7 @@ uint32_t VTransWrite (uint64_t addr, uint32_t data, int prot, uint32_t node)
     sbuf.type            = trans64_wr_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -642,7 +615,7 @@ void VTransRead (uint64_t addr, uint32_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans64_rd_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -666,7 +639,7 @@ uint64_t VTransWrite (uint64_t addr, uint64_t data, int prot, uint32_t node)
     sbuf.type            = trans64_wr_dword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_OP;
 
     *((uint64_t*)sbuf.data) = data;
 
@@ -692,7 +665,7 @@ void VTransRead (uint64_t addr, uint64_t *rdata, int prot, uint32_t node)
     sbuf.type            = trans64_rd_dword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_OP;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -715,7 +688,7 @@ void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
     sbuf.type            = trans32_wr_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_BURST;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
     for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
@@ -744,7 +717,7 @@ void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
     sbuf.type            = trans64_wr_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_WRITE;
+    sbuf.op              = WRITE_BURST;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
     for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
@@ -773,7 +746,7 @@ void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
     sbuf.type            = trans32_rd_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_BURST;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
     VExch(&sbuf, &rbuf, node);
@@ -802,7 +775,7 @@ void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
     sbuf.type            = trans64_rd_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.rw              = V_READ;
+    sbuf.op              = READ_BURST;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
     VExch(&sbuf, &rbuf, node);
@@ -832,6 +805,7 @@ int VTick (uint32_t ticks, bool done, bool error, uint32_t node)
     sbuf.ticks           = ticks;
     sbuf.done            = done  ? 1 : 0;
     sbuf.error           = error ? 1 : 0;
+    sbuf.op              = WAIT_FOR_CLOCK;
 
     VExch(&sbuf, &rbuf, node);
 
@@ -845,17 +819,11 @@ int VTick (uint32_t ticks, bool done, bool error, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VRegInterrupt (int level, pVUserInt_t func, uint32_t node)
+void VRegInterrupt (pVUserInt_t func, uint32_t node)
 {
-    DebugVPrint("VRegInterrupt(): at node %d, registering interrupt level %d\n", node, level);
+    DebugVPrint("VRegInterrupt(): at node %d, registering vector interrupt callback\n", node);
 
-    if (level < MIN_INTERRUPT_LEVEL || level >= MAX_INTERRUPT_LEVEL)
-    {
-        printf("***Error: attempt to register an out of range interrupt level (VRegInterrupt)\n");
-        exit(1);
-    }
-
-    ns[node]->VInt_table[level] = func;
+    ns[node]->VIntVecCB = func;
 }
 
 // -------------------------------------------------------------------------
@@ -871,5 +839,32 @@ void VRegUser (pVUserCB_t func, uint32_t node)
     DebugVPrint("VRegFinish(): at node %d, registering finish callback function\n", node);
 
     ns[node]->VUserCB = func;
+}
+
+// -------------------------------------------------------------------------
+// VSetTestName()
+//
+// Set the tests name to the string of characters in data
+// -------------------------------------------------------------------------
+
+void VSetTestName (const char* data, const int bytesize, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = trans_idle;
+    sbuf.op              = SET_TEST_NAME;
+    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+
+    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    {
+        sbuf.databuf[idx] = data[idx];
+    }
+
+    VExch(&sbuf, &rbuf, node);
+
+    return;
 }
 
