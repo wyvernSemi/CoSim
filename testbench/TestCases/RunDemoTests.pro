@@ -1,4 +1,4 @@
-#  File Name:         testbench.pro
+#  File Name:         TestCases.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -8,7 +8,7 @@
 #
 #
 #  Description:
-#        Script to run one Co-simulation Interrupt test
+#        Script to run Co-simulation Interrupt tests
 #
 #  Revision History:
 #    Date      Version    Description
@@ -35,14 +35,12 @@
 
 # library and TestSuite set by higher level scripts
 
-analyze TbAb_InterruptCoSim1.vhd
-MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interrupt
-simulate TbAb_InterruptCoSim1
+# # Use Interrupt Handling in Vproc
+# analyze TbAb_InterruptCoSim2.vhd
+# MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptCB
+# simulate TbAb_InterruptCoSim2
 
-analyze TbAb_InterruptCoSim2.vhd
-MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptCB
-simulate TbAb_InterruptCoSim2
-
+# Use Interrupt Handling in Vproc
 analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptIss rv32
 simulate TbAb_InterruptCoSim3

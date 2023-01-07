@@ -1,9 +1,10 @@
-#  File Name:               cosim.pro
+#  File Name:               tests.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
 #  Contributor(s):
 #     Simon Southwell       simon.southwell@gmail.com
+#     Jim Lewis             jim@synthworks.com
 #
 #
 #  Description:
@@ -17,12 +18,14 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#     9/2022   2023.01    Initial version
+#    12/2022   2023.01    Refactored to source scripts in Scripts/StartUpShared.tcl and 
+#                         analyze CoSim by calling CoSim/CoSim.pro in OsvvmLibraries/OsvvmLibraries.pro
+#     9/2022   --         Initial version
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -39,18 +42,18 @@
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory tests/usercode_size
 TestName   CoSim_usercode_size
-simulate   TbAxi4_CoSim [generic TEST_NAME usercode_size]
+simulate   TbAb_CoSim [generic TEST_NAME usercode_size]
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory tests/usercode_burst
 TestName   CoSim_usercode_burst
-simulate   TbAxi4_CoSim [generic TEST_NAME usercode_burst]
+simulate   TbAb_CoSim [generic TEST_NAME usercode_burst]
  
 MkVproc    $::osvvm::OsvvmCoSimDirectory tests/iss rv32
 TestName   CoSim_iss
-simulate   TbAxi4_CoSim [generic TEST_NAME iss]
+simulate   TbAb_CoSim [generic TEST_NAME iss]
 
 # MkVprocSkt $::osvvm::OsvvmCoSimDirectory tests/socket
-# simulate   TbAxi4_CoSim
+# simulate   TbAb_CoSim
 # 
 # EndSimulation
 # after 1000
@@ -60,6 +63,6 @@ simulate   TbAxi4_CoSim [generic TEST_NAME iss]
 #  MkVprocGhdlMain  $::osvvm::CurrentWorkingDirectory/../../../CoSim tests/ghdl_main
 #
 #  set ::osvvm::GhdlRunCmd "-r"
-#  simulate        TbAxi4_CoSim
+#  simulate        TbAb_CoSim
 #  unset ::osvvm::GhdlRunCmd
 #}

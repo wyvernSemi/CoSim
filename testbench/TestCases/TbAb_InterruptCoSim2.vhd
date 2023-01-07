@@ -1,5 +1,5 @@
 --
---  File Name:         TbAxi4_InterruptCoSim2.vhd
+--  File Name:         TbAb_InterruptCoSim2.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
@@ -12,20 +12,15 @@
 --  Description:
 --      Test interrupt handling done in CoSim interface
 --
---
---  Developed by:
---        SynthWorks Design Inc.
---        VHDL Training Classes
---        http://www.SynthWorks.com
---
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Initial revision
+--    12/2022   2023.01    Updated interrupts to use global signal
+--    10/2022   ------     Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by SynthWorks Design Inc.
+--  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -54,14 +49,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAxi4_InterruptCoSim2") ;
+    SetTestName("TbAb_InterruptCoSim2") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_InterruptCoSim2.txt") ;
+    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim2.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -76,7 +71,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAxi4_InterruptCoSim2.txt", "../AXI4/Axi4/testbench/validated_results/TbAxi4_InterruptCoSim2.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_InterruptCoSim2.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim2.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -141,7 +136,8 @@ begin
   
     wait until nReset = '1' ;
   
-    IntReq <= '1' after 105 ns , '0' after 155 ns ;
+--    IntReq <= '1' after 105 ns , '0' after 155 ns ;
+    gIntReq <= TRUE after 105 ns , FALSE after 155 ns ;
   
     wait ;
   
@@ -165,7 +161,7 @@ begin
 
 end InterruptCoSim2 ;
 
-Configuration TbAxi4_InterruptCoSim2 of TbAxi4Memory is
+Configuration TbAb_InterruptCoSim2 of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
       use entity work.TestCtrl(InterruptCoSim2) ;
@@ -174,4 +170,4 @@ Configuration TbAxi4_InterruptCoSim2 of TbAxi4Memory is
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAxi4_InterruptCoSim2 ;
+end TbAb_InterruptCoSim2 ;

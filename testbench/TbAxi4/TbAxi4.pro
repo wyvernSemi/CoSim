@@ -1,4 +1,4 @@
-#  File Name:         testbench.pro
+#  File Name:         TbAxi4.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -42,7 +42,7 @@ TestSuite  CoSim_Axi4
 library    osvvm_CoSim_TbAxi4
 analyze    OsvvmTestCommonPkg.vhd
 analyze    TestCtrl_e.vhd
-analyze    TbAxi4Memory.vhd
+analyze    TbAddressBusMemory.vhd
 
-analyze    TbAxi4_CoSim.vhd
+analyze    ../TestCases/TbAb_CoSim.vhd
 

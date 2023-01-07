@@ -1,4 +1,4 @@
-#  File Name:               cosim.pro
+#  File Name:               tests.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
@@ -22,7 +22,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -38,22 +38,22 @@
 #
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_size
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_burst
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/iss rv32
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 MkVprocSkt $::osvvm::OsvvmCoSimDirectory  tests/socket
-simulate   TbAxi4_CoSim
+simulate   TbAb_CoSim
 
 #if {$::osvvm::ToolName eq "GHDL"} {
 #
 #  MkVprocGhdlMain  $::osvvm::CurrentWorkingDirectory/../../../CoSim tests/ghdl_main
 #
 #  set ::osvvm::GhdlRunCmd "-r"
-#  simulate        TbAxi4_CoSim
+#  simulate        TbAb_CoSim
 #  unset ::osvvm::GhdlRunCmd
 #}

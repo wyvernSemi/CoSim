@@ -1,6 +1,6 @@
 --
---  File Name:         TbAxi4.vhd
---  Design Unit Name:  TbAxi4
+--  File Name:         TbAddressBusMemory.vhd
+--  Design Unit Name:  TbAddressBusMemory
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -50,13 +50,12 @@ library osvvm ;
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
 
-entity TbAxi4 is
-end entity TbAxi4 ;
-architecture TestHarness of TbAxi4 is
+entity TbAddressBusMemory is
+end entity TbAddressBusMemory ;
+architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
-
 
   constant tperiod_Clk : time := 10 ns ;
   constant tpd         : time := 2 ns ;
@@ -154,7 +153,7 @@ begin
 
   -- Behavioral model.  Replaces DUT for testing Axi4Manager
   ------------------------------------------------------------
-  Subordinate_1 : Axi4Subordinate
+  Memory_1 : Axi4Memory
   ------------------------------------------------------------
   port map (
     -- Globals
@@ -163,7 +162,7 @@ begin
 
     -- AXI Manager Functional Interface
     AxiBus      => AxiBus,
-
+    
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
   ) ;
@@ -183,7 +182,6 @@ begin
     VCRec        => VCRec
   ) ;
 
-
   ------------------------------------------------------------
   Manager_1 : Axi4Manager
   ------------------------------------------------------------
@@ -195,7 +193,7 @@ begin
     -- AXI Manager Functional Interface
     AxiBus      => AxiBus,
 
-    -- Testbench Transaction Interface
+    -- Testbench Transaction Interface - From InterruptHandler
     TransRec    => VCRec
   ) ;
 

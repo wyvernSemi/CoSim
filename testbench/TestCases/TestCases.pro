@@ -1,4 +1,4 @@
-#  File Name:         testbench.pro
+#  File Name:         TestCases.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -8,13 +8,7 @@
 #
 #
 #  Description:
-#        Script to run one Co-simulation Interrupt test
-#
-#  Developed for:
-#        SynthWorks Design Inc.
-#        VHDL Training Classes
-#        11898 SW 128th Ave.  Tigard, Or  97223
-#        http://www.SynthWorks.com
+#        Script to run Co-simulation Interrupt tests
 #
 #  Revision History:
 #    Date      Version    Description
@@ -24,7 +18,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -42,18 +36,18 @@
 # library and TestSuite set by higher level scripts
 
 # Uses OSVVM Interrupt Handling 
-# analyze TbAxi4_InterruptCosim1.vhd
+# analyze TbAb_InterruptCosim1.vhd
 # MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interrupt
-# simulate TbAxi4_InterruptCosim1
+# simulate TbAb_InterruptCosim1
 
 # Use Interrupt Handling in Vproc
-analyze TbAxi4_InterruptCoSim2.vhd
+analyze TbAb_InterruptCoSim2.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptCB
-simulate TbAxi4_InterruptCoSim2
+simulate TbAb_InterruptCoSim2
 
 # Use Interrupt Handling in Vproc
-analyze TbAxi4_InterruptCoSim3.vhd
+analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory  tests/interruptIss rv32
-simulate TbAxi4_InterruptCoSim3
+simulate TbAb_InterruptCoSim3
 
 

@@ -13,20 +13,14 @@
 //      Simulator co-simulation virtual procedure C interface routines for
 //      scheduling access to user processes
 //
-//
-//  Developed by:
-//        SynthWorks Design Inc.
-//        VHDL Training Classes
-//        http://www.SynthWorks.com
-//
 //  Revision History:
 //    Date      Version    Description
-//    10/2022   2022       Initial revision
+//    10/2022   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by SynthWorks Design Inc.
+//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

@@ -1,16 +1,16 @@
 --
---  File Name:         TbAxi4.vhd
---  Design Unit Name:  TbAxi4
+--  File Name:         TbAddressBusMemory.vhd
+--  Design Unit Name:  TbAddressBusMemory
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+--  Maintainer:          Jim Lewis  email: jim@synthworks.com
 --  Contributor(s):
---     Jim Lewis      jim@synthworks.com
+--     Jim Lewis        jim@synthworks.com
+--     Simon Southwell  simon.southwell@gmail.com
 --
 --
 --  Description:
---      Simple AXI Lite Manager Model
---
+--      Test Harness for Axi4LiteManager + Axi4LiteMemory
 --
 --  Developed by:
 --        SynthWorks Design Inc.
@@ -19,14 +19,15 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    04/2018   2018       Initial revision
---    01/2020   2020.01    Updated license notice
+--    12/2022   2023.01    Updated Entity Name to TbAddressBusMemory
 --    12/2020   2020.12    Updated signal and port names
+--    01/2020   2020.01    Updated license notice
+--    04/2018   2018       Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.
+--  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -52,9 +53,12 @@ library osvvm ;
 library osvvm_Axi4 ;
   context osvvm_Axi4.Axi4LiteContext ;
 
-entity TbAxi4 is
-end entity TbAxi4 ;
-architecture TestHarness of TbAxi4 is
+entity TbAddressBusMemory is
+  generic (
+    TEST_NAME : string := "" 
+  ) ;
+end entity TbAddressBusMemory ;
+architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
@@ -81,6 +85,9 @@ architecture TestHarness of TbAxi4 is
 
 
   component TestCtrl is
+    generic (
+      TEST_NAME : string := "" 
+    ) ;
     port (
       -- Global Signal Interface
       Clk                 : In    std_logic ;
@@ -109,16 +116,15 @@ begin
     Period      => 7 * tperiod_Clk,
     tpd         => tpd
   ) ;
-
-  -- Behavioral model.  Replaces DUT for labs
-  Subordinate_1 : Axi4LiteSubordinate
+  
+  Memory_1 : Axi4LiteMemory
   port map (
     -- Globals
     Clk         => Clk,
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus  => AxiBus,
+    AxiBus      => AxiBus,
 
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
@@ -150,6 +156,7 @@ begin
 
 
   TestCtrl_1 : TestCtrl
+  generic map (TEST_NAME => TEST_NAME)
   port map (
     -- Globals
     Clk            => Clk,

@@ -1,13 +1,20 @@
-#  File Name:               cosim.pro
+#  File Name:               tests.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
 #  Contributor(s):
 #     Simon Southwell       simon.southwell@gmail.com
+#     Jim Lewis             jim@synthworks.com
 #
 #
 #  Description:
 #        Script to run Axi4 Lite CoSim tests
+#
+#  Developed for:
+#        SynthWorks Design Inc.
+#        VHDL Training Classes
+#        11898 SW 128th Ave.  Tigard, Or  97223
+#        http://www.SynthWorks.com
 #
 #  Revision History:
 #    Date      Version    Description
@@ -40,11 +47,10 @@ simulate   TbAb_CoSim [generic TEST_NAME usercode_size]
 # MkVproc    $::osvvm::OsvvmCoSimDirectory tests/usercode_burst
 # TestName   CoSim_usercode_burst
 # simulate   TbAb_CoSim [generic TEST_NAME usercode_burst]
-
- 
-MkVproc    $::osvvm::OsvvmCoSimDirectory tests/iss rv32
-TestName   CoSim_iss
-simulate   TbAb_CoSim [generic TEST_NAME iss]
+#  
+# MkVproc    $::osvvm::OsvvmCoSimDirectory tests/iss rv32
+# TestName   CoSim_iss
+# simulate   TbAb_CoSim [generic TEST_NAME iss]
 
 # MkVprocSkt $::osvvm::OsvvmCoSimDirectory tests/socket
 # simulate   TbAb_CoSim
@@ -52,7 +58,7 @@ simulate   TbAb_CoSim [generic TEST_NAME iss]
 # EndSimulation
 # after 1000
 
-# if {$::osvvm::ToolName eq "GHDL"} {
+#if {$::osvvm::ToolName eq "GHDL"} {
 #
 #  MkVprocGhdlMain  $::osvvm::CurrentWorkingDirectory/../../../CoSim tests/ghdl_main
 #

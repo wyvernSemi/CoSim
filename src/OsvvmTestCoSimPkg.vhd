@@ -12,20 +12,14 @@
 --  Description:
 --      Defines procedures to support co-simulation
 --
---
---  Developed by:
---        SynthWorks Design Inc.
---        VHDL Training Classes
---        http://www.SynthWorks.com
---
 --  Revision History:
 --    Date      Version    Description
---    09/2022   2022       Initial revision
+--    09/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by SynthWorks Design Inc.
+--  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -57,12 +51,12 @@ library osvvm_cosim ;
 
 package OsvvmTestCoSimPkg is
 
-constant WEbit           : integer := 0 ;
-constant RDbit           : integer := 1 ;
-constant ADDR_WIDTH      : integer := 32 ;
-constant DATA_WIDTH      : integer := 32 ;
-constant ADDR_WIDTH_MAX  : integer := 64 ;
-constant DATA_WIDTH_MAX  : integer := 64 ;
+  constant WEbit           : integer := 0 ;
+  constant RDbit           : integer := 1 ;
+  
+-- See package body
+--  constant COSIM_ADDR_WIDTH_MAX  : integer := 64 ;
+--  constant COSIM_DATA_WIDTH_MAX  : integer := 64 ;
 
   ------------------------------------------------------------
   ------------------------------------------------------------
@@ -80,31 +74,22 @@ procedure CoSimTrans (
   variable NodeNum          : in     integer := 0
   ) ;
 
-procedure CoSimTransSingle (
-  signal   ManagerRec       : inout  AddressBusRecType ;
-  variable VPDataOut        : in     integer ;
-  variable VPDataOutHi      : in     integer ;
-  variable VPDataWidth      : in     integer ;
-  variable VPAddr           : in     integer ;
-  variable VPAddrHi         : in     integer ;
-  variable VPAddrWidth      : in     integer ;
-  variable VPRW             : in     integer
+  ------------------------------------------------------------
+  -- Co-simulation procedure to dispatch one transactions
+  ------------------------------------------------------------
+  procedure CoSimDispatchOneTransaction (
+    -- Transaction  interface
+    signal   ManagerRec      : inout  AddressBusRecType ;
+    constant VpOperation     : in     integer ;
+    constant VPAddr          : in     integer ;
+    constant VPAddrHi        : in     integer ;
+    constant VPAddrWidth     : in     integer ;
+    constant VPDataOut       : in     integer ;
+    constant VPDataOutHi     : in     integer ;
+    constant VPDataWidth     : in     integer ;
+    constant VPBurstSize     : in     integer ;
+    constant NodeNum         : in     integer
   ) ;
-
-procedure CoSimTransBurst (
-  signal   ManagerRec       : inout  AddressBusRecType ;
-  variable VPDataWidth      : in     integer ;
-  variable VPAddr           : in     integer ;
-  variable VPAddrHi         : in     integer ;
-  variable VPAddrWidth      : in     integer ;
-  variable VPRW             : in     integer ;
-  variable VPBurstSize      : in     integer ;
-  variable NodeNum          : in     integer
-  ) ;
-
-function squelchUndef (
-           vec              : in     std_logic_vector
-  ) return std_logic_vector ;
 
 end package OsvvmTestCoSimPkg ;
 
@@ -112,30 +97,49 @@ end package OsvvmTestCoSimPkg ;
 -- /////////////////////////////////////////////////////////////////////////////////////////
 
 package body OsvvmTestCoSimPkg is
+  constant COSIM_ADDR_WIDTH_MAX  : integer := 64 ;
+  constant COSIM_DATA_WIDTH_MAX  : integer := 64 ;
 
-  ------------------------------------------------------------
-  -- Utility function to convert a std_logic_vector's bits
-  -- from 'U' to '0' prior to conversion to integer to
-  -- avoid warnings in NUMERIC_STD.TO_INTEGER
-  ------------------------------------------------------------
-  function squelchUndef (
-           vec              : in  std_logic_vector
-  ) return std_logic_vector is
-
-  variable result           : std_logic_vector(vec'length-1 downto 0) ;
-
+------------------------------------------------------------
+-- Temporary Kludge to allow prototyping of CoSimDispatchOneTransaction
+-- If we agree, VPOperation will be provided by VTrans
+-- and we can also drop at a minimum the VPRW.
+-- We still need VpBurstSize and 
+-- VPTicks needs to go somewhere, but thad could be VPDataOut as suggested here.
+------------------------------------------------------------
+  procedure ToOperationValue (
+    variable VPOperation   : out    integer ;
+    variable VPDataOut     : inout  integer ;
+    constant VPTicks       : in     integer ;
+    constant VPBurstSize   : in     integer ;
+    constant VPRW          : in     integer 
+  ) is
   begin
-    for i in 0 to vec'length-1 loop
-      if vec(i) = 'U' then
-        result(i) := '0' ;
-      else
-        result(i) := vec(i) ;
-      end if ;
-    end loop;
+    --!!--!!  This is a kludge to emulate adding VpOperation
+    -- This translates VPTicks, VPBurstSize, and VPRW to proposed VPOperation
+    -- Assumes that only the Tick command ever sets the VPTicks value (ie: not set by transRead, TransWrite, ...) 
+    if VPTicks > 0 then 
+      VPOperation := AddressBusOperationType'pos(WAIT_FOR_CLOCK) ; 
+      VPDataOut    := VPTicks ; 
+    elsif VpBurstSize = 0 then 
+      if VPRW /= 0 then
+        if to_unsigned(VPRW, 2)(RDbit) then
+          VPOperation := AddressBusOperationType'pos(READ_OP) ;
+        else
+          VPOperation := AddressBusOperationType'pos(WRITE_OP) ;
+        end if ; 
+      end if ; 
+    else 
+      if VPRW /= 0 then
+        if to_unsigned(VPRW, 2)(RDbit) then
+          VPOperation := AddressBusOperationType'pos(READ_BURST) ;
+        else
+          VPOperation := AddressBusOperationType'pos(WRITE_BURST) ;
+        end if ; 
+      end if ; 
+    end if ;
+  end procedure ToOperationValue ;
 
-    return result ;
-
-  end function squelchUndef ;
 
   ------------------------------------------------------------
   -- Co-simulation software initialisation procedure for
@@ -163,109 +167,104 @@ package body OsvvmTestCoSimPkg is
   -- a transaction.
   --
   ------------------------------------------------------------
+  procedure CoSimTrans (
+    -- Transaction  interface
+    signal   ManagerRec      : inout  AddressBusRecType ;
+    variable Ticks           : inout  integer ;  -- Deprecated
+    variable Done            : inout  integer ;
+    variable Error           : inout  integer ;
+    variable IntReq          : in     boolean := false;  -- Now that we have global signals, should we use them instead
+    variable NodeNum         : in     integer := 0
+    ) is
 
-procedure CoSimTrans (
-  -- Transaction  interface
-  signal   ManagerRec      : inout  AddressBusRecType ;
-  variable Ticks           : inout  integer ;
-  variable Done            : inout  integer ;
-  variable Error           : inout  integer ;
-  variable IntReq          : in     boolean := false;
-  variable NodeNum         : in     integer := 0
-  ) is
+    variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
 
-  variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+    variable VPDataIn        : integer ;
+    variable VPDataInHi      : integer ;
+    variable VPDataOut       : integer ;
+    variable VPDataOutHi     : integer ;
+    variable VPDataWidth     : integer ;
+    variable VPAddr          : integer ;
+    variable VPAddrHi        : integer ;
+    variable VPAddrWidth     : integer ;
+    variable VPRW            : integer ;
+    variable VPBurstSize     : integer ;
+    variable VPTicks         : integer ;
+    variable VPDone          : integer ;
+    variable VPError         : integer ;
+    variable VPOperation     : integer ;
 
-  variable VPDataIn        : integer ;
-  variable VPDataInHi      : integer ;
-  variable VPDataOut       : integer ;
-  variable VPDataOutHi     : integer ;
-  variable VPDataWidth     : integer ;
-  variable VPAddr          : integer ;
-  variable VPAddrHi        : integer ;
-  variable VPAddrWidth     : integer ;
-  variable VPRW            : integer ;
-  variable VPBurstSize     : integer ;
-  variable VPTicks         : integer ;
-  variable VPDone          : integer ;
-  variable VPError         : integer ;
-
-  variable Interrupt       : integer ;
+    variable Interrupt       : integer ;
 
   begin
-
-    -- RdData won't have persisted from last call, so re-fetch from ManagerRec
-    -- which will have persisted (and is not yet updated)
-    RdData       := squelchUndef(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
-    
     -- Process interrupt input
     Interrupt    := 1 when IntReq = true else 0;
 
-    if Ticks <= 0 then
-
-      -- Sample the read data from last access, saved in RdData inout port
-      if ManagerRec.DataWidth > 32 then
-        VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
-        VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
-      else
-        VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-        VPDataInHi := 0 ;
-      end if;
-
-      -- Call VTrans to generate a new access
-      VTrans(NodeNum,   Interrupt,
-             VPDataIn,  VPDataInHi,
-             VPDataOut, VPDataOutHi, VPDataWidth,
-             VPAddr,    VPAddrHi,    VPAddrWidth,
-             VPRW,      VPBurstSize, VPTicks,
-             VPDone,    VPError) ;
-
-      Ticks := VPTicks ;
-      Done  := VPDone  when Done  = 0;  -- Sticky
-      Error := VPError when Error = 0;  -- Sticky
-
-      if VPBurstSize = 0 then
-
-        CoSimTransSingle(ManagerRec,
-                         VPDataOut, VPDataOutHi, VPDataWidth,
-                         VPAddr,    VPAddrHi,    VPAddrWidth,
-                         VPRW) ;
-      else
-        CoSimTransBurst (ManagerRec,
-                         VPDataWidth,
-                         VPAddr,    VPAddrHi,    VPAddrWidth,
-                         VPRW,      VPBurstSize, NodeNum) ;
-      end if;
-
+    -- RdData won't have persisted from last call, so re-fetch from ManagerRec
+    -- which will have persisted (and is not yet updated)
+    RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
+    
+    -- Sample the read data from last access, saved in RdData inout port
+    if ManagerRec.DataWidth > 32 then
+      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
+--        VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;  -- what if data is 16 bits?
+      VPDataIn   := to_integer(signed(RdData)) ;
+      VPDataInHi := 0 ;
+    end if;
 
-      Ticks := Ticks - 1 ;
-      WaitForClock(ManagerRec) ;
+    -- Call VTrans to generate a new access
+    VTrans(NodeNum,   Interrupt,
+           VPDataIn,  VPDataInHi,
+           VPDataOut, VPDataOutHi, VPDataWidth,
+           VPAddr,    VPAddrHi,    VPAddrWidth,
+           VPRW,      VPBurstSize, VPTicks,
+           VPDone,    VPError) ;
 
-    end if ;
+--!! Deprecated    Ticks := VPTicks ;  -- Deprecated
+    Ticks := 0 ;  -- Deprecated
+    Done  := VPDone  when Done  = 0;  -- Sticky
+    Error := VPError when Error = 0;  -- Sticky
+
+--!!--!!  This is a kludge to prototype adding VpOperation and calling CoSimDispatchOneTransaction
+    ToOperationValue(VPOperation, VPDataOut, VpTicks, VpBurstSize, VpRW) ; 
+
+-- During a Tick operation, the Ticks count is on VPDataOut.
+    CoSimDispatchOneTransaction(ManagerRec, 
+                           VPOperation, 
+                           VPAddr,      VPAddrHi,    VPAddrWidth,
+                           VPDataOut,   VPDataOutHi, VPDataWidth,
+                           VPBurstSize, NodeNum) ;
 
   end procedure CoSimTrans ;
-
+    
   ------------------------------------------------------------
-  -- Co-simulation wrapper procedure to send read and write
-  -- single word or sub-word transfers
+  -- Co-simulation procedure to dispatch one transactions
   ------------------------------------------------------------
-procedure CoSimTransSingle (
-
-  -- Transaction  interface
-  signal   ManagerRec      : inout  AddressBusRecType ;
-  variable VPDataOut       : in     integer ;
-  variable VPDataOutHi     : in     integer ;
-  variable VPDataWidth     : in     integer ;
-  variable VPAddr          : in     integer ;
-  variable VPAddrHi        : in     integer ;
-  variable VPAddrWidth     : in     integer ;
-  variable VPRW            : in     integer
+  procedure CoSimDispatchOneTransaction (
+    -- Transaction  interface
+    signal   ManagerRec      : inout  AddressBusRecType ;
+    constant VpOperation     : in     integer ;
+    constant VPAddr          : in     integer ;
+    constant VPAddrHi        : in     integer ;
+    constant VPAddrWidth     : in     integer ;
+    constant VPDataOut       : in     integer ;
+    constant VPDataOutHi     : in     integer ;
+    constant VPDataWidth     : in     integer ;
+    constant VPBurstSize     : in     integer ;
+    constant NodeNum         : in     integer
   ) is
 
-  variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
-  variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
-  variable Address         : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
+    variable RdData          : std_logic_vector (COSIM_DATA_WIDTH_MAX-1 downto 0) ;
+    variable WrData          : std_logic_vector (COSIM_DATA_WIDTH_MAX-1 downto 0) ;
+    variable Address         : std_logic_vector (COSIM_ADDR_WIDTH_MAX-1 downto 0) ;
+--    variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
+--    variable WrData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
+--    variable Address         : std_logic_vector (ManagerRec.Address'range) ;
+    variable WrByteData      : signed (7 downto 0) ;
+    variable RdDataInt       : integer ; 
+    variable WrDataInt       : integer ; 
 
   begin
 
@@ -275,126 +274,62 @@ procedure CoSimTransSingle (
 
     WrData(31 downto 0 )  := std_logic_vector(to_signed(VPDataOut,   32)) ;
     WrData(63 downto 32)  := std_logic_vector(to_signed(VPDataOutHi, 32)) ;
+    
+--    if IsAddressBusMitValue(VpOperation) then 
+    if VpOperation < 1024 then 
+      case AddressBusOperationType'val(VpOperation) is 
+        when WAIT_FOR_CLOCK =>
+          WaitForClock(ManagerRec, VPDataOut) ;
+        
+        when READ_OP =>
+          Read  (ManagerRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
 
-    -- Do the operation using the transaction interface
-    if VPRW /= 0 then
-      if to_unsigned(VPRW, 2)(RDbit)
-      then
-        if VPAddrWidth = 64 then
-          case VPDataWidth is
-          when 64 => Read  (ManagerRec, Address, RdData) ;
-          when 32 => Read  (ManagerRec, Address, RdData(31 downto 0)) ;
-          when 16 => Read  (ManagerRec, Address, RdData(15 downto 0)) ;
-          when  8 => Read  (ManagerRec, Address, RdData( 7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (64 bit arch)");
-          end case ;
-        elsif VPAddrWidth = 32 then
-          case VPDataWidth is
-          when 32 => Read  (ManagerRec, Address(31 downto 0), RdData(31 downto 0)) ;
-          when 16 => Read  (ManagerRec, Address(31 downto 0), RdData(15 downto 0)) ;
-          when  8 => Read  (ManagerRec, Address(31 downto 0), RdData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim read transaction (32 bit arch)");
-          end case ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim read transaction");
-        end if ;
-      else
-        if VPAddrWidth = 64 then
-          case VPDataWidth is
-          when 64 => Write (ManagerRec, Address, WrData) ;
-          when 32 => Write (ManagerRec, Address, WrData(31 downto 0)) ;
-          when 16 => Write (ManagerRec, Address, WrData(15 downto 0)) ;
-          when  8 => Write (ManagerRec, Address, WrData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (64 bit arch)");
-          end case ;
-        elsif VPAddrWidth = 32 then
-          case VPDataWidth is
-          when 32 => Write (ManagerRec, Address(31 downto 0), WrData(31 downto 0)) ;
-          when 16 => Write (ManagerRec, Address(31 downto 0), WrData(15 downto 0)) ;
-          when  8 => Write (ManagerRec, Address(31 downto 0), WrData(7 downto 0)) ;
-          when others => AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid data width for co-sim write transaction (32 bit arch)");
-          end case ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim write transaction");
-        end if ;
-      end if ;
-    end if ;
+        when WRITE_OP =>
+          Write (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
 
-  end procedure CoSimTransSingle ;
+        when READ_BURST =>
+          ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
 
-  ------------------------------------------------------------
-  -- Co-simulation wrapper procedure to send read and write
-  -- burst transfers
-  ------------------------------------------------------------
-
-procedure CoSimTransBurst (
-  signal   ManagerRec       : inout  AddressBusRecType ;
-  variable VPDataWidth      : in     integer ;
-  variable VPAddr           : in     integer ;
-  variable VPAddrHi         : in     integer ;
-  variable VPAddrWidth      : in     integer ;
-  variable VPRW             : in     integer ;
-  variable VPBurstSize      : in     integer ;
-  variable NodeNum          : in     integer
-  ) is
-
-  variable Address          : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
-  variable RdData           : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
-  variable WrDataInt        : integer ;
-  variable RdDataInt        : integer ;
-  variable WrDataSigned     : signed (DATA_WIDTH_MAX-1 downto 0);
-
-  begin
-
-    -- Convert address and write data to std_logic_vectors
-    Address(31 downto  0) := std_logic_vector(to_signed(VPAddr,      32)) ;
-    Address(63 downto 32) := std_logic_vector(to_signed(VPAddrHi,    32)) ;
-
-    -- If a read or write, do the operation using the transaction burst interface
-    if VPRW /= 0 then
-
-      if to_unsigned(VPRW, 2)(RDbit)
-      then
-
-        -- Initiate the read burst transfer of the appropriate address size
-        if VPAddrWidth = 64 then
-          ReadBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
-        elsif VPAddrWidth = 32 then
-          ReadBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst read transaction");
-        end if ;
-
-        -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
-        for bidx in 0 to VPBurstSize-1 loop
+          -- encapsulate the following:
+          -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
           RdData := (others => '0');
-          Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-          RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
-          VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
-        end loop;
+          for bidx in 0 to VPBurstSize-1 loop
+            Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
+            RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
+            VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
+          end loop;
 
-      else
+        when WRITE_BURST =>
+          -- encapsulate the following:
+          -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
+          for bidx in 0 to VPBurstSize-1 loop
+            VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+            WrByteData := to_signed(WrDataInt, WrByteData'length);
+            Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
+          end loop ;
 
-        -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
-        for bidx in 0 to VPBurstSize-1 loop
-          VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-          WrDataSigned := to_signed(WrDataInt, WrDataSigned'length);
-          Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrDataSigned(7 downto 0))) ;
-        end loop ;
+          WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
 
-        -- Initiate the write burst transfer of the appropriate address size
-        if VPAddrWidth = 64 then
-          WriteBurst(ManagerRec, Address(63 downto  0), VPBurstSize) ;
-        elsif VPAddrWidth = 32 then
-          WriteBurst(ManagerRec, Address(31 downto  0), VPBurstSize) ;
-        else
-          AlertIf(ALERTLOG_DEFAULT_ID, true, "Invalid address width for co-sim burst write transaction");
-        end if ;
+        when others =>
+          Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
 
-      end if ;
-
+      end case ;
+    else 
+      null ; 
+--
+--!! Note:  Below is a Conceptual model for adding non-transaction calls through the interface
+--      case CoSimOperationType'val(VpOperation - 1024) is
+--        when SET_TEST_NAME =>
+--          -- can we pass string values through the interface?
+--          -- is this the place to do it?
+--          FetchStringValueFromCoSim(TestName) ; 
+--          SetTestName(TestName) ; 
+--        when ...
+--        when others => 
+--      end case ;
+          
     end if ;
 
-  end procedure CoSimTransBurst;
+  end procedure CoSimDispatchOneTransaction ;
 
 end package body OsvvmTestCoSimPkg ;

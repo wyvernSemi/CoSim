@@ -1,32 +1,24 @@
 --
---  File Name:         TbAxi4_InterruptCoSim1.vhd
+--  File Name:         TbAb_InterruptCoSim2.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Simon Southwell  email: simon.southwell@gmail.com
 --  Contributor(s):
 --     Simon Southwell      simon.southwell@gmail.com
---     Jim Lewis            jim@synthworks.com
 --
 --
 --  Description:
---      Test interrupt handling done in OSVVM Interrupt Handler.
---      CoSim interface drives ManagerProc and InterruptProc
---
---
---  Developed by:
---        SynthWorks Design Inc.
---        VHDL Training Classes
---        http://www.SynthWorks.com
+--      Test interrupt handling done in CoSim interface
 --
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Initial revision
+--    10/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by SynthWorks Design Inc.
+--  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -41,7 +33,7 @@
 --  limitations under the License.
 --
 
-architecture InterruptCoSim1 of TestCtrl is
+architecture InterruptCoSim2 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
 
@@ -55,14 +47,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAxi4_InterruptCoSim1") ;
+    SetTestName("TbAb_InterruptCoSim2") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAxi4_InterruptCoSim1.txt") ;
+    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim2.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -77,7 +69,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAxi4_InterruptCoSim1.txt", "../AXI4/Axi4/testbench/validated_results/TbAxi4_InterruptCoSim1.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_InterruptCoSim2.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim2.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -89,51 +81,43 @@ begin
   --   Generate transactions for AxiManager
   ------------------------------------------------------------
   ManagerProc : process
-    variable Data   : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
-    variable Ticks  : integer := 0 ;
-    variable Done   : integer := 0 ;
-    variable Error  : integer := 0 ;
-    variable Node   : integer := 0 ;
-    variable Int    : boolean := false ;
+    variable Data        : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
+    variable Ticks       : integer := 0 ;
+    variable Done        : integer := 0 ;
+    variable Error       : integer := 0 ;
+    variable Node        : integer := 0 ;
+    variable Int         : boolean := false ;
+    variable gIntReqLast : boolean := false ;
+    variable WaitForClockRV : RandomPType ;
   begin
     wait until nReset = '1' ;
     WaitForClock(ManagerRec, 2) ;
 
     -- Initialise VProc code
-    Node := 1;
-    CoSimInit(Node);
-    Node := 0;
     CoSimInit(Node);
 
-    for i in 0 to 3 loop
-      blankline(2) ;
-      log("Main Starting Writes.  Loop #" & to_string(i)) ;
+    OperationLoop : loop
+    
+      -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
+      if WaitForClockRV.DistInt((8, 2)) = 1 and Ticks = 0 then
+        WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
+      end if ;
+      
+      -- Inspect interrupt state and flag when global signal changes
+      Int         := true when gIntReq /= gIntReqLast else false ;
+       -- Remember the global interrupt state for next iteration 
+      gIntReqLast := gIntReq;
 
-      for j in 0 to 3 loop
-        CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
-      end loop ;
+      -- Call co-simulation procedure
+      CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
 
-      -- Do WaitForClock Cycles mixed with Interrupt Handling
-      IntReq <= '1' after i * 10 ns + 5 ns, '0' after i * 10 ns + 50 ns ;
-      wait for 9 ns ;
-      WaitForClock(ManagerRec, 1) ;
-      log("WaitForClock #1 finished") ;
-      WaitForClock(ManagerRec, 1) ;
-      log("WaitForClock #2 finished") ;
-      WaitForClock(ManagerRec, 1) ;
-      log("WaitForClock #3 finished") ;
-      WaitForClock(ManagerRec, 1) ;
-      log("WaitForClock #4 finished") ;
+      -- Alter if an error
+      AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
-      blankline(2) ;
-      log("Main Starting Reads.  Loop #" & to_string(i)) ;
+      -- Finish when counts == 0
+      exit when Ticks = 0 and Done /= 0;
 
-      for j in 0 to 3 loop
-        CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
-        AlertIf(Error /= 0, "CoSimTrans node 0 flagged an error") ;
-      end loop ;
-
-    end loop ;
+    end loop OperationLoop ;
  
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(ManagerRec, 2) ;
@@ -141,31 +125,19 @@ begin
     wait ;
   end process ManagerProc ;
 
-
   ------------------------------------------------------------
   -- InterruptProc
-  --   Generate transactions for AxiSubordinate
+  --   Generate interupts in lieu of a DUT
   ------------------------------------------------------------
   InterruptProc : process
-    variable Ticks  : integer := 0;
-    variable Done   : integer := 0;
-    variable Error  : integer := 0;
-    variable Node   : integer := 1;
-    variable Int    : boolean := false ;
   begin
-    WaitForClock(InterruptRec, 1) ;
-    blankline(2) ;
-    log("Interrupt Handler Started") ;
-
-    for i in 0 to 7 loop
-      CoSimTrans (InterruptRec, Ticks, Done, Error, Int, Node) ;
-      AlertIf(Error /= 0, "CoSimTrans node 1 flagged an error") ;
-    end loop ;
-
-    log("Interrupt Handler Done") ;
-    blankline(2) ;
-    InterruptReturn(InterruptRec) ;
-    wait for 0 ns ;
+  
+    wait until nReset = '1' ;
+  
+    IntReq <= '1' after 105 ns , '0' after 155 ns ;
+  
+    wait ;
+  
   end process InterruptProc ;
 
   ------------------------------------------------------------
@@ -184,15 +156,15 @@ begin
   end process SubordinateProc ;
 
 
-end InterruptCoSim1 ;
+end InterruptCoSim2 ;
 
-Configuration TbAxi4_InterruptCoSim1 of TbAxi4Memory is
+Configuration TbAb_InterruptCoSim2 of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(InterruptCoSim1) ;
+      use entity work.TestCtrl(InterruptCoSim2) ;
     end for ;
 --!!    for Subordinate_1 : Axi4Subordinate
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAxi4_InterruptCoSim1 ;
+end TbAb_InterruptCoSim2 ;

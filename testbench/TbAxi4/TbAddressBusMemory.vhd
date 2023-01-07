@@ -1,6 +1,6 @@
 --
---  File Name:         TbAxi4.vhd
---  Design Unit Name:  TbAxi4
+--  File Name:         TbAddressBusMemory.vhd
+--  Design Unit Name:  TbAddressBusMemory
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -19,9 +19,9 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    04/2018   2018       Initial revision
---    01/2020   2020.01    Updated license notice
 --    12/2020   2020.12    Updated signal and port names
+--    01/2020   2020.01    Updated license notice
+--    04/2018   2018       Initial revision
 --
 --
 --  This file is part of OSVVM.
@@ -52,13 +52,15 @@ library osvvm ;
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
 
-entity TbAxi4 is
-end entity TbAxi4 ;
-architecture TestHarness of TbAxi4 is
+entity TbAddressBusMemory is
+  generic (
+    TEST_NAME : string := "" 
+  ) ;
+end entity TbAddressBusMemory ;
+architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
-
 
   constant tperiod_Clk : time := 10 ns ;
   constant tpd         : time := 2 ns ;
@@ -118,6 +120,9 @@ architecture TestHarness of TbAxi4 is
 
 
   component TestCtrl is
+    generic (
+      TEST_NAME : string := "" 
+    ) ;
     port (
       -- Global Signal Interface
       nReset         : In    std_logic ;
@@ -147,7 +152,7 @@ begin
   ) ;
 
   -- Behavioral model.  Replaces DUT for labs
-  Subordinate_1 : Axi4Subordinate
+  Memory_1 : Axi4Memory
   port map (
     -- Globals
     Clk         => Clk,
@@ -155,7 +160,7 @@ begin
 
     -- AXI Manager Functional Interface
     AxiBus  => AxiBus,
-
+    
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
   ) ;
@@ -186,6 +191,7 @@ begin
 
 
   TestCtrl_1 : TestCtrl
+  generic map (TEST_NAME => TEST_NAME)
   port map (
     -- Global Signal Interface
     nReset        => nReset,

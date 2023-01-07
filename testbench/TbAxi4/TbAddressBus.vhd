@@ -1,11 +1,11 @@
 --
---  File Name:         TbAxi4.vhd
---  Design Unit Name:  TbAxi4
+--  File Name:         TbAddressBus.vhd
+--  Design Unit Name:  TbAddressBus
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:          Simon Southwell  email: simon.southwell@gmail.com
+--  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 --  Contributor(s):
---     Simon Southwell  simon.southwell@gmail.com
+--     Jim Lewis      jim@synthworks.com
 --
 --
 --  Description:
@@ -19,9 +19,9 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    04/2018   2018       Initial revision
---    01/2020   2020.01    Updated license notice
 --    12/2020   2020.12    Updated signal and port names
+--    01/2020   2020.01    Updated license notice
+--    04/2018   2018       Initial revision
 --
 --
 --  This file is part of OSVVM.
@@ -49,18 +49,16 @@ library ieee ;
 library osvvm ;
   context osvvm.OsvvmContext ;
 
-library osvvm_Axi4 ;
-  context osvvm_Axi4.Axi4LiteContext ;
+library OSVVM_AXI4 ;
+  context OSVVM_AXI4.Axi4Context ;
 
-entity TbAxi4Cosim is
-  generic (
-    TEST_NAME : string := "" 
-  ) ;
-end entity TbAxi4Cosim ;
-architecture TestHarness of TbAxi4Cosim is
+entity TbAddressBus is
+end entity TbAddressBus ;
+architecture TestHarness of TbAddressBus is
   constant AXI_ADDR_WIDTH : integer := 32 ;
   constant AXI_DATA_WIDTH : integer := 32 ;
   constant AXI_STRB_WIDTH : integer := AXI_DATA_WIDTH/8 ;
+
 
   constant tperiod_Clk : time := 10 ns ;
   constant tpd         : time := 2 ns ;
@@ -68,33 +66,65 @@ architecture TestHarness of TbAxi4Cosim is
   signal Clk         : std_logic ;
   signal nReset      : std_logic ;
 
-  signal ManagerRec, SubordinateRec  : AddressBusRecType(
+--  -- Testbench Transaction Interface
+--  subtype LocalTransactionRecType is AddressBusRecType(
+--    Address(AXI_ADDR_WIDTH-1 downto 0),
+--    DataToModel(AXI_DATA_WIDTH-1 downto 0),
+--    DataFromModel(AXI_DATA_WIDTH-1 downto 0)
+--  ) ;
+--  signal ManagerRec   : LocalTransactionRecType ;
+--  signal SubordinateRec  : LocalTransactionRecType ;
+  signal ManagerRec, SubordinateRec  : AddressBusRecType (
           Address(AXI_ADDR_WIDTH-1 downto 0),
           DataToModel(AXI_DATA_WIDTH-1 downto 0),
           DataFromModel(AXI_DATA_WIDTH-1 downto 0)
         ) ;
 
 --  -- AXI Manager Functional Interface
-  signal   AxiBus : Axi4LiteRecType(
-    WriteAddress( Addr (AXI_ADDR_WIDTH-1 downto 0) ),
-    WriteData   ( Data (AXI_DATA_WIDTH-1 downto 0),   Strb(AXI_STRB_WIDTH-1 downto 0) ),
-    ReadAddress ( Addr (AXI_ADDR_WIDTH-1 downto 0) ),
-    ReadData    ( Data (AXI_DATA_WIDTH-1 downto 0) )
+--  signal   AxiBus : Axi4RecType(
+--    WriteAddress( AWAddr(AXI_ADDR_WIDTH-1 downto 0) ),
+--    WriteData   ( WData (AXI_DATA_WIDTH-1 downto 0),   WStrb(AXI_STRB_WIDTH-1 downto 0) ),
+--    ReadAddress ( ARAddr(AXI_ADDR_WIDTH-1 downto 0) ),
+--    ReadData    ( RData (AXI_DATA_WIDTH-1 downto 0) )
+--  ) ;
+
+  signal   AxiBus : Axi4RecType(
+    WriteAddress(
+      Addr(AXI_ADDR_WIDTH-1 downto 0),
+      ID(7 downto 0),
+      User(7 downto 0)
+    ),
+    WriteData   (
+      Data(AXI_DATA_WIDTH-1 downto 0),
+      Strb(AXI_STRB_WIDTH-1 downto 0),
+      User(7 downto 0),
+      ID(7 downto 0)
+    ),
+    WriteResponse(
+      ID(7 downto 0),
+      User(7 downto 0)
+    ),
+    ReadAddress (
+      Addr(AXI_ADDR_WIDTH-1 downto 0),
+      ID(7 downto 0),
+      User(7 downto 0)
+    ),
+    ReadData    (
+      Data(AXI_DATA_WIDTH-1 downto 0),
+      ID(7 downto 0),
+      User(7 downto 0)
+    )
   ) ;
 
 
   component TestCtrl is
-    generic (
-      TEST_NAME : string := "" 
-    ) ;
     port (
       -- Global Signal Interface
-      Clk                 : In    std_logic ;
-      nReset              : In    std_logic ;
+      nReset         : In    std_logic ;
 
       -- Transaction Interfaces
-      ManagerRec          : inout AddressBusRecType ;
-      SubordinateRec      : inout AddressBusRecType
+      ManagerRec      : inout AddressBusRecType ;
+      SubordinateRec   : inout AddressBusRecType
     ) ;
   end component TestCtrl ;
 
@@ -115,22 +145,22 @@ begin
     Period      => 7 * tperiod_Clk,
     tpd         => tpd
   ) ;
-  
-  Memory_1 : Axi4LiteMemory
+
+  -- Behavioral model.  Replaces DUT for labs
+  Subordinate_1 : Axi4Subordinate
   port map (
     -- Globals
     Clk         => Clk,
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus,
+    AxiBus  => AxiBus,
 
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
   ) ;
 
-  Manager_1 : Axi4LiteManager
-  
+  Manager_1 : Axi4Manager
   port map (
     -- Globals
     Clk         => Clk,
@@ -144,7 +174,7 @@ begin
   ) ;
 
 
-  Monitor_1 : Axi4LiteMonitor
+  Monitor_1 : Axi4Monitor
   port map (
     -- Globals
     Clk         => Clk,
@@ -156,15 +186,13 @@ begin
 
 
   TestCtrl_1 : TestCtrl
-  generic map (TEST_NAME => TEST_NAME)
   port map (
-    -- Globals
-    Clk            => Clk,
-    nReset         => nReset,
+    -- Global Signal Interface
+    nReset        => nReset,
 
-    -- Testbench Transaction Interfaces
+    -- Transaction Interfaces
     ManagerRec     => ManagerRec,
-    SubordinateRec => SubordinateRec
+    SubordinateRec  => SubordinateRec
   ) ;
 
 end architecture TestHarness ;
