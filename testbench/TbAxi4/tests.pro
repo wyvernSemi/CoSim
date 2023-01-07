@@ -58,11 +58,12 @@ simulate   TbAb_CoSim [generic TEST_NAME iss]
 # EndSimulation
 # after 1000
 
-#if {$::osvvm::ToolName eq "GHDL"} {
-#
-#  MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
-#
-#  set ::osvvm::GhdlRunCmd "-r"
-#  simulate        TbAb_CoSim
-#  unset ::osvvm::GhdlRunCmd
-#}
+if {$::osvvm::ToolName eq "GHDL"} {
+
+  MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
+  TestName CoSim_ghdl_main
+
+  set ::osvvm::GhdlRunCmd "-r"
+  simulate        TbAb_CoSim [generic TEST_NAME ghdl_main]
+  unset ::osvvm::GhdlRunCmd
+}

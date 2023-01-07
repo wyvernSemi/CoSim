@@ -186,12 +186,9 @@ extern "C" void VUserMain0()
         logGdbMsg(fp, wtrans, rnw);
     }
     
-    // Flag to the simulation we're finished, after 10 more iterations
-    cosim.tick(10, true, error);
+    // Flag to the simulation any errors
+    cosim.tick(1, false, error);
 
     fclose(fp);
-
-    // If ever got this far then sleep forever
-    SLEEPFOREVER;
 }
 

@@ -59,9 +59,13 @@ OSTYPE:=$(shell uname)
 ifeq (${OSTYPE}, Linux)
   OSVVMDIR         = /git/OsvvmLibraries
   GHDLROOT         = /usr/lib/ghdl
+  SIMEXE           = ${LCTB}
+  OSGHDLFLAGS      = 
 else
   OSVVMDIR         = /c/git/OsvvmLibraries
   GHDLROOT         = /mingw64/lib/ghdl
+  SIMEXE           = ${LCTB}.exe
+  OSGHDLFLAGS      = -ldbghelp -Wl,--stack=0x2000000
 endif
 
 #
@@ -77,7 +81,7 @@ USRFLAGS           =
 
 VHDLLIB            = VHDL_LIBS/GHDL-3.0.0-dev
 TBLIBRARY          = osvvm_tbaxi4
-TESTBENCH          = TbAxi4_CoSim
+TESTBENCH          = TbAb_CoSim
 
 #
 # Directory with test code to be compiled
@@ -88,11 +92,13 @@ MAINSRC            = main.cpp
 # gcc linker flags required by GHDL code
 #
 GHDLFLAGS          = ${GHDLROOT}/libgrt.a                                 \
-                     -ldbghelp                                            \
+                     -L. -l:VProc.so -l:VUser.so                          \
+                     -ldl                                                 \
+                     -lpthread                                            \
                      -L.                                                  \
                      -L/mingw64/lib/gcc/x86_64-w64-mingw32/12.2.0/adalib/ \
                      -lz                                                  \
-                     -Wl,--stack=0x2000000
+                     ${OSGHDLFLAGS}
 
 #
 # Test bench name in lower
@@ -102,7 +108,6 @@ LCTB               = $(shell echo ${TESTBENCH} | tr A-Z a-z)
 #
 # Compilation outputs
 #
-SIMEXE             = ${LCTB}.exe
 COSIMCODE          = VProc.so
 USRCODE            = VUser.so
 TBLIB              = libtb.a
@@ -110,7 +115,7 @@ TBLIB              = libtb.a
 #
 # Compilers
 #
-CC                 = gcc
+CC                 = g++
 AR                 = ar
 MAKE               = make
 GHDL               = ghdl
@@ -149,7 +154,8 @@ ${TBLIB}: obj/${MAINSRC:%.cpp=%.o}
 # Elaborate the test bench to generate the top level object file
 #
 e~${LCTB}.o: ${COSIMCODE}
-	${GHDL} -e --std=08                                                  \
+	@${GHDL} -e --std=08                                                  \
+             -Wl,-lpthread                                                \
              --work=${TBLIBRARY}                                          \
              --workdir=${VHDLLIB}/${TBLIBRARY}/v08                        \
              -P${VHDLLIB}                                                 \
@@ -162,9 +168,10 @@ e~${LCTB}.o: ${COSIMCODE}
 # Generate a new executable with all user code and the GHDL required libraries
 #
 ${SIMEXE}: e~${LCTB}.o ${COSIMCODE} ${USRCODE} ${TBLIB}
-	@${CC} $^                                                             \
+	@${CC} $<                                                             \
+           ${TBLIB}                                                       \
            ${GHDLFLAGS}                                                   \
-           -o ${SIMEXE}
+           -o $@
 
 obj/${MAINSRC:%.cpp=%.o}: ${USRCDIR}/${TEST}/${MAINSRC}
 	@g++ -c -I${COSIMDIR}/code $< -o $@

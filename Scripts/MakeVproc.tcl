@@ -166,13 +166,16 @@ proc MkVprocSkt {testname {libname ""} } {
 
 proc MkVprocGhdlMain {testname {libname ""} } {
 
+  set ::env(LD_LIBRARY_PATH) ./
+
   exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl clean
   
   set flags [ gen_lib_flags ${libname} ]
   
   exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl \
-            USRFLAGS=${flags}            \
-            TBLIBRARY=$::osvvm::VhdlWorkingLibrary
+            USRFLAGS=${flags}                              \
+            OSVVMDIR=$::osvvm::OsvvmHomeDirectory          \
+            TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary]
   
   return
 }
