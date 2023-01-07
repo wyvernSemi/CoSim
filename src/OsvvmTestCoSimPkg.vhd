@@ -55,8 +55,8 @@ package OsvvmTestCoSimPkg is
   constant RDbit           : integer := 1 ;
   
 -- See package body
---  constant ADDR_WIDTH_MAX  : integer := 64 ;
---  constant DATA_WIDTH_MAX  : integer := 64 ;
+--  constant COSIM_ADDR_WIDTH_MAX  : integer := 64 ;
+--  constant COSIM_DATA_WIDTH_MAX  : integer := 64 ;
 
   ------------------------------------------------------------
   ------------------------------------------------------------
@@ -97,12 +97,16 @@ end package OsvvmTestCoSimPkg ;
 -- /////////////////////////////////////////////////////////////////////////////////////////
 
 package body OsvvmTestCoSimPkg is
-  constant ADDR_WIDTH_MAX  : integer := 64 ;
-  constant DATA_WIDTH_MAX  : integer := 64 ;
+  constant COSIM_ADDR_WIDTH_MAX  : integer := 64 ;
+  constant COSIM_DATA_WIDTH_MAX  : integer := 64 ;
 
-  ------------------------------------------------------------
-  -- Temporary Kludge to allow prototyping of CoSimDispatchOneTransaction
-  ------------------------------------------------------------
+------------------------------------------------------------
+-- Temporary Kludge to allow prototyping of CoSimDispatchOneTransaction
+-- If we agree, VPOperation will be provided by VTrans
+-- and we can also drop at a minimum the VPRW.
+-- We still need VpBurstSize and 
+-- VPTicks needs to go somewhere, but thad could be VPDataOut as suggested here.
+------------------------------------------------------------
   procedure ToOperationValue (
     variable VPOperation   : out    integer ;
     variable VPDataOut     : inout  integer ;
@@ -193,13 +197,6 @@ package body OsvvmTestCoSimPkg is
     variable Interrupt       : integer ;
 
   begin
-
---!! Question: WRT VPTicks, 
---     the only call that sets it is Tick command. ie: It is not set by transRead, TransWrite, .
---     If this is not true, then this code breaks the functionality.
-
-
---!! Question: use global signal here instead?
     -- Process interrupt input
     Interrupt    := 1 when IntReq = true else 0;
 
@@ -259,9 +256,9 @@ package body OsvvmTestCoSimPkg is
     constant NodeNum         : in     integer
   ) is
 
-    variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
-    variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
-    variable Address         : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
+    variable RdData          : std_logic_vector (COSIM_DATA_WIDTH_MAX-1 downto 0) ;
+    variable WrData          : std_logic_vector (COSIM_DATA_WIDTH_MAX-1 downto 0) ;
+    variable Address         : std_logic_vector (COSIM_ADDR_WIDTH_MAX-1 downto 0) ;
 --    variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
 --    variable WrData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
 --    variable Address         : std_logic_vector (ManagerRec.Address'range) ;
