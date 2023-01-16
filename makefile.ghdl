@@ -146,8 +146,8 @@ ${USRCODE} ${COSIMCODE}:
 ${TBLIB}: obj/${MAINSRC:%.cpp=%.o}
 	@rm -f $@
 	@${AR} crs $@ $<                                                      \
-                   `find VHDL_LIBS             -name "*.o"`               \
-                   `find ${GHDLROOT}/std/v08/  -name "*.o"`               \
+                   `find ${VHDLLIB}            -name "*.o"`             \
+                   `find ${GHDLROOT}/std/v08/  -name "*.o"`             \
                    `find ${GHDLROOT}/ieee/v08/ -name "*.o"`
 
 #

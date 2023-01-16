@@ -175,7 +175,8 @@ proc MkVprocGhdlMain {testname {libname ""} } {
   exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl \
             USRFLAGS=${flags}                              \
             OSVVMDIR=$::osvvm::OsvvmHomeDirectory          \
-            TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary]
+            TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary] \
+            VHDLLIB=[FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]
   
   return
 }
