@@ -38,7 +38,6 @@
 #  limitations under the License.
 #  
 
-TestSuite  CoSim_Axi4_Interrupt
 library    osvvm_CoSim_Axi4_Interrupt
 
 analyze    OsvvmTestCommonPkg.vhd

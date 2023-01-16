@@ -43,11 +43,11 @@
 # Use Interrupt Handling in Vproc
 analyze TbAb_InterruptCoSim2.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
-simulate TbAb_InterruptCoSim2
+simulate TbAb_InterruptCoSim2 [CoSim]
 
 # Use Interrupt Handling in Vproc
 analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
-simulate TbAb_InterruptCoSim3
+simulate TbAb_InterruptCoSim3 [CoSim]
 
 
