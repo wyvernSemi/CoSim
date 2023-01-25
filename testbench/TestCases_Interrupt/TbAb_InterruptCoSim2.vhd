@@ -102,7 +102,7 @@ begin
       end if ;
 
       -- Inspect interrupt state and and convert to integer
-      Int         := 1 when gIntReq else 0 ;
+      Int         := to_integer(signed(gIntReq)) ;
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;

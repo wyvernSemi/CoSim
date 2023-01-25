@@ -104,7 +104,7 @@ begin
       end if ;
       
       -- Inspect interrupt state and and convert to integer
-      Int         := 1 when gIntReq else 0 ;
+      Int         := to_integer(signed(gIntReq)) ;
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
@@ -133,7 +133,10 @@ begin
     wait until nReset = '1' ;
   
 --    IntReq <= '1' after 105 ns , '0' after 155 ns ;
-    gIntReq <= TRUE after 105 ns , FALSE after 155 ns ;
+    wait for 105 ns ; 
+    gIntReq(0) <= force '1' ;
+    wait for 50 ns ; 
+    gIntReq(0) <= force '0' ;
   
     wait ;
   

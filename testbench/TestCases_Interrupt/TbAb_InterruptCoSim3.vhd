@@ -36,8 +36,11 @@
 architecture InterruptCoSim3 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
+  signal GlobalIntReq : std_logic_vector(gIntReq'range) ;
 
 begin
+
+  GlobalIntReq <= gIntReq ; 
 
   ------------------------------------------------------------
   -- ControlProc
@@ -93,7 +96,7 @@ begin
 
     -- Initialise VProc code
     CoSimInit(Node);
-
+    
     OperationLoop : loop
     
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
@@ -102,7 +105,7 @@ begin
       end if ;
       
       -- Inspect interrupt state and and convert to integer
-      Int         := 1 when gIntReq else 0 ;
+      Int         := to_integer(signed(gIntReq)) ;
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;

@@ -51,6 +51,7 @@ library osvvm_cosim ;
 
 package OsvvmTestCoSimPkg is
 
+  type CoSimOperationType is (SET_TEST_NAME) ; 
   ------------------------------------------------------------
   ------------------------------------------------------------
 
@@ -203,6 +204,7 @@ package body OsvvmTestCoSimPkg is
     variable WrByteData      : signed (DATA_WIDTH_MAX-1 downto 0) ;
     variable RdDataInt       : integer ;
     variable WrDataInt       : integer ;
+    variable TestName        : string(1 to VPBurstSize) ;
 
   begin
 
@@ -262,15 +264,20 @@ package body OsvvmTestCoSimPkg is
       null ;
 --
 --!! Note:  Below is a Conceptual model for adding non-transaction calls through the interface
---      case CoSimOperationType'val(VpOperation - 1024) is
---        when SET_TEST_NAME =>
---          -- can we pass string values through the interface?
---          -- is this the place to do it?
---          FetchStringValueFromCoSim(TestName) ;
---          SetTestName(TestName) ;
---        when ...
---        when others =>
---      end case ;
+      case CoSimOperationType'val(VpOperation - 1024) is
+        when SET_TEST_NAME =>
+          for bidx in 0 to VPBurstSize-1 loop
+            VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+            if (WrDataInt < 0 or WrDataInt > 255) then 
+              Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction SetTestName - bad character value") ;
+              return ; 
+            end if ; 
+            TestName(bidx+1) := character'val(WrDataInt); 
+          end loop ;
+          SetTestName(TestName(1 to VPBurstSize)) ;
+        when others =>  
+          Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
+      end case ;
 
     end if ;
 
