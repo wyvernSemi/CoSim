@@ -19,6 +19,7 @@
 --
 --  Revision History:
 --    Date      Version    Description
+--    12/2022   2023.01    Added CoSim Context
 --    12/2020   2020.12    Updated port names
 --    01/2020   2020.01    Updated license notice
 --    05/2019   2019.05    Added context reference
@@ -27,7 +28,7 @@
 --
 --  This file is part of OSVVM.
 --  
---  Copyright (c) 2017 - 2020 by SynthWorks Design Inc.  
+--  Copyright (c) 2017 - 2023 by SynthWorks Design Inc.  
 --  
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
