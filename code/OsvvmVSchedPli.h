@@ -20,7 +20,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2022-2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
                                    int* VPOp,     int* VPBurstSize, int* VPTicks,      int* VPDone,     int* VPError
 #define VPROCUSER_PARAMS           int  node, int value
-#define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  uint8_t* data
-#define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  uint8_t  data
+#define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  int* data
+#define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  int  data
 #define VHALT_PARAMS               int, int
 
 #define VPROC_RTN_TYPE     void
