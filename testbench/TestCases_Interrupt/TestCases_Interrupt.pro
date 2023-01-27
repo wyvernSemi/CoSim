@@ -34,6 +34,7 @@
 #  
 
 # library and TestSuite set by higher level scripts
+library    osvvm_CoSim_Axi4_Interrupt
 
 analyze TbAb_InterruptCoSim1.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interrupt

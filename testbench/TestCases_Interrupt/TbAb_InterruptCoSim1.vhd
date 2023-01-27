@@ -48,9 +48,9 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAb_InterruptCoSim1") ;
+--    SetTestName("TbAb_InterruptCoSim1") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
-    SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
+    SetLogEnable(INFO, TRUE) ;      -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
@@ -96,6 +96,8 @@ begin
     CoSimInit(Node);
     Node := 0;
     CoSimInit(Node);
+    -- Fetch the SetTestName
+    CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
 
     for i in 0 to 3 loop
       blankline(2) ;

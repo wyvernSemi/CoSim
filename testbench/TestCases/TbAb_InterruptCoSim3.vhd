@@ -52,7 +52,7 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAb_InterruptCoSim3") ;
+--    SetTestName("TbAb_InterruptCoSim3") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
@@ -98,6 +98,8 @@ begin
 
     -- Initialise VProc code
     CoSimInit(Node);
+    -- Fetch the SetTestName
+    CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
     gIntReq(0) <= '0' ; 
 
     OperationLoop : loop
