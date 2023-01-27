@@ -78,7 +78,8 @@ extern "C" void VUserMain0()
 
     std::vector<wtrans_t> vec;
     wtrans_t              wtrans;
-    OsvvmCosim            cosim(node);
+    std::string test_name("CoSim_usercode_burst");
+    OsvvmCosim  cosim(node, test_name);
 
     uint8_t rbuf[max_burst_size];
     bool    error = false;

@@ -1,15 +1,46 @@
-// -------------------------------------------------------------------------
-// VUserMain0()
+// ------------------------------------------------------------------------------
 //
-// Entry point for OSVVM co-simulation code for node 0
+//  File Name:           VUserMain0.cpp
+//  Design Unit Name:    Co-simulation virtual processor test program
+//  Revision:            OSVVM MODELS STANDARD VERSION
 //
-// This function creates a socket object which opens a TCP/IP server socket
-// and starts listening. When the process_pkts() method is called it will
-// process gdb remote serial interface commands for memory reads and writes
-// up to 64 bits, calling the co-sim API to instigate bus transactions on
-// OSVVM.
+//  Maintainer:          Simon Southwell      email:  simon.southwell@gmail.com
+//  Contributor(s):
+//     Simon Southwell   simon.southwell@gmail.com
 //
-// -------------------------------------------------------------------------
+//  Description:
+//    Entry point for OSVVM co-simulation code for node 0
+//    
+//    This function creates a socket object which opens a TCP/IP server socket
+//    and starts listening. When the process_pkts() method is called it will
+//    process gdb remote serial interface commands for memory reads and writes
+//    up to 64 bits, calling the co-sim API to instigate bus transactions on
+//    OSVVM.
+//
+//  Developed by:
+//        Simon Southwell
+//
+//  Revision History:
+//    Date      Version    Description
+//    09/2022   2023.01    Initial revision
+//
+//  This file is part of OSVVM.
+//
+//  Copyright (c) 2022 by Simon Southwell
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//      https://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+// ------------------------------------------------------------------------------
 
 #include <cstdio>
 #include <cstdlib>
@@ -195,7 +226,8 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
 extern "C" void VUserMain0()
 {
     bool        error = false;
-    OsvvmCosim  cosim(node);
+    std::string test_name("TbAb_InterruptCoSim3");
+    OsvvmCosim  cosim(node, test_name);
     
     // Create a configuration object
     rv32i_cfg_s cfg;

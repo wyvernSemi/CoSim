@@ -75,7 +75,8 @@ extern "C" void VUserMain0()
 
     bool                  error = false;
     uint32_t              wdata = 0;
-    OsvvmCosim            cosim(node);
+    std::string test_name("TbAb_InterruptCoSim1");
+    OsvvmCosim  cosim(node, test_name);
 
     for (int loop = 0; loop < 4; loop++)
     {
