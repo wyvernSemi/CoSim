@@ -53,9 +53,6 @@ library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
 
 entity TbAddressBusMemory is
-  generic (
-    TEST_NAME : string := "" 
-  ) ;
 end entity TbAddressBusMemory ;
 architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
@@ -120,9 +117,6 @@ architecture TestHarness of TbAddressBusMemory is
 
 
   component TestCtrl is
-    generic (
-      TEST_NAME : string := "" 
-    ) ;
     port (
       -- Global Signal Interface
       nReset         : In    std_logic ;
@@ -191,7 +185,6 @@ begin
 
 
   TestCtrl_1 : TestCtrl
-  generic map (TEST_NAME => TEST_NAME)
   port map (
     -- Global Signal Interface
     nReset        => nReset,

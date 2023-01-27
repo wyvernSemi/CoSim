@@ -59,9 +59,6 @@ library osvvm_cosim ;
 use work.OsvvmTestCommonPkg.all ;
 
 entity TestCtrl is
-  generic (
-    TEST_NAME : string := "" 
-  ) ;
   port (
     -- Global Signal Interface
     nReset         : In    std_logic ;
