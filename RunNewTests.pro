@@ -32,11 +32,16 @@
 #  limitations under the License.
 #
 
-# Analyze Axi4 testbench and run tests on it
-include  ./testbench/TbAxi4
+# Analyze Axi4Lite testbench and run tests on it
+include  ./testbench/TbAxi4Lite
 # include  ./tests
-include  ./testbench/TbAxi4/tests.pro
-include  ./testbench/TestCases
+include  ./testbench/TbAxi4Lite/tests.pro
+
+# # Analyze Axi4 testbench and run tests on it
+# include  ./testbench/TbAxi4
+# # include  ./tests
+# include  ./testbench/TbAxi4/tests.pro
+# include  ./testbench/TestCases
 
 # # Analyze Axi4 testbench and run tests on it
 # include ./testbench/TbAxi4_Interrupt

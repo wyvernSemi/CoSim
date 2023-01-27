@@ -32,22 +32,6 @@
 #  limitations under the License.
 #
 
-# set osname [string tolower [exec uname]]
-# 
-# if {$::osvvm::ToolName eq "NVC"} {
-#   if {"$osname" ne "linux"} {
-#     set ::env(NVC_FOREIGN_OBJ) VProc.so
-#   } else {
-#     SetExtendedRunOptions --load=./VProc.so
-#   }
-# }
-# 
-# if {$::osvvm::ToolName eq "GHDL"} {
-#   if {"$osname" eq "linux"} {
-#     set ::osvvm::ExtendedElaborateOptions "-Wl,-lpthread"
-#   }
-# }
-
 # Analyze Axi4Lite testbench and run tests on it
 include  ./testbench/TbAxi4Lite
 # include  ./tests
