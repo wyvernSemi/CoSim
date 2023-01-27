@@ -169,8 +169,10 @@ package body OsvvmTestCoSimPkg is
            VPOp,      VPBurstSize, VPTicks,
            VPDone,    VPError) ;
 
-    Done  := VPDone  when Done  = 0;  -- Sticky
-    Error := VPError when Error = 0;  -- Sticky
+--    Done  := VPDone  when Done  = 0;  -- Sticky
+--    Error := VPError when Error = 0;  -- Sticky
+    Done  := VPDone  ;
+    Error := VPError ;
 
     CoSimDispatchOneTransaction(ManagerRec,
                                 VPOp,
