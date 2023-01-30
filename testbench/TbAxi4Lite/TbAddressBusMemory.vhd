@@ -73,7 +73,7 @@ architecture TestHarness of TbAddressBusMemory is
         ) ;
 
 --  -- AXI Manager Functional Interface
-  signal   AxiBus : Axi4LiteRecType(
+  signal   AxiBus1, AxiBus2 : Axi4LiteRecType(
     WriteAddress( Addr (AXI_ADDR_WIDTH-1 downto 0) ),
     WriteData   ( Data (AXI_DATA_WIDTH-1 downto 0),   Strb(AXI_STRB_WIDTH-1 downto 0) ),
     ReadAddress ( Addr (AXI_ADDR_WIDTH-1 downto 0) ),
@@ -111,6 +111,72 @@ begin
     tpd         => tpd
   ) ;
   
+  ------------------------------------------------------------
+  Axi4LitePassThru_1 : Axi4LitePassThru 
+  ------------------------------------------------------------
+  port map (
+  -- AXI Manager Interface - Driven By PassThru
+    -- AXI Write Address Channel
+    mAwAddr       => AxiBus2.WriteAddress.Addr,
+    mAwProt       => AxiBus2.WriteAddress.Prot,
+    mAwValid      => AxiBus2.WriteAddress.Valid,
+    mAwReady      => AxiBus2.WriteAddress.Ready,
+
+    -- AXI Write Data Channel
+    mWData        => AxiBus2.WriteData.Data, 
+    mWStrb        => AxiBus2.WriteData.Strb, 
+    mWValid       => AxiBus2.WriteData.Valid, 
+    mWReady       => AxiBus2.WriteData.Ready, 
+
+    -- AXI Write Response Channel
+    mBValid       => AxiBus2.WriteResponse.Valid, 
+    mBReady       => AxiBus2.WriteResponse.Ready, 
+    mBResp        => AxiBus2.WriteResponse.Resp, 
+  
+    -- AXI Read Address Channel
+    mArAddr       => AxiBus2.ReadAddress.Addr,
+    mArProt       => AxiBus2.ReadAddress.Prot,
+    mArValid      => AxiBus2.ReadAddress.Valid,
+    mArReady      => AxiBus2.ReadAddress.Ready,
+
+    -- AXI Read Data Channel
+    mRData        => AxiBus2.ReadData.Data, 
+    mRResp        => AxiBus2.ReadData.Resp,
+    mRValid       => AxiBus2.ReadData.Valid, 
+    mRReady       => AxiBus2.ReadData.Ready, 
+
+
+  -- AXI Subordinate Interface - Driven by DUT
+    -- AXI Write Address Channel
+    sAwAddr       => AxiBus1.WriteAddress.Addr,
+    sAwProt       => AxiBus1.WriteAddress.Prot,
+    sAwValid      => AxiBus1.WriteAddress.Valid,
+    sAwReady      => AxiBus1.WriteAddress.Ready,
+
+    -- AXI Write Data Channel
+    sWData        => AxiBus1.WriteData.Data,  
+    sWStrb        => AxiBus1.WriteData.Strb,  
+    sWValid       => AxiBus1.WriteData.Valid, 
+    sWReady       => AxiBus1.WriteData.Ready, 
+
+    -- AXI Write Response Channel
+    sBValid       => AxiBus1.WriteResponse.Valid, 
+    sBReady       => AxiBus1.WriteResponse.Ready, 
+    sBResp        => AxiBus1.WriteResponse.Resp,  
+  
+    -- AXI Read Address Channel
+    sArAddr       => AxiBus1.ReadAddress.Addr,
+    sArProt       => AxiBus1.ReadAddress.Prot,
+    sArValid      => AxiBus1.ReadAddress.Valid,
+    sArReady      => AxiBus1.ReadAddress.Ready,
+
+    -- AXI Read Data Channel
+    sRData        => AxiBus1.ReadData.Data,  
+    sRResp        => AxiBus1.ReadData.Resp,
+    sRValid       => AxiBus1.ReadData.Valid, 
+    sRReady       => AxiBus1.ReadData.Ready 
+  ) ;
+    
   Memory_1 : Axi4LiteMemory
   port map (
     -- Globals
@@ -118,7 +184,7 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus,
+    AxiBus      => AxiBus2,
 
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
@@ -131,7 +197,7 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus,
+    AxiBus      => AxiBus1,
 
     -- Testbench Transaction Interface
     TransRec    => ManagerRec
@@ -145,7 +211,7 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus
+    AxiBus      => AxiBus1
   ) ;
 
 

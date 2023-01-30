@@ -57,8 +57,6 @@ library osvvm_Axi4 ;
 library osvvm_cosim ;
   context osvvm_cosim.CoSimContext ;
 
-use work.OsvvmTestCommonPkg.all ;
-
 entity TestCtrl is
   port (
     -- Global Signal Interface
