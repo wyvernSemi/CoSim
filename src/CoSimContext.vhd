@@ -38,5 +38,6 @@ context CoSimContext is
   library osvvm_cosim ;
   use osvvm_cosim.OsvvmVprocPkg.all ;
   use osvvm_cosim.OsvvmTestCoSimPkg.all;
+  use osvvm_cosim.CoSimInterruptHandlerComponentPkg.all;
 
 end context CoSimContext ;

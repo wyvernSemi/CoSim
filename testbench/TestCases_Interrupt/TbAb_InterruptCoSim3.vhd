@@ -36,8 +36,11 @@
 architecture InterruptCoSim3 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
+  signal GlobalIntReq : std_logic_vector(gIntReq'range) ;
 
 begin
+
+  GlobalIntReq <= gIntReq ; 
 
   ------------------------------------------------------------
   -- ControlProc
@@ -47,14 +50,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAb_InterruptCoSim3") ;
+--    SetTestName("TbAb_InterruptCoSim3") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim3.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim3.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -93,7 +96,9 @@ begin
 
     -- Initialise VProc code
     CoSimInit(Node);
-
+    -- Fetch the SetTestName
+    CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
+    
     OperationLoop : loop
     
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
@@ -102,7 +107,7 @@ begin
       end if ;
       
       -- Inspect interrupt state and and convert to integer
-      Int         := 1 when gIntReq else 0 ;
+      Int         := to_integer(signed(gIntReq)) ;
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
@@ -111,7 +116,8 @@ begin
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
       
       if (ManagerRec.Operation = WRITE_OP) and (ManagerRec.Address = x"AFFFFFFC") then
-        IntReq <= ManagerRec.DataToModel(0) ;
+        -- IntReq <= ManagerRec.DataToModel(0) ;
+        Send(IntGenBit0Rec, "" & ManagerRec.DataToModel(0)) ; 
       end if;
 
       -- Finish flagged by software

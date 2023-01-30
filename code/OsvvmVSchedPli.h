@@ -1,7 +1,7 @@
 // =========================================================================
 //
 //  File Name:         OsvvmVSchedPli.h
-//  Design Unit Name:  
+//  Design Unit Name:
 //  Revision:          OSVVM MODELS STANDARD VERSION
 //
 //  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -20,7 +20,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2022-2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@
 #define VPROC_RTN_TYPE             void
 
 #else
-    
+
 #include <vhpi_user.h>
 #include <aldecpli.h>
 
@@ -73,7 +73,7 @@
 #define VPROC_RTN_TYPE             void
 
 #endif
-                                      
+
 extern VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
 extern VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
 extern VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);

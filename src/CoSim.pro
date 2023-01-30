@@ -1,19 +1,14 @@
-#  File Name:               tests.pro
+#  File Name:               cosim.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
 #  Contributor(s):
 #     Simon Southwell       simon.southwell@gmail.com
+#     Jim Lewis             jim@synthworks.com
 #
 #
 #  Description:
 #        Script to run Axi4 Lite CoSim tests
-#
-#  Developed for:
-#        SynthWorks Design Inc.
-#        VHDL Training Classes
-#        11898 SW 128th Ave.  Tigard, Or  97223
-#        http://www.SynthWorks.com
 #
 #  Revision History:
 #    Date      Version    Description
@@ -22,7 +17,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+#  Copyright (c) 2022 by [OSVVM Authors](AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -37,23 +32,25 @@
 #  limitations under the License.
 #
 
-MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_size
-simulate   TbAb_CoSim  [CoSim]
+library    osvvm_cosim
 
-MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/usercode_burst
-simulate   TbAb_CoSim  [CoSim]
+if {$::osvvm::ToolName eq "NVC"} {
+  analyze OsvvmVprocNvcPkg.vhd
+  # exec uname does not work in Windows - it does work in MSYS2
+  set osname [string tolower [exec uname]]
+  if {"$osname" ne "linux"} {
+    set ::env(NVC_FOREIGN_OBJ) VProc.so
+  } else {
+    SetExtendedRunOptions --load=./VProc.so
+  }
+} elseif {$::osvvm::ToolName eq "GHDL"} {
+  analyze OsvvmVprocGhdlPkg.vhd
+} else {
+  analyze OsvvmVprocPkg.vhd
+}
 
-MkVproc    $::osvvm::OsvvmCoSimDirectory  tests/iss rv32
-simulate   TbAb_CoSim  [CoSim]
+analyze OsvvmTestCoSimPkg.vhd
+analyze CoSimInterruptHandler.vhd
+analyze CoSimInterruptHandlerComponentPkg.vhd
 
-MkVprocSkt $::osvvm::OsvvmCoSimDirectory  tests/socket
-simulate   TbAb_CoSim  [CoSim]
-
-#if {$::osvvm::ToolName eq "GHDL"} {
-#
-#  MkVprocGhdlMain  $::osvvm::CurrentWorkingDirectory/../../../CoSim tests/ghdl_main
-#
-#  set ::osvvm::GhdlRunCmd "-r"
-#  simulate        TbAb_CoSim  [CoSim]
-#  unset ::osvvm::GhdlRunCmd
-#}
+analyze CoSimContext.vhd

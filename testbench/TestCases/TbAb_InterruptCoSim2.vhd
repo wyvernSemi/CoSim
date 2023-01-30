@@ -49,14 +49,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAb_InterruptCoSim2") ;
+--    SetTestName("TbAb_InterruptCoSim2") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim2.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim2.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -95,6 +95,8 @@ begin
 
     -- Initialise VProc code
     CoSimInit(Node);
+    -- Fetch the SetTestName
+    CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
 
     OperationLoop : loop
     
@@ -104,7 +106,8 @@ begin
       end if ;
       
       -- Inspect interrupt state and and convert to integer
-      Int         := 1 when gIntReq else 0 ;
+      Int         := to_integer(signed(gIntReq)) ;
+      toggle(gVProcReadInterrupts) ; 
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
@@ -133,7 +136,12 @@ begin
     wait until nReset = '1' ;
   
 --    IntReq <= '1' after 105 ns , '0' after 155 ns ;
-    gIntReq <= TRUE after 105 ns , FALSE after 155 ns ;
+    wait for 105 ns ; 
+--    gIntReq(0) <= force '1' ;
+    Send(IntGenBit0Rec, "" & INT_POLARITY) ; 
+    wait for 50 ns ; 
+--    gIntReq(0) <= force '0' ;
+    Send(IntGenBit0Rec, "" & not INT_POLARITY) ; 
   
     wait ;
   

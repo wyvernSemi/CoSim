@@ -58,15 +58,15 @@ begin
   ControlProc : process
   begin
     -- Initialization of test
---    SetAlertLogName("TbAb_CoSim") ;
-    SetAlertLogName("CoSim_" & TEST_NAME) ;
+    --!! NOTE:  SetTestName called by software
+--    SetTestName("TbAb_CoSim") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & GetTestName & ".txt") ;
---    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_CoSim.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & GetTestName & ".txt") ;
+--    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_CoSim.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -109,6 +109,8 @@ begin
 
     -- Initialise VProc code
     CoSimInit(NodeNum);
+    -- Fetch the SetTestName
+    CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
 
     SetBurstMode(ManagerRec, BURST_MODE) ;
 

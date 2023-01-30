@@ -25,7 +25,7 @@
 --
 --  This file is part of OSVVM.
 --  
---  Copyright (c) 2017 - 2022 by SynthWorks Design Inc.  
+--  Copyright (c) 2017 - 2023 by SynthWorks Design Inc.  
 --  
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -56,19 +56,21 @@ library OSVVM_AXI4 ;
 library osvvm_cosim ;
   context osvvm_cosim.CoSimContext ;
 
-use work.OsvvmTestCommonPkg.all ;
 
 entity TestCtrl is
   generic (
-    TEST_NAME : string := "" 
+    INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
+    INT_POLARITY      : std_logic := '1' 
   ) ;
   port (
     -- Global Signal Interface
-    nReset         : In    std_logic ;
+    nReset            : In    std_logic ;
 
     -- Transaction Interfaces
-    ManagerRec      : inout AddressBusRecType ;
-    SubordinateRec   : inout AddressBusRecType 
+    ManagerRec        : inout AddressBusRecType ;
+    SubordinateRec    : inout AddressBusRecType ;
+    
+    InterruptRecArray : inout InterruptGeneratorRecArrayType
   ) ;
   
   -- Derive AXI interface properties from the ManagerRec
@@ -80,4 +82,7 @@ entity TestCtrl is
   -- Simplifying access to Burst FIFOs using aliases
   alias WriteBurstFifo : ScoreboardIdType is ManagerRec.WriteBurstFifo ;
   alias ReadBurstFifo  : ScoreboardIdType is ManagerRec.ReadBurstFifo ;
+  
+  alias IntGenBit0Rec is InterruptRecArray(0) ; 
+
 end entity TestCtrl ;

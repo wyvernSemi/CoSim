@@ -101,7 +101,8 @@ extern "C" void VUserMain0()
     wtrans_t              wtrans;
     int                   count = 800; 
     bool                  error = false;
-    OsvvmCosim            cosim(node);
+    std::string test_name("CoSim_ghdl_main");
+    OsvvmCosim  cosim(node, test_name);
 
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);

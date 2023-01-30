@@ -34,17 +34,18 @@
 #  
 
 # library and TestSuite set by higher level scripts
+library    osvvm_CoSim_Axi4_Interrupt
 
 analyze TbAb_InterruptCoSim1.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interrupt
-simulate TbAb_InterruptCoSim1
+simulate TbAb_InterruptCoSim1 [CoSim]
 
 analyze TbAb_InterruptCoSim2.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
-simulate TbAb_InterruptCoSim2
+simulate TbAb_InterruptCoSim2 [CoSim]
 
 analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
-simulate TbAb_InterruptCoSim3
+simulate TbAb_InterruptCoSim3 [CoSim]
 
 
