@@ -74,6 +74,7 @@ endif
 
 USRCDIR            = ${OSVVMDIR}/CoSim
 TEST               = tests/ghdl_main
+CTESTDIR           = ${USRCDIR}/${TEST}
 COSIMDIR           = ${USRCDIR}
 OPDIR              = ${CURDIR}
 
@@ -131,10 +132,10 @@ all: ${SIMEXE}
 # DISABLE_VUSERMAIN_THREAD defined
 #
 ${USRCODE} ${COSIMCODE}:
-	@${MAKE} -C ${COSIMDIR}                                               \
+	@${MAKE} -C ${COSIMDIR}                                                 \
                 --no-print-directory                                      \
                 SIM=GHDL                                                  \
-                USRCDIR=${USRCDIR}/${TEST}                                \
+                USRCDIR=${CTESTDIR}                                       \
                 OPDIR=${OPDIR}                                            \
                 EXCLFILE=${MAINSRC}                                       \
                 USRFLAGS="-I./include -L./lib -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
@@ -173,7 +174,7 @@ ${SIMEXE}: e~${LCTB}.o ${COSIMCODE} ${USRCODE} ${TBLIB}
            ${GHDLFLAGS}                                                   \
            -o $@
 
-obj/${MAINSRC:%.cpp=%.o}: ${USRCDIR}/${TEST}/${MAINSRC}
+obj/${MAINSRC:%.cpp=%.o}: ${CTESTDIR}/${MAINSRC}
 	@g++ -c -I${COSIMDIR}/code $< -o $@
 
 #------------------------------------------------------
