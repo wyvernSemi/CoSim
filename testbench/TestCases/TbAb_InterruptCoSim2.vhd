@@ -56,7 +56,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim2.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim2.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -107,6 +107,7 @@ begin
       
       -- Inspect interrupt state and and convert to integer
       Int         := to_integer(signed(gIntReq)) ;
+      toggle(gVProcReadInterrupts) ; 
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
@@ -136,9 +137,11 @@ begin
   
 --    IntReq <= '1' after 105 ns , '0' after 155 ns ;
     wait for 105 ns ; 
-    gIntReq(0) <= force '1' ;
+--    gIntReq(0) <= force '1' ;
+    Send(IntGenBit0Rec, "" & INT_POLARITY) ; 
     wait for 50 ns ; 
-    gIntReq(0) <= force '0' ;
+--    gIntReq(0) <= force '0' ;
+    Send(IntGenBit0Rec, "" & not INT_POLARITY) ; 
   
     wait ;
   

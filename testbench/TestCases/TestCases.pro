@@ -50,4 +50,13 @@ analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
 simulate TbAb_InterruptCoSim3 [CoSim]
 
+# Use Interrupt Handling in Vproc
+analyze TbAb_InterruptCoSim2.vhd
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
+simulate TbAb_InterruptCoSim2 [generic INT_POLARITY '0'] [CoSim]
+
+# Use Interrupt Handling in Vproc
+analyze TbAb_InterruptCoSim4.vhd
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
+simulate TbAb_InterruptCoSim4 [generic INT_EDGE_LEVEL '1'] [CoSim]
 
