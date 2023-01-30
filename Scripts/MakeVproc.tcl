@@ -124,7 +124,7 @@ proc MkVproc {testname {libname ""} } {
 
 proc LocalMkVproc {testname {libname ""} } {
 
-  set NormTestPathName  [ReducePath [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
+  set NormTestPathName  [file normalize [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
 
   mk_vproc_clean  $NormTestPathName
   mk_vproc_common $NormTestPathName $libname
@@ -142,7 +142,7 @@ proc MkVprocNoClean {testname {libname ""}} {
 
   puts "MkVprocNoClean $testname $libname"
 
-  set NormTestPathName  [ReducePath [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
+  set NormTestPathName  [file normalize [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
   mk_vproc_common $NormTestPathName $libname
 }
 
@@ -196,7 +196,7 @@ proc MkVprocGhdlMain {testname {libname ""} } {
             TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary]          \
             VHDLLIB=[FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]     \
             COSIMDIR=${::osvvm::OsvvmCoSimDirectory}                         \
-            CTESTDIR=[file join $::osvvm::CurrentWorkingDirectory $testname] \
+            CTESTDIR=[file normalize [file join $::osvvm::CurrentWorkingDirectory $testname]] \
             TESTBENCH=TbAb_CoSim
 
   return
