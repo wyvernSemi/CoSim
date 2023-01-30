@@ -56,23 +56,23 @@ library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ; 
   use osvvm.ScoreboardPkg_slv.all ;
 
-library osvvm_cosim ;
-  context osvvm_cosim.CoSimContext ;
+library OSVVM_Common ;
+  context OSVVM_Common.OsvvmCommonContext ;
 
-use work.OsvvmTestCommonPkg.all ;
+library OSVVM_CoSim ;
+  context OSVVM_CoSim.CoSimContext ;
 
 entity TestCtrl is
   port (
     -- Global Signal Interface
-    nReset           : In    std_logic ;
+    nReset            : In    std_logic ;
     
-    -- Drive IntReq
-    IntReq           : Out   std_logic := '0' ;
-
     -- Transaction Interfaces
-    ManagerRec       : inout AddressBusRecType ;
-    InterruptRec     : inout AddressBusRecType ;
-    SubordinateRec   : inout AddressBusRecType 
+    ManagerRec        : inout AddressBusRecType ;
+    InterruptRec      : inout AddressBusRecType ;
+    SubordinateRec    : inout AddressBusRecType ;
+      
+    InterruptRecArray : inout InterruptGeneratorRecArrayType 
   ) ;
   
   -- Derive AXI interface properties from the ManagerRec
@@ -81,4 +81,5 @@ entity TestCtrl is
   constant AXI_DATA_BYTE_WIDTH : integer := AXI_DATA_WIDTH / 8 ;
   constant AXI_BYTE_ADDR_WIDTH : integer := integer(ceil(log2(real(AXI_DATA_BYTE_WIDTH)))) ;
     
+  alias IntGenBit0Rec is InterruptRecArray(0) ; 
 end entity TestCtrl ;
