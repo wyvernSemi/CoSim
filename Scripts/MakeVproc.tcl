@@ -44,11 +44,12 @@ namespace eval ::osvvm {
 proc gen_lib_flags {libname} {
 
   # Get the OS that we are running on
-  set osname [string tolower [exec uname]]
-  
+  # set osname [string tolower [exec uname]]
+  set osname $::osvvm::OperatingSystemName
+
   # Select the RISC-V ISS library required
   if {$::osvvm::ToolName eq "GHDL" || $::osvvm::ToolName eq "NVC" || $::osvvm::ToolName eq "QuestaSim"} {
-  
+
     if {"$osname" eq "linux"} {
       set rvlib ${libname}x64
     } else {
@@ -61,7 +62,7 @@ proc gen_lib_flags {libname} {
       set rvlib ${libname}win32
     }
   }
-  
+
   if {"$libname" eq ""} {
     set flags ""
   } else {
@@ -81,15 +82,16 @@ proc gen_lib_flags {libname} {
 proc mk_vproc_common {testname libname} {
 
 # Get the OS that we are running on
-set osname [string tolower [exec uname]]
+  # set osname [string tolower [exec uname]]
+  set osname $::osvvm::OperatingSystemName
 
-set flags [ gen_lib_flags ${libname} ]
+  set flags [ gen_lib_flags ${libname} ]
 
-exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
-          SIM=$::osvvm::ToolName                                \
-          USRCDIR=$testname                         \
-          OPDIR=$::osvvm::CurrentSimulationDirectory            \
-          USRFLAGS=${flags}
+  exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
+            SIM=$::osvvm::ToolName                                \
+            USRCDIR=$testname                         \
+            OPDIR=$::osvvm::CurrentSimulationDirectory            \
+            USRFLAGS=${flags}
 
 }
 
@@ -115,8 +117,17 @@ proc mk_vproc_clean {testname} {
 
 proc MkVproc {testname {libname ""} } {
 
-  mk_vproc_clean  $testname
-  mk_vproc_common $testname $libname
+  puts "MkVproc $testname $libname"
+
+  LocalMkVproc $testname $libname
+}
+
+proc LocalMkVproc {testname {libname ""} } {
+
+  set NormTestPathName  [ReducePath [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
+
+  mk_vproc_clean  $NormTestPathName
+  mk_vproc_common $NormTestPathName $libname
 }
 
 # -------------------------------------------------------------------------
@@ -129,7 +140,10 @@ proc MkVproc {testname {libname ""} } {
 
 proc MkVprocNoClean {testname {libname ""}} {
 
-   mk_vproc_common $testname $libname
+  puts "MkVprocNoClean $testname $libname"
+
+  set NormTestPathName  [ReducePath [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
+  mk_vproc_common $NormTestPathName $libname
 }
 
 # -------------------------------------------------------------------------
@@ -142,42 +156,49 @@ proc MkVprocNoClean {testname {libname ""}} {
 
 proc MkVprocSkt {testname {libname ""} } {
 
-  MkVproc $testname $libname
-  
+  puts "MkVprocSkt $testname $libname"
+
+  LocalMkVproc $testname $libname
+
   if {$::osvvm::ToolName eq "NVC"} {
     set wait_time 10
   } else {
     set wait_time 2
   }
-  
+
   puts "Running client_gui.py batch mode"
   set pid [exec python3 $::osvvm::OsvvmCoSimDirectory/Scripts/client_batch.py -w $wait_time -s $testname/sktscript.txt  > skt.log 2>@1 &]
-  
+
   return
 }
 
 # -------------------------------------------------------------------------
 # MkVprocGhdlMain
 #
-# Do a clean make specific to the callable GHDL environment 
+# Do a clean make specific to the callable GHDL environment
 # using the wrapper makefile.ghdl, which will call makefile.
 #
 # -------------------------------------------------------------------------
 
 proc MkVprocGhdlMain {testname {libname ""} } {
 
+  puts "MkVprocGhdlMain $testname $libname"
+
   set ::env(LD_LIBRARY_PATH) ./
 
   exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl clean
-  
+
   set flags [ gen_lib_flags ${libname} ]
-  
-  exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl \
-            USRFLAGS=${flags}                              \
-            OSVVMDIR=$::osvvm::OsvvmHomeDirectory          \
-            TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary] \
-            VHDLLIB=[FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]
-  
+
+  exec make -f $::osvvm::OsvvmCoSimDirectory/makefile.ghdl                   \
+            USRFLAGS=${flags}                                                \
+            OSVVMDIR=$::osvvm::OsvvmHomeDirectory                            \
+            TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary]          \
+            VHDLLIB=[FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]     \
+            COSIMDIR=${::osvvm::OsvvmCoSimDirectory}                         \
+            CTESTDIR=[file join $::osvvm::CurrentWorkingDirectory $testname] \
+            TESTBENCH=TbAb_CoSim
+
   return
 }
 
