@@ -68,53 +68,6 @@ static void VInitSendBuf(send_buf_t &sbuf)
     sbuf.error           = 0;
 }
 
-static void VUserInit (int node);
-
-// -------------------------------------------------------------------------
-// VUser()
-//
-// Entry point for new user process. Creates a new thread
-// calling VUserInit().
-//
-// -------------------------------------------------------------------------
-
-extern "C" int VUser (int node)
-{
-    pthread_t thread;
-    int status;
-    int idx, jdx;
-
-    DebugVPrint("VUser(): node %d\n", node);
-
-    // Interrupt callback initialisation    
-    ns[node]->VIntVecCB  = NULL;
-    ns[node]->last_int   = 0;
-
-    ns[node]->VUserCB = NULL;
-
-    // Load VProc shared object to make symbols global
-    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
-
-    if (hdlvp == NULL)
-    {
-        VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
-    }
-
-    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
-
-#ifndef DISABLE_VUSERMAIN_THREAD
-    // Set off the user code thread
-    if (status = pthread_create(&thread, NULL, (pThreadFunc_t)VUserInit, (void *)((long long)node)))
-    {
-        DebugVPrint("VUser(): pthread_create returned %d\n", status);
-        return 1;
-    }
-
-    DebugVPrint("VUser(): spawned user thread for node %d\n", node);
-#endif
-    return 0;
-}
-
 // -------------------------------------------------------------------------
 // VWaitOnFirstMessage()
 //
@@ -122,7 +75,7 @@ extern "C" int VUser (int node)
 // to accept transfers from user code.
 //
 // -------------------------------------------------------------------------
-static void VWaitOnFirstMessage(uint32_t node)
+static void VWaitOnFirstMessage(const uint32_t node)
 {
     int status;
 
@@ -143,7 +96,7 @@ static void VWaitOnFirstMessage(uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-static void VUserInit (int node)
+static void VUserInit (const int node)
 {
     pVUserMain_t VUserMain_func;
     char funcname[DEFAULT_STR_BUF_SIZE];
@@ -183,6 +136,51 @@ static void VUserInit (int node)
 }
 
 // -------------------------------------------------------------------------
+// VUser()
+//
+// Entry point for new user process. Creates a new thread
+// calling VUserInit().
+//
+// -------------------------------------------------------------------------
+
+extern "C" int VUser (const int node)
+{
+    pthread_t thread;
+    int status;
+    int idx, jdx;
+
+    DebugVPrint("VUser(): node %d\n", node);
+
+    // Interrupt callback initialisation
+    ns[node]->VIntVecCB  = NULL;
+    ns[node]->last_int   = 0;
+
+    ns[node]->VUserCB = NULL;
+
+    // Load VProc shared object to make symbols global
+    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+
+    if (hdlvp == NULL)
+    {
+        VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
+    }
+
+    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
+
+#ifndef DISABLE_VUSERMAIN_THREAD
+    // Set off the user code thread
+    if (status = pthread_create(&thread, NULL, (pThreadFunc_t)VUserInit, (void *)((long long)node)))
+    {
+        DebugVPrint("VUser(): pthread_create returned %d\n", status);
+        return 1;
+    }
+
+    DebugVPrint("VUser(): spawned user thread for node %d\n", node);
+#endif
+    return 0;
+}
+
+// -------------------------------------------------------------------------
 // VExch()
 //
 // Message exchange routine. Handles all messages to and from
@@ -192,18 +190,18 @@ static void VUserInit (int node)
 //
 // -------------------------------------------------------------------------
 
-static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
+static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
     acc_mx[node].lock();
 
     int status;
-    
+
     // Send message to simulator
     ns[node]->send_buf = *psbuf;
     DebugVPrint("VExch(): setting snd[%d] semaphore\n", node);
-    
+
     if ((status = sem_post(&(ns[node]->snd))) == -1)
     {
         printf("***Error: bad sem_post status (%d) on node %d (VExch)\n", status, node);
@@ -216,13 +214,13 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 
     // Get the pointer to the receive response buffer
     *prbuf = ns[node]->rcv_buf;
-    
+
     // Call user registered interrupt vector callback if the interrupt vector changes
     if ((prbuf->interrupt != ns[node]->last_int) && ns[node]->VIntVecCB != NULL)
     {
         psbuf->ticks = (*(ns[node]->VIntVecCB))(prbuf->interrupt);
     }
-    
+
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
@@ -238,7 +236,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VWaitForSim(uint32_t node)
+void VWaitForSim(const uint32_t node)
 {
 #ifdef DISABLE_VUSERMAIN_THREAD
 
@@ -250,7 +248,7 @@ void VWaitForSim(uint32_t node)
         usleep(HUNDRED_MILLISECS);
         count++;
     }
-    
+
     usleep(HUNDRED_MILLISECS);
 
     // If timed out, generate an error
@@ -272,65 +270,13 @@ void VWaitForSim(uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VWrite()
-//
-// Invokes a write message exchange
-//
-// -------------------------------------------------------------------------
-
-int VWrite (uint32_t addr, uint32_t data, int delta, uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans32_wr_word;
-    sbuf.addr            = addr;
-    sbuf.op              = WRITE_OP;
-    sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
-
-    *((uint32_t*)sbuf.data) = data;
-
-    VExch(&sbuf, &rbuf, node);
-
-    return rbuf.data_in ;
-}
-
-// -------------------------------------------------------------------------
-// VRead()
-//
-// Invokes a read message exchange
-//
-// -------------------------------------------------------------------------
-
-int VRead (uint32_t addr, uint32_t *rdata, int delta, uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans32_rd_word;
-    sbuf.addr            = addr;
-    sbuf.op              = READ_OP;
-    sbuf.ticks           = delta ? DELTA_CYCLE : sbuf.ticks;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in;
-
-    return 0;
-}
-
-// -------------------------------------------------------------------------
 // VTransWrite()
 //
 // Invokes an 8-bit write transaction exchange
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransWrite (uint32_t addr, uint8_t data, int prot, uint32_t node)
+uint8_t VTransWrite (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -356,7 +302,7 @@ uint8_t VTransWrite (uint32_t addr, uint8_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint32_t addr, uint8_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint32_t addr, uint8_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -379,7 +325,7 @@ void VTransRead (uint32_t addr, uint8_t *rdata, int prot, uint32_t node)
 // Invokes an 16-bit write transaction exchange
 //
 // -------------------------------------------------------------------------
-uint16_t VTransWrite (uint32_t addr, uint16_t data, int prot, uint32_t node)
+uint16_t VTransWrite (const uint32_t addr, const uint16_t data, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -405,7 +351,7 @@ uint16_t VTransWrite (uint32_t addr, uint16_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint32_t addr, uint16_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint32_t addr, uint16_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -429,7 +375,7 @@ void VTransRead (uint32_t addr, uint16_t *rdata, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransWrite (uint32_t addr, uint32_t data, int prot, uint32_t node)
+uint32_t VTransWrite (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -455,7 +401,7 @@ uint32_t VTransWrite (uint32_t addr, uint32_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint32_t addr, uint32_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint32_t addr, uint32_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -479,7 +425,7 @@ void VTransRead (uint32_t addr, uint32_t *rdata, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransWrite (uint64_t addr, uint8_t data, int prot, uint32_t node)
+uint8_t VTransWrite (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -505,7 +451,7 @@ uint8_t VTransWrite (uint64_t addr, uint8_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint64_t addr, uint8_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint64_t addr, uint8_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -529,7 +475,7 @@ void VTransRead (uint64_t addr, uint8_t *rdata, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint16_t VTransWrite (uint64_t addr, uint16_t data, int prot, uint32_t node)
+uint16_t VTransWrite (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -555,7 +501,7 @@ uint16_t VTransWrite (uint64_t addr, uint16_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint64_t addr, uint16_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint64_t addr, uint16_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -579,7 +525,7 @@ void VTransRead (uint64_t addr, uint16_t *rdata, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransWrite (uint64_t addr, uint32_t data, int prot, uint32_t node)
+uint32_t VTransWrite (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -605,7 +551,7 @@ uint32_t VTransWrite (uint64_t addr, uint32_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint64_t addr, uint32_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint64_t addr, uint32_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -629,7 +575,7 @@ void VTransRead (uint64_t addr, uint32_t *rdata, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint64_t VTransWrite (uint64_t addr, uint64_t data, int prot, uint32_t node)
+uint64_t VTransWrite (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -655,7 +601,7 @@ uint64_t VTransWrite (uint64_t addr, uint64_t data, int prot, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (uint64_t addr, uint64_t *rdata, int prot, uint32_t node)
+void VTransRead (const uint64_t addr, uint64_t *rdata, const int prot, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -678,7 +624,7 @@ void VTransRead (uint64_t addr, uint64_t *rdata, int prot, uint32_t node)
 // Invokes a write burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
-void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
+void VTransBurstWrite (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -707,7 +653,7 @@ void VTransBurstWrite (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
 // Invokes a write burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
+void VTransBurstWrite (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -736,7 +682,7 @@ void VTransBurstWrite (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
 // Invokes a read burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
-void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
+void VTransBurstRead  (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -765,7 +711,7 @@ void VTransBurstRead  (uint32_t addr, uint8_t* data, int bytesize, int prot, uin
 // Invokes a read burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uint32_t node)
+void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -795,19 +741,32 @@ void VTransBurstRead  (uint64_t addr, uint8_t* data, int bytesize, int prot, uin
 //
 // -------------------------------------------------------------------------
 
-int VTick (uint32_t ticks, bool done, bool error, uint32_t node)
+int VTick (const uint32_t ticks, const bool done, const bool error, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
+    
+    // Ensure the tick loop executes at least once to allow donr and/or error to be
+    // set with a tick argument of 0.
+    int loops = ticks ? ticks : 1;
 
-    sbuf.ticks           = ticks;
-    sbuf.done            = done  ? 1 : 0;
-    sbuf.error           = error ? 1 : 0;
-    sbuf.op              = WAIT_FOR_CLOCK;
+    for (int idx = 0; idx < loops; idx++)
+    {
+        // Loop, ticking once, to allow for interrupts to be registered while sleeping
+        sbuf.ticks       = ticks ? 1 : 0;
 
-    VExch(&sbuf, &rbuf, node);
+        // Only flag the done and error status on the first tick.
+        sbuf.done        = (done  && (idx == 0)) ? 1 : 0;
+        sbuf.error       = (error && (idx == 0)) ? 1 : 0;
+
+        // Operation is to wait for clock
+        sbuf.op          = WAIT_FOR_CLOCK;
+
+        // Exchange the tick command with simulator code
+        VExch(&sbuf, &rbuf, node);
+    }
 
     return 0;
 }
@@ -819,26 +778,11 @@ int VTick (uint32_t ticks, bool done, bool error, uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VRegInterrupt (pVUserInt_t func, uint32_t node)
+void VRegInterrupt (const pVUserInt_t func, const uint32_t node)
 {
     DebugVPrint("VRegInterrupt(): at node %d, registering vector interrupt callback\n", node);
 
     ns[node]->VIntVecCB = func;
-}
-
-// -------------------------------------------------------------------------
-// VRegUser()
-//
-// Registers a user function as a callback against
-// $vprocuser
-//
-// -------------------------------------------------------------------------
-
-void VRegUser (pVUserCB_t func, uint32_t node)
-{
-    DebugVPrint("VRegFinish(): at node %d, registering finish callback function\n", node);
-
-    ns[node]->VUserCB = func;
 }
 
 // -------------------------------------------------------------------------

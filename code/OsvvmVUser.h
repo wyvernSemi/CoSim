@@ -58,8 +58,7 @@ extern "C"
 
 #define DELTA_CYCLE             -1
 #define NO_DELTA_CYCLE          0
-//#define GO_TO_SLEEP             0x7fffffff
-#define GO_TO_SLEEP             0x10
+#define GO_TO_SLEEP             0x7fffffff
 
 #ifdef DISABLE_VUSERMAIN_THREAD
 #define SLEEPFOREVER            { return; }
@@ -79,42 +78,39 @@ typedef void *(*pThreadFunc_t)(void *);
 // VUser function prototypes
 #ifdef __cplusplus
 // VProc write and read functions (fixed at 32-bit)
-extern int      VWrite           (uint32_t addr,  uint32_t  data, int delta, uint32_t node = 0);
-extern int      VRead            (uint32_t addr,  uint32_t *data, int delta, uint32_t node = 0);
-extern int      VTick            (uint32_t ticks, bool      done = false,    bool     error = false, uint32_t  node = 0);
-extern void     VWaitForSim      (uint32_t node = 0);
+extern int      VTick            (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
+extern void     VWaitForSim      (const uint32_t node = 0);
 extern void     VSetTestName     (const char* data, const int bytesize, const uint32_t node);
 
 // Overloaded write and read transaction functions for 32 bit architecture for byte,
 // half-word and, words
-extern uint8_t  VTransWrite      (uint32_t addr, uint8_t   data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint32_t addr, uint8_t  *data, int prot = 0, uint32_t node = 0);
-extern uint16_t VTransWrite      (uint32_t addr, uint16_t  data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint32_t addr, uint16_t *data, int prot = 0, uint32_t node = 0);
-extern uint32_t VTransWrite      (uint32_t addr, uint32_t  data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint32_t addr, uint32_t *data, int prot = 0, uint32_t node = 0);
+extern uint8_t  VTransWrite      (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint32_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWrite      (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint32_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWrite      (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint32_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded write and read transaction functions for 64 bit architecture for byte,
 // half-word, word, and double-word
-extern uint8_t  VTransWrite      (uint64_t addr, uint8_t   data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint64_t addr, uint8_t  *data, int prot = 0, uint32_t node = 0);
-extern uint16_t VTransWrite      (uint64_t addr, uint16_t  data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint64_t addr, uint16_t *data, int prot = 0, uint32_t node = 0);
-extern uint32_t VTransWrite      (uint64_t addr, uint32_t  data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint64_t addr, uint32_t *data, int prot = 0, uint32_t node = 0);
-extern uint64_t VTransWrite      (uint64_t addr, uint64_t  data, int prot = 0, uint32_t node = 0);
-extern void     VTransRead       (uint64_t addr, uint64_t *data, int prot = 0, uint32_t node = 0);
+extern uint8_t  VTransWrite      (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint64_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWrite      (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint64_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWrite      (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint64_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
+extern uint64_t VTransWrite      (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead       (const uint64_t addr,       uint64_t *data, const int prot = 0, const uint32_t node = 0);
 
-extern void     VTransBurstWrite (uint32_t addr, uint8_t  *data, int bytesize, int prot = 0, uint32_t node = 0);
-extern void     VTransBurstWrite (uint64_t addr, uint8_t  *data, int bytesize, int prot = 0, uint32_t node = 0);
-extern void     VTransBurstRead  (uint32_t addr, uint8_t  *data, int bytesize, int prot = 0, uint32_t node = 0);
-extern void     VTransBurstRead  (uint64_t addr, uint8_t  *data, int bytesize, int prot = 0, uint32_t node = 0);
+extern void     VTransBurstWrite (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWrite (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 
 #endif
 
-extern EXTC int  VUser               (int node);
-extern EXTC void VRegInterrupt       (pVUserInt_t func, uint32_t node);
-extern EXTC void VRegUser            (pVUserCB_t func, uint32_t node);
+extern EXTC int  VUser               (const int node);
+extern EXTC void VRegInterrupt       (const pVUserInt_t func, const uint32_t node);
 
 // In windows using the FLI, a \n in the printf format string causes
 // two lines to be advanced, so replace new lines with carriage returns
