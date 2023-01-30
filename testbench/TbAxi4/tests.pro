@@ -44,18 +44,18 @@ library    osvvm_CoSim_TbAxi4
 
 ChangeWorkingDirectory ../../tests
 
-MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_size
-#MkVproc    usercode_size
+# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_size
+MkVproc    usercode_size
 TestName   CoSim_usercode_size
 simulate   TbAb_CoSim [CoSim]
 
-MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_burst
-# MkVproc    usercode_burst
+# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_burst
+MkVproc    usercode_burst
 TestName   CoSim_usercode_burst
 simulate   TbAb_CoSim [CoSim]
  
-MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/iss rv32
-#MkVproc    iss rv32
+# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/iss rv32
+MkVproc    iss rv32
 TestName   CoSim_iss
 simulate   TbAb_CoSim [CoSim]
 
@@ -67,9 +67,9 @@ simulate   TbAb_CoSim [CoSim]
 
 if {$::osvvm::ToolName eq "GHDL"} {
 
-MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
+#  MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
 #  MkVprocGhdlMain  ../../tests/ghdl_main
-#  MkVprocGhdlMain  ghdl_main
+  MkVprocGhdlMain  ghdl_main
   TestName CoSim_ghdl_main
 
   set ::osvvm::GhdlRunCmd "-r"
