@@ -1,6 +1,6 @@
 --
---  File Name:         CoSimInterruptHandler.vhd
---  Design Unit Name:  CoSimInterruptHandler
+--  File Name:         CoSimInterruptHandlerComponentPkg.vhd
+--  Design Unit Name:  CoSimInterruptHandlerComponentPkg
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -9,9 +9,7 @@
 --
 --
 --  Description:
---      Passes interrupts to CoSim environment.   
---      Edge sensitive inputs are held long enough for them to be 
---      passed to the CoSim interface and then they are cleared.
+--      CoSimInterruptHandler Component Declaration
 --
 --
 --  Developed by:
@@ -48,36 +46,24 @@ library ieee ;
 
 library osvvm ;
   context osvvm.OsvvmContext ;
-  use osvvm.ScoreboardPkg_slv.all ; 
-  
+
 library osvvm_common ;
   use osvvm_common.AddressBusTransactionPkg.all; 
   use osvvm_common.InterruptGlobalSignalPkg.all ;
 
+package CoSimInterruptHandlerComponentPkg is
 
-entity CoSimInterruptHandler is
-generic (
-  EDGE_LEVEL       : std_logic_vector(gIntReq'range) := (others => INTERRUPT_ON_LEVEL) ;
-  POLARITY         : std_logic_vector(gIntReq'range) := (others => '1')
-) ;
-port (
-  -- Interrupt Input
-  IntReq          : in   std_logic_vector(gIntReq'range)
-) ;
-end entity CoSimInterruptHandler ;
-architecture Behavioral of CoSimInterruptHandler is
-begin
-
-  GenInterrupts : for i in gIntReq'range generate
-    gIntReq(i) <= 
-      -- Clear when read by VProc. gIntReq'delayed is what was read by VProc
-      '0'  when gVProcReadInterrupts'event and gIntReq(i)'delayed = '1' and EDGE_LEVEL(i) = INTERRUPT_ON_EDGE else
-
-      -- If level, pass IntReq(i) thru qualified by POLARITY
-      to_01(IntReq(i)) xnor POLARITY(i)  when EDGE_LEVEL(i) = INTERRUPT_ON_LEVEL else
-
-      -- if Edge, capture IntReq(i) when matches polarity and it just changed
-      '1'  when IntReq(i) = POLARITY(i) and IntReq(i)'event ; 
-  end generate GenInterrupts ; 
+  ------------------------------------------------------------
+  component CoSimInterruptHandler is
+  ------------------------------------------------------------
+  generic (
+    EDGE_LEVEL       : std_logic_vector(gIntReq'range) := (others => INTERRUPT_ON_LEVEL) ;
+    POLARITY         : std_logic_vector(gIntReq'range) := (others => '1')
+  ) ;
+  port (
+    -- Interrupt Input
+    IntReq          : in   std_logic_vector(gIntReq'range)
+  ) ;
+  end component CoSimInterruptHandler ;
   
-end architecture Behavioral ; 
+end package CoSimInterruptHandlerComponentPkg ;
