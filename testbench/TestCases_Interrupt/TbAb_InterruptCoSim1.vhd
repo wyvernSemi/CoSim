@@ -36,7 +36,7 @@
 
 architecture InterruptCoSim1 of TestCtrl is
 
-  signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
+  signal ManagerSync1, MemorySync1, TestDone, GenerateIntSync : integer_barrier := 1 ;
 
 begin
 
@@ -55,7 +55,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim1.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim1.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -107,8 +107,7 @@ begin
         CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
       end loop ;
 
-      -- Do WaitForClock Cycles mixed with Interrupt Handling
-      IntReq <= '1' after i * 10 ns + 5 ns, '0' after i * 10 ns + 50 ns ;
+      WaitForBarrier(GenerateIntSync) ; 
       wait for 9 ns ;
       WaitForClock(ManagerRec, 1) ;
       log("WaitForClock #1 finished") ;
@@ -160,6 +159,25 @@ begin
     InterruptReturn(InterruptRec) ;
     wait for 0 ns ;
   end process InterruptProc ;
+
+
+  ------------------------------------------------------------
+  -- InterruptGeneratorProc
+  --   Generate transactions for AxiSubordinate
+  ------------------------------------------------------------
+  GenInterruptProc : process
+    variable IterationCount : integer := 0 ; 
+  begin
+    WaitForBarrier(GenerateIntSync) ; 
+    -- IntReq <= '1' after IterationCount * 10 ns + 5 ns, '0' after IterationCount * 10 ns + 50 ns ;
+    wait for IterationCount * 10 ns + 5 ns ;
+    Send(IntGenBit0Rec, "1") ; 
+    wait for 45 ns ;
+    Send(IntGenBit0Rec, "0") ; 
+    
+    IterationCount := IterationCount + 1 ; 
+  end process GenInterruptProc ;
+
 
   ------------------------------------------------------------
   -- SubordinateProc

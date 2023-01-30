@@ -54,7 +54,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim2.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim2.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -132,7 +132,11 @@ begin
 
     wait until nReset = '1' ;
 
-    IntReq <= '1' after 105 ns , '0' after 155 ns ;
+--    IntReq <= '1' after 105 ns , '0' after 155 ns ;
+    wait for 105 ns ; 
+    Send(IntGenBit0Rec, "1") ; 
+    wait for 50 ns ; 
+    Send(IntGenBit0Rec, "0") ; 
 
     wait ;
 

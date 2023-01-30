@@ -57,7 +57,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim3.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim3.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -116,7 +116,8 @@ begin
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
       
       if (ManagerRec.Operation = WRITE_OP) and (ManagerRec.Address = x"AFFFFFFC") then
-        IntReq <= ManagerRec.DataToModel(0) ;
+        -- IntReq <= ManagerRec.DataToModel(0) ;
+        Send(IntGenBit0Rec, "" & ManagerRec.DataToModel(0)) ; 
       end if;
 
       -- Finish flagged by software
