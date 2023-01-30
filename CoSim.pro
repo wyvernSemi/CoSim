@@ -33,22 +33,4 @@
 #
 
 library    osvvm_cosim
-# AnalyzeForeignProcs
-
-if {$::osvvm::ToolName eq "NVC"} {
-  analyze src/OsvvmVprocNvcPkg.vhd
-  # exec uname does not work in Windows - it does work in MSYS2
-  set osname [string tolower [exec uname]]
-  if {"$osname" ne "linux"} {
-    set ::env(NVC_FOREIGN_OBJ) VProc.so
-  } else {
-    SetExtendedRunOptions --load=./VProc.so
-  }
-} elseif {$::osvvm::ToolName eq "GHDL"} {
-  analyze src/OsvvmVprocGhdlPkg.vhd
-} else {
-  analyze src/OsvvmVprocPkg.vhd
-}
-
-analyze src/OsvvmTestCoSimPkg.vhd
-analyze src/CoSimContext.vhd
+include    src/CoSim.pro
