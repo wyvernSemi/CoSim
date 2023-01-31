@@ -38,7 +38,7 @@
 
 # Analyze Axi4 testbench and run tests on it
 include  ./testbench/TbAxi4
-#  include  ./testbench/TbAxi4/tests.pro
+include  ./testbench/TbAxi4/tests.pro
 include  ./testbench/TestCases
 
 # # Analyze Axi4 testbench and run tests on it
