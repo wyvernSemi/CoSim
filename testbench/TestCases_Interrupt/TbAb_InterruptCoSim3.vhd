@@ -36,8 +36,11 @@
 architecture InterruptCoSim3 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
+  signal GlobalIntReq : std_logic_vector(gIntReq'range) ;
 
 begin
+
+  GlobalIntReq <= gIntReq ; 
 
   ------------------------------------------------------------
   -- ControlProc
@@ -47,14 +50,14 @@ begin
   begin
 
     -- Initialization of test
-    SetTestName("TbAb_InterruptCoSim3") ;
+--    SetTestName("TbAb_InterruptCoSim3") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_InterruptCoSim3.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim3.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -82,12 +85,10 @@ begin
   ------------------------------------------------------------
   ManagerProc : process
     variable Data        : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
-    variable Ticks       : integer := 0 ;
     variable Done        : integer := 0 ;
     variable Error       : integer := 0 ;
     variable Node        : integer := 0 ;
-    variable Int         : boolean := false ;
-    variable gIntReqLast : boolean := false ;
+    variable Int         : integer := 0 ;
     variable WaitForClockRV : RandomPType ;
   begin
     wait until nReset = '1' ;
@@ -95,32 +96,32 @@ begin
 
     -- Initialise VProc code
     CoSimInit(Node);
-
+    -- Fetch the SetTestName
+    CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
+    
     OperationLoop : loop
     
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
-      if WaitForClockRV.DistInt((8, 2)) = 1 and Ticks = 0 then
+      if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
       
-      -- Inspect interrupt state and flag when global signal changes
-      Int         := true when gIntReq /= gIntReqLast else false ;
-      
-       -- Remember the global interrupt state for next iteration 
-      gIntReqLast := gIntReq;
+      -- Inspect interrupt state and and convert to integer
+      Int         := to_integer(signed(gIntReq)) ;
 
       -- Call co-simulation procedure
-      CoSimTrans(ManagerRec, Ticks, Done, Error, Int, Node) ;
+      CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
 
       -- Alter if an error
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
       
       if (ManagerRec.Operation = WRITE_OP) and (ManagerRec.Address = x"AFFFFFFC") then
-        IntReq <= ManagerRec.DataToModel(0) ;
+        -- IntReq <= ManagerRec.DataToModel(0) ;
+        Send(IntGenBit0Rec, "" & ManagerRec.DataToModel(0)) ; 
       end if;
 
       -- Finish flagged by software
-      exit when Ticks = 0 and Done /= 0;
+      exit when Done /= 0;
 
     end loop OperationLoop ;
  

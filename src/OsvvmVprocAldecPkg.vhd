@@ -38,7 +38,7 @@ package OsvvmVprocPkg is
   procedure VInit (
     node : in integer
   ) ;
-  attribute foreign of VInit : procedure is "VInit VProc.so" ;
+  attribute foreign of VInit : procedure is "VHPI VProc; VInit" ;
 
   procedure VTrans (
     node        : in  integer ;
@@ -57,21 +57,21 @@ package OsvvmVprocPkg is
     VPDone      : out integer ;
     VPError     : out integer
   ) ;
-  attribute foreign of VTrans : procedure is "VTrans VProc.so" ;
+  attribute foreign of VTrans : procedure is "VHPI VProc; VTrans" ;
 
   procedure VGetBurstWrByte (
     node      : in  integer ;
     idx       : in  integer ;
     data      : out integer
   ) ;
-  attribute foreign of VGetBurstWrByte : procedure is "VGetBurstWrByte VProc.so" ;
+  attribute foreign of VGetBurstWrByte : procedure is "VHPI VProc; VGetBurstWrByte" ;
 
   procedure VSetBurstRdByte (
     node      : in  integer ;
     idx       : in  integer ;
     data      : in  integer
   ) ;
-  attribute foreign of VSetBurstRdByte : procedure is "VSetBurstRdByte VProc.so" ;
+  attribute foreign of VSetBurstRdByte : procedure is "VHPI VProc; VSetBurstRdByte" ;
 
 end ;
 
@@ -100,6 +100,14 @@ package body OsvvmVprocPkg is
     VPTicks     : out integer ;
     VPDone      : out integer ;
     VPError     : out integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram out_params not called" ;
+  end ;
+
+  procedure VProcUser (
+    node      : in  integer ;
+    value     : in  integer
   ) is
   begin
     report "ERROR: foreign subprogram out_params not called" ;

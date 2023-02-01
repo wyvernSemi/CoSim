@@ -51,11 +51,18 @@ library osvvm ;
 
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
+  
+library OSVVM_Common ;
+  context OSVVM_Common.OsvvmCommonContext ;
+
+library OSVVM_CoSim ;
+  context OSVVM_CoSim.CoSimContext ;
 
 entity TbAddressBusMemory is
-  generic (
-    TEST_NAME : string := "" 
-  ) ;
+generic (
+  INT_EDGE_LEVEL       : std_logic := INTERRUPT_ON_LEVEL ;
+  INT_POLARITY         : std_logic := '1' 
+) ;
 end entity TbAddressBusMemory ;
 architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
@@ -90,7 +97,7 @@ architecture TestHarness of TbAddressBusMemory is
 --    ReadData    ( RData (AXI_DATA_WIDTH-1 downto 0) )
 --  ) ;
 
-  signal   AxiBus : Axi4RecType(
+  signal   AxiBus1, AxiBus2 : Axi4RecType(
     WriteAddress(
       Addr(AXI_ADDR_WIDTH-1 downto 0),
       ID(7 downto 0),
@@ -117,23 +124,28 @@ architecture TestHarness of TbAddressBusMemory is
       User(7 downto 0)
     )
   ) ;
+  
+  signal IntReq : std_logic_vector(gIntReq'range) ;
+  signal InterruptRecArray : InterruptGeneratorRecArrayType ; 
 
 
   component TestCtrl is
     generic (
-      TEST_NAME : string := "" 
+      INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
+      INT_POLARITY      : std_logic := '1' 
     ) ;
     port (
       -- Global Signal Interface
-      nReset         : In    std_logic ;
+      nReset            : In    std_logic ;
 
       -- Transaction Interfaces
-      ManagerRec      : inout AddressBusRecType ;
-      SubordinateRec   : inout AddressBusRecType
+      ManagerRec        : inout AddressBusRecType ;
+      SubordinateRec    : inout AddressBusRecType ;
+      
+      InterruptRecArray : inout InterruptGeneratorRecArrayType 
     ) ;
   end component TestCtrl ;
-
-
+  
 begin
 
   -- create Clock
@@ -150,7 +162,126 @@ begin
     Period      => 7 * tperiod_Clk,
     tpd         => tpd
   ) ;
+  
+  ------------------------------------------------------------
+  Axi4PassThru_1 : Axi4PassThru 
+  ------------------------------------------------------------
+  port map (
+  -- AXI Manager Interface - Driven By PassThru
+    -- AXI Write Address Channel
+    mAwAddr       => AxiBus2.WriteAddress.Addr,
+    mAwProt       => AxiBus2.WriteAddress.Prot,
+    mAwValid      => AxiBus2.WriteAddress.Valid,
+    mAwReady      => AxiBus2.WriteAddress.Ready,
+    mAwID         => AxiBus2.WriteAddress.ID,
+    mAwLen        => AxiBus2.WriteAddress.Len,
+    mAwSize       => AxiBus2.WriteAddress.Size,
+    mAwBurst      => AxiBus2.WriteAddress.Burst,
+    mAwLock       => AxiBus2.WriteAddress.Lock,
+    mAwCache      => AxiBus2.WriteAddress.Cache,
+    mAwQOS        => AxiBus2.WriteAddress.QOS,
+    mAwRegion     => AxiBus2.WriteAddress.Region,
+    mAwUser       => AxiBus2.WriteAddress.User,
 
+    -- AXI Write Data Channel
+    mWData        => AxiBus2.WriteData.Data, 
+    mWStrb        => AxiBus2.WriteData.Strb, 
+    mWValid       => AxiBus2.WriteData.Valid, 
+    mWReady       => AxiBus2.WriteData.Ready, 
+    mWLast        => AxiBus2.WriteData.Last,
+    mWUser        => AxiBus2.WriteData.User,
+    mWID          => AxiBus2.WriteData.ID,
+
+    -- AXI Write Response Channel
+    mBValid       => AxiBus2.WriteResponse.Valid, 
+    mBReady       => AxiBus2.WriteResponse.Ready, 
+    mBResp        => AxiBus2.WriteResponse.Resp, 
+    mBID          => AxiBus2.WriteResponse.ID,
+    mBUser        => AxiBus2.WriteResponse.User,
+  
+    -- AXI Read Address Channel
+    mArAddr       => AxiBus2.ReadAddress.Addr,
+    mArProt       => AxiBus2.ReadAddress.Prot,
+    mArValid      => AxiBus2.ReadAddress.Valid,
+    mArReady      => AxiBus2.ReadAddress.Ready,
+    mArID         => AxiBus2.ReadAddress.ID,
+    mArLen        => AxiBus2.ReadAddress.Len,
+    mArSize       => AxiBus2.ReadAddress.Size,
+    mArBurst      => AxiBus2.ReadAddress.Burst,
+    mArLock       => AxiBus2.ReadAddress.Lock,
+    mArCache      => AxiBus2.ReadAddress.Cache,
+    mArQOS        => AxiBus2.ReadAddress.QOS,
+    mArRegion     => AxiBus2.ReadAddress.Region,
+    mArUser       => AxiBus2.ReadAddress.User,
+
+    -- AXI Read Data Channel
+    mRData        => AxiBus2.ReadData.Data, 
+    mRResp        => AxiBus2.ReadData.Resp,
+    mRValid       => AxiBus2.ReadData.Valid, 
+    mRReady       => AxiBus2.ReadData.Ready, 
+    mRLast        => AxiBus2.ReadData.Last,
+    mRUser        => AxiBus2.ReadData.User,
+    mRID          => AxiBus2.ReadData.ID,
+
+
+  -- AXI Subordinate Interface - Driven by DUT
+    -- AXI Write Address Channel
+    sAwAddr       => AxiBus1.WriteAddress.Addr,
+    sAwProt       => AxiBus1.WriteAddress.Prot,
+    sAwValid      => AxiBus1.WriteAddress.Valid,
+    sAwReady      => AxiBus1.WriteAddress.Ready,
+    sAwID         => AxiBus1.WriteAddress.ID,
+    sAwLen        => AxiBus1.WriteAddress.Len,
+    sAwSize       => AxiBus1.WriteAddress.Size,
+    sAwBurst      => AxiBus1.WriteAddress.Burst,
+    sAwLock       => AxiBus1.WriteAddress.Lock,
+    sAwCache      => AxiBus1.WriteAddress.Cache,
+    sAwQOS        => AxiBus1.WriteAddress.QOS,
+    sAwRegion     => AxiBus1.WriteAddress.Region,
+    sAwUser       => AxiBus1.WriteAddress.User,
+
+    -- AXI Write Data Channel
+    sWData        => AxiBus1.WriteData.Data,  
+    sWStrb        => AxiBus1.WriteData.Strb,  
+    sWValid       => AxiBus1.WriteData.Valid, 
+    sWReady       => AxiBus1.WriteData.Ready, 
+    sWLast        => AxiBus1.WriteData.Last,
+    sWUser        => AxiBus1.WriteData.User,
+    sWID          => AxiBus1.WriteData.ID,
+
+    -- AXI Write Response Channel
+    sBValid       => AxiBus1.WriteResponse.Valid, 
+    sBReady       => AxiBus1.WriteResponse.Ready, 
+    sBResp        => AxiBus1.WriteResponse.Resp,  
+    sBID          => AxiBus1.WriteResponse.ID,
+    sBUser        => AxiBus1.WriteResponse.User,
+  
+  
+    -- AXI Read Address Channel
+    sArAddr       => AxiBus1.ReadAddress.Addr,
+    sArProt       => AxiBus1.ReadAddress.Prot,
+    sArValid      => AxiBus1.ReadAddress.Valid,
+    sArReady      => AxiBus1.ReadAddress.Ready,
+    sArID         => AxiBus1.ReadAddress.ID,
+    sArLen        => AxiBus1.ReadAddress.Len,
+    sArSize       => AxiBus1.ReadAddress.Size,
+    sArBurst      => AxiBus1.ReadAddress.Burst,
+    sArLock       => AxiBus1.ReadAddress.Lock,
+    sArCache      => AxiBus1.ReadAddress.Cache,
+    sArQOS        => AxiBus1.ReadAddress.QOS,
+    sArRegion     => AxiBus1.ReadAddress.Region,
+    sArUser       => AxiBus1.ReadAddress.User,
+
+    -- AXI Read Data Channel
+    sRData        => AxiBus1.ReadData.Data,  
+    sRResp        => AxiBus1.ReadData.Resp,
+    sRValid       => AxiBus1.ReadData.Valid, 
+    sRReady       => AxiBus1.ReadData.Ready, 
+    sRLast        => AxiBus1.ReadData.Last,
+    sRUser        => AxiBus1.ReadData.User,   
+    sRID          => AxiBus1.ReadData.ID
+  ) ;
+  
   -- Behavioral model.  Replaces DUT for labs
   Memory_1 : Axi4Memory
   port map (
@@ -159,7 +290,7 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus  => AxiBus,
+    AxiBus  => AxiBus2,
     
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
@@ -172,7 +303,7 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus,
+    AxiBus      => AxiBus1,
 
     -- Testbench Transaction Interface
     TransRec    => ManagerRec
@@ -186,19 +317,51 @@ begin
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus
+    AxiBus      => AxiBus1
   ) ;
+  
+  CoSimInterruptHandler_1 : CoSimInterruptHandler 
+  generic map (
+    EDGE_LEVEL       => (gIntReq'range => INT_EDGE_LEVEL),
+    POLARITY         => (gIntReq'range => INT_POLARITY)
+  ) 
+  port map (
+    -- Interrupt Input
+    IntReq          => IntReq
+  ) ;
+  
+  ------------------------------------------------------------
+  InterruptGen : for i in gIntReq'range generate
+  ------------------------------------------------------------
+    InterruptGeneratorBit_1 : InterruptGeneratorBit 
+    generic map (
+      MODEL_ID_NAME    => "InterruptGeneratorBit_" & to_string(i),
+      POLARITY         => INT_POLARITY
+    ) 
+    port map (
+      -- Interrupt Input
+      IntReq          => IntReq(i), 
+      
+      -- Transaction port
+      TransRec        => InterruptRecArray(i)
+    ) ;
+  end generate InterruptGen ;
 
 
   TestCtrl_1 : TestCtrl
-  generic map (TEST_NAME => TEST_NAME)
+  generic map (
+    INT_EDGE_LEVEL       => INT_EDGE_LEVEL,
+    INT_POLARITY         => INT_POLARITY
+  ) 
   port map (
     -- Global Signal Interface
-    nReset        => nReset,
+    nReset            => nReset,
 
     -- Transaction Interfaces
-    ManagerRec     => ManagerRec,
-    SubordinateRec  => SubordinateRec
+    ManagerRec        => ManagerRec,
+    SubordinateRec    => SubordinateRec, 
+    
+    InterruptRecArray => InterruptRecArray
   ) ;
 
 end architecture TestHarness ;

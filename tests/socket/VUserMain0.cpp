@@ -34,7 +34,8 @@ extern "C" int VTick(uint32_t, uint32_t)
 
 extern "C" void VUserMain0()
 {
-    OsvvmCosim    cosim(node);
+    std::string test_name("CoSim_socket");
+    OsvvmCosim  cosim(node, test_name);
     OsvvmCosimSkt skt(node);
     bool error = false;
 

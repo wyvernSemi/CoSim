@@ -35,7 +35,7 @@
 #
 # User overridable variables: make VAR=NEW_VALUE ...
 #
-#   USRCDIR     : Directory, relative to OsvvmLibraries/CoSim, where the test directory is located
+#   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
 #   USRFLAGS    : Additional user defined compile and link flags
 #   SIM         : The target simulator. One of GHDL, NVC, QuestaSim, or ModelSim
@@ -68,9 +68,11 @@ SRC_INCL           = $(wildcard ${SRCDIR}/*.h)
 USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
-VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o} ${USER_CPP_BASE:%.cpp=%.o})
+VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
-ifeq ("${SIM}", "GHDL")
+ifeq ("${SIM}", "ActiveHDL")
+  ARCHFLAG         = -m64 -DALDEC
+else ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
 else ifeq ("${SIM}", "NVC")
   ARCHFLAG         = -m64

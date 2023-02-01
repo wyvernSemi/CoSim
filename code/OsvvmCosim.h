@@ -37,6 +37,7 @@
 // =========================================================================
 
 #include <stdint.h>
+#include <string>
 #include "OsvvmVUser.h"
 
 #ifndef __OSVVM_COSIM_H_
@@ -45,7 +46,12 @@
 class OsvvmCosim
 {
 public:
-               OsvvmCosim      (int nodeIn = 0) : node(nodeIn) {};
+                OsvvmCosim      (int nodeIn = 0, std::string test_name = "") : node(nodeIn) {
+                   if (test_name.compare(""))
+                   {
+                       VSetTestName(test_name.c_str(), test_name.length(), node);
+                   }
+                };
 
       void     tick            (const int ticks, const bool done = false, const bool error = false)
       {
@@ -77,9 +83,9 @@ public:
       void     transBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
       void     transBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
 
-      void     regInterruptCB  (pVUserInt_t func, const int level = 1)                        {VRegInterrupt(level, func, node);}
+      void     regInterruptCB  (pVUserInt_t func)                                             {VRegInterrupt(func, node);}
       
-      void     waitForSim      (void)                                                         { VWaitForSim(node); }
+      void     waitForSim      (void)                                                         {VWaitForSim(node);}
 
       int      getNodeNumber   () {return node;}
 

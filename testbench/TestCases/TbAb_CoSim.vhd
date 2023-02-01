@@ -58,15 +58,15 @@ begin
   ControlProc : process
   begin
     -- Initialization of test
---    SetAlertLogName("TbAb_CoSim") ;
-    SetAlertLogName("CoSim_" & TEST_NAME) ;
+    --!! NOTE:  SetTestName called by software
+--    SetTestName("TbAb_CoSim") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & GetTestName & ".txt") ;
---    TranscriptOpen(OSVVM_RESULTS_DIR & "TbAb_CoSim.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & GetTestName & ".txt") ;
+--    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_CoSim.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -98,10 +98,9 @@ begin
 
     -- CoSim variables
     variable RnW            : integer ;
-    variable Ticks          : integer := 0 ;
     variable Done           : integer := 0 ;
     variable Error          : integer := 0 ;
-    variable IntReq         : boolean := false ;
+    variable IntReq         : integer := 0 ;
     variable NodeNum        : integer := Node ;
   begin
     -- Initialize Randomization Objects
@@ -110,6 +109,8 @@ begin
 
     -- Initialise VProc code
     CoSimInit(NodeNum);
+    -- Fetch the SetTestName
+    CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
 
     SetBurstMode(ManagerRec, BURST_MODE) ;
 
@@ -120,17 +121,17 @@ begin
     OperationLoop : loop
 
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
-      if WaitForClockRV.DistInt((8, 2)) = 1 and Ticks = 0 then
+      if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
 
       -- Call CoSimTrans procedure to generate an access from the running VProc program
-      CoSimTrans (ManagerRec, Ticks, Done, Error, IntReq, NodeNum);
+      CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
       
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
       -- Finish when counts == 0
-      exit when Ticks = 0 and Done /= 0;
+      exit when Done /= 0;
 
     end loop OperationLoop ;
 

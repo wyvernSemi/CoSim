@@ -40,17 +40,6 @@ package OsvvmVprocPkg is
   ) ;
   attribute foreign of VInit : procedure is "VHPIDIRECT VInit" ;
 
-  procedure VSched (
-    node      : in  integer ;
-    Interrupt : in  integer ;
-    VPDataIn  : in  integer ;
-    VPDataOut : out integer ;
-    VPAddr    : out integer ;
-    VPRw      : out integer ;
-    VPTicks   : out integer
-  ) ;
-  attribute foreign of VSched : procedure is "VHPIDIRECT VSched" ;
-
   procedure VTrans (
     node        : in  integer ;
     Interrupt   : in  integer ;
@@ -62,19 +51,13 @@ package OsvvmVprocPkg is
     VPAddr      : out integer ;
     VPAddrHi    : out integer ;
     VPAddrWidth : out integer ;
-    VPRw        : out integer ;
+    VPOp        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
     VPDone      : out integer ;
     VPError     : out integer
   ) ;
   attribute foreign of VTrans : procedure is "VHPIDIRECT VTrans" ;
-
-  procedure VProcUser (
-    node      : in  integer ;
-    value     : in  integer
-  ) ;
-  attribute foreign of VProcUser : procedure is "VHPIDIRECT VProcUser" ;
 
   procedure VGetBurstWrByte (
     node      : in  integer ;
@@ -101,19 +84,6 @@ package body OsvvmVprocPkg is
     report "ERROR: foreign subprogram out_params not called" ;
   end ;
 
-  procedure VSched (
-    node      : in  integer ;
-    Interrupt : in  integer ;
-    VPDataIn  : in  integer ;
-    VPDataOut : out integer ;
-    VPAddr    : out integer ;
-    VPRw      : out integer ;
-    VPTicks   : out integer
-  ) is
-  begin
-    report "ERROR: foreign subprogram out_params not called";
-  end ;
-
   procedure VTrans (
     node        : in  integer ;
     Interrupt   : in  integer ;
@@ -125,19 +95,11 @@ package body OsvvmVprocPkg is
     VPAddr      : out integer ;
     VPAddrHi    : out integer ;
     VPAddrWidth : out integer ;
-    VPRw        : out integer ;
+    VPOp        : out integer ;
     VPBurstSize : out integer ;
     VPTicks     : out integer ;
     VPDone      : out integer ;
     VPError     : out integer
-  ) is
-  begin
-    report "ERROR: foreign subprogram out_params not called" ;
-  end ;
-
-  procedure VProcUser (
-    node      : in  integer ;
-    value     : in  integer
   ) is
   begin
     report "ERROR: foreign subprogram out_params not called" ;

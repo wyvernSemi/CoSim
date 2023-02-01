@@ -1,6 +1,6 @@
 --
---  File Name:         TestCtrl_e.vhd
---  Design Unit Name:  TestCtrl
+--  File Name:         CoSimInterruptHandlerComponentPkg.vhd
+--  Design Unit Name:  CoSimInterruptHandlerComponentPkg
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -9,7 +9,7 @@
 --
 --
 --  Description:
---      Test transaction source
+--      CoSimInterruptHandler Component Declaration
 --
 --
 --  Developed by:
@@ -19,56 +19,51 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    12/2022   2023.01    Added CoSim Context
---    01/2020   2020.01    Updated license notice
---    12/2020   2020.12    Updated port names
---    05/2019   2019.05    Added context reference
---    09/2017   2017.09    Initial revision
+--    01/2023   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
---  
---  Copyright (c) 2017 - 2023 by SynthWorks Design Inc.  
---  
+--
+--  Copyright (c) 2023 by SynthWorks Design Inc.
+--
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
 --  You may obtain a copy of the License at
---  
+--
 --      https://www.apache.org/licenses/LICENSE-2.0
---  
+--
 --  Unless required by applicable law or agreed to in writing, software
 --  distributed under the License is distributed on an "AS IS" BASIS,
 --  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 --  See the License for the specific language governing permissions and
 --  limitations under the License.
---  
-
+--
 library ieee ;
   use ieee.std_logic_1164.all ;
   use ieee.numeric_std.all ;
   use ieee.numeric_std_unsigned.all ;
-  
-library OSVVM ; 
-  context OSVVM.OsvvmContext ; 
+  use ieee.math_real.all ;
 
-library osvvm_Axi4 ;
-  context osvvm_Axi4.Axi4LiteContext ; 
+library osvvm ;
+  context osvvm.OsvvmContext ;
 
-library osvvm_cosim ;
-  context osvvm_cosim.CoSimContext ;
+library osvvm_common ;
+  use osvvm_common.AddressBusTransactionPkg.all; 
+  use osvvm_common.InterruptGlobalSignalPkg.all ;
 
-entity TestCtrl is
-  port (
-    -- Global Signal Interface
-    Clk            : In    std_logic ;
-    nReset         : In    std_logic ;
+package CoSimInterruptHandlerComponentPkg is
 
-    -- Transaction Interfaces
-    ManagerRec     : inout AddressBusRecType ;
-    SubordinateRec : inout AddressBusRecType 
-
+  ------------------------------------------------------------
+  component CoSimInterruptHandler is
+  ------------------------------------------------------------
+  generic (
+    EDGE_LEVEL       : std_logic_vector(gIntReq'range) := (others => INTERRUPT_ON_LEVEL) ;
+    POLARITY         : std_logic_vector(gIntReq'range) := (others => '1')
   ) ;
-    constant AXI_ADDR_WIDTH : integer := ManagerRec.Address'length ; 
-    constant AXI_DATA_WIDTH : integer := ManagerRec.DataToModel'length ;  
-
-end entity TestCtrl ;
+  port (
+    -- Interrupt Input
+    IntReq          : in   std_logic_vector(gIntReq'range)
+  ) ;
+  end component CoSimInterruptHandler ;
+  
+end package CoSimInterruptHandlerComponentPkg ;

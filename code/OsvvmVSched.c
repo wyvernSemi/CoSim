@@ -47,12 +47,110 @@
 // Pointers to state for each node (up to VP_MAX_NODES)
 pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
 
+#if defined(ALDEC)
+
+#include <vhpi_user.h>
+#include <aldecpli.h>
+
+// -------------------------------------------------------------------------
+// Function setting up table of foreign procedure registration data
+// and registering with VHPI/
+// -------------------------------------------------------------------------
+
+PLI_VOID reg_foreign_procs() {
+    int idx = 0;
+    vhpiForeignDataT foreignDataArray[] = {
+        {vhpiProcF, "VProc.so", "VInit",           NULL, VInit},
+        {vhpiProcF, "VProc.so", "VTrans",          NULL, VTrans},
+        {vhpiProcF, "VProc.so", "VSetBurstRdByte", NULL, VSetBurstRdByte},
+        {vhpiProcF, "VProc.so", "VGetBurstWrByte", NULL, VGetBurstWrByte},
+        0
+    };
+
+    while (foreignDataArray[idx])
+    {
+        vhpi_register_foreignf(&(foreignDataArray[idx++]));
+    }
+}
+
+// -------------------------------------------------------------------------
+// List of user startup functions to call
+// -------------------------------------------------------------------------
+
+PLI_VOID (*vhpi_startup_routines[])() = {
+    reg_foreign_procs,
+    0L
+}
+
+// -------------------------------------------------------------------------
+// getVhpiParams()
+//
+// Get the parameter values of a foreign procedure using VHPI methods
+//
+// -------------------------------------------------------------------------
+
+static void getVhpiParams(const struct vhpiCbDataS* cb, int args[], int args_size)
+{
+    int         idx      = 0;
+    vhpiValueT  value;
+    
+    vhpiHandleT hParam;
+    vhpiHandleT hScope   = cb->obj;
+    vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
+    
+    while (hParam = vhpi_scan(hIter) && idx < args_size)
+    {
+        value.format     = vhpiIntVal;
+        value.bufSize    = 0;
+        value.value.intg = 0;
+        vhpi_get_value(hParam, &value);
+        args[idx++]      = value.value.intg;
+    }
+}
+
+// -------------------------------------------------------------------------
+// setVhpiParams()
+//
+// Set the parameters values of a foreign procedure using VHPI methods
+//
+// -------------------------------------------------------------------------
+
+static void setVhpiParams(const struct vhpiCbDataS* cb, int args[], int start_of_outputs, int args_size)
+{
+    int         idx      = 0;
+    vhpiValueT  value;
+    
+    vhpiHandleT hParam;
+    vhpiHandleT hScope   = cb->obj;
+    vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
+    
+    while (hParam = vhpi_scan(hIter) && idx < args_size)
+    {
+        if (idx >= start_of_outputs)
+        {
+            value.format     = vhpiIntVal;
+            value.bufSize    = 0;
+            value.value.intg = args[idx++];
+            vhpi_put_value(hParam, &value, vhpiDeposit);
+        }
+    }
+}
+#endif
+
 /////////////////////////////////////////////////////////////
 // Main routine called whenever $vinit task invoked from
 // initial block of VProc module.
 //
 VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 {
+
+#if defined(ALDEC)
+    int node;
+    int args[VINIT_NUM_ARGS];
+    
+    getVhpiParams(cb, args, VINIT_NUM_ARGS);
+    node = args[0];
+#endif
 
     VPrint("VInit(%d)\n", node);
 
@@ -89,61 +187,6 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 }
 
 // -------------------------------------------------------------------------
-// VSched()
-//
-// Main routine called whenever $vsched task invoked, on
-// clock edge of scheduled cycle.
-// -------------------------------------------------------------------------
-
-VPROC_RTN_TYPE VSched (VSCHED_PARAMS)
-{
-
-    int VPDataOut_int, VPAddr_int, VPRw_int, VPTicks_int;
-
-    // Sample inputs and update node state
-    ns[node]->rcv_buf.data_in   = VPDataIn;
-    ns[node]->rcv_buf.interrupt = Interrupt;
-
-    // Send message to VUser with VPDataIn value
-    DebugVPrint("VSched(): setting rcv[%d] semaphore\n", node);
-    sem_post(&(ns[node]->rcv));
-
-    // Wait for a message from VUser process with output data
-    DebugVPrint("VSched(): waiting for snd[%d] semaphore\n", node);
-    sem_wait(&(ns[node]->snd));
-
-    // Update outputs of $vsched task
-    if (ns[node]->send_buf.ticks >= DELTA_CYCLE)
-    {
-
-        switch(ns[node]->send_buf.type)
-        {
-            case trans32_wr_word:
-            case trans32_rd_word:
-              VPDataOut_int = ((uint32_t*)ns[node]->send_buf.data)[0];
-              VPAddr_int    = (uint32_t)((ns[node]->send_buf.addr) & 0xffffffffULL);
-              VPRw_int      = ns[node]->send_buf.rw;
-              VPTicks_int   = ns[node]->send_buf.ticks;
-              break;
-
-            default:
-              break;
-        }
-
-        DebugVPrint("VSched(): VPTicks=%08x\n", VPTicks_int);
-    }
-
-    DebugVPrint("VSched(): returning to simulation from node %d\n\n", node);
-
-    // Export outputs over FLI
-    *VPDataOut        = VPDataOut_int;
-    *VPAddr           = VPAddr_int;
-    *VPRw             = VPRw_int;
-    *VPTicks          = VPTicks_int;
-
-}
-
-// -------------------------------------------------------------------------
 // VTrans
 // Main routine called whenever VTrans procedure invoked on
 // clock edge of scheduled cycle.
@@ -152,9 +195,45 @@ VPROC_RTN_TYPE VSched (VSCHED_PARAMS)
 
 VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 {
+#if defined(ALDEC)
+    int args[VTRANS_NUM_ARGS];
+    int  node;
+    int  Interrupt;
+    int  VPDataIn;
+    int  VPDataInHi;
+    int* VPDataOut;
+    int* VPDataOutHi;
+    int* VPDataWidth;
+    int* VPAddr;
+    int* VPAddrHi;
+    int* VPAddrWidth;
+    int* VPOp;
+    int* VPBurstSize;
+    int* VPTicks;
+    int* VPDone;
+    int* VPError;
+    
+    getVhpiParams(cb, args, VTRANS_NUM_ARGS);
+    
+    int argIdx           = 0;
+    node                 = args[argIdx++];
+    Interrupt            = args[argIdx++];
+    VPDataIn             = args[argIdx++]; VPDataInHi = args[argIdx++];
+    VPDataOut            = args[argIdx++]; VPDataOut  = args[argIdx++];
+    VPDataWidth          = args[argIdx++];
+    VPAddr               = args[argIdx++]; VPAddrHi   = args[argIdx++];
+    VPAddrWidth          = args[argIdx++];
+    VPOp                 = args[argIdx++];
+    VPBurstSize          = args[argIdx++];
+    VPTicks              = args[argIdx++];
+    VPDone               = args[argIdx++];
+    VPError              = args[argIdx++];    
+    
+#endif
 
-    int VPDataOut_int,   VPAddr_int,   VPRw_int, VPTicks_int;
+    int VPDataOut_int,   VPAddr_int,   VPOp_int, VPTicks_int;
     int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int, VPDone_int;
+    int VPDataWidth_int, VPAddrWidth_int;
     int VPError_int;
 
     // Sample inputs and update node state
@@ -184,7 +263,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         VPDataOutHi_int = ((uint32_t*)ns[node]->send_buf.data)[4];
         VPAddr_int      = (uint32_t)((ns[node]->send_buf.addr)       & 0xffffffffULL);
         VPAddrHi_int    = (uint32_t)((ns[node]->send_buf.addr >> 32) & 0xffffffffULL);
-        VPRw_int        = ns[node]->send_buf.rw;
+        VPOp_int        = ns[node]->send_buf.op;
         VPBurstSize_int = ns[node]->send_buf.num_burst_bytes;
         VPTicks_int     = ns[node]->send_buf.ticks;
         VPDone_int      = ns[node]->send_buf.done;
@@ -192,55 +271,58 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 
         switch(ns[node]->send_buf.type)
         {
-
             case trans32_wr_byte:
             case trans32_rd_byte:
-              *VPAddrWidth = 32;
-              *VPDataWidth = 8;
-              break;
+                VPAddrWidth_int = 32;
+                VPDataWidth_int = 8;
+                break;
             case trans32_wr_hword:
             case trans32_rd_hword:
-              *VPAddrWidth = 32;
-              *VPDataWidth = 16;
-              break;
+                VPAddrWidth_int = 32;
+                VPDataWidth_int = 16;
+                break;
             case trans32_wr_word:
             case trans32_rd_word:
-              *VPAddrWidth = 32;
-              *VPDataWidth = 32;
-              break;
+                VPAddrWidth_int = 32;
+                VPDataWidth_int = 32;
+                break;
             case trans32_wr_burst:
             case trans32_rd_burst:
-              *VPAddrWidth = 32;
-              *VPDataWidth = 32;
-              break;
+                VPAddrWidth_int = 32;
+                VPDataWidth_int = 32;
+                break;
             case trans64_wr_byte:
             case trans64_rd_byte:
-              *VPAddrWidth = 64;
-              *VPDataWidth = 8;
-              break;
+                VPAddrWidth_int = 64;
+                VPDataWidth_int = 8;
+                break;
             case trans64_wr_hword:
             case trans64_rd_hword:
-              *VPAddrWidth = 64;
-              *VPDataWidth = 16;
-              break;
+                VPAddrWidth_int = 64;
+                VPDataWidth_int = 16;
+                break;
             case trans64_wr_word:
             case trans64_rd_word:
-              *VPAddrWidth = 64;
-              *VPDataWidth = 32;
-              break;
+                VPAddrWidth_int = 64;
+                VPDataWidth_int = 32;
+                break;
             case trans64_wr_dword:
             case trans64_rd_dword:
-              *VPAddrWidth = 64;
-              *VPDataWidth = 64;
+                VPAddrWidth_int = 64;
+                VPDataWidth_int = 64;
+                break ;
             case trans64_wr_burst:
             case trans64_rd_burst:
-              *VPAddrWidth = 64;
-              *VPDataWidth = 64;
-              break;
+                VPAddrWidth_int = 64;
+                VPDataWidth_int = 64;
+                break;
+              
+            case trans_idle:
+                break;
               
             default:
-              // Unsupported
-              break;
+                // Unsupported
+                break;
         }
 
         DebugVPrint("VTrans(): VPTicks=%08x\n", VPTicks_int);
@@ -250,33 +332,35 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     
     DebugVPrint("===> addr=%08x rnw=%d burst=%d ticks=%d\n", VPAddr_int, VPRw_int, VPBurstSize_int, VPTicks_int);
 
+#if !defined(ALDEC)
     // Export outputs over FLI
     *VPDataOut        = VPDataOut_int;
     *VPDataOutHi      = VPDataOutHi_int;
+    *VPDataWidth      = VPDataWidth_int;
     *VPAddr           = VPAddr_int;
     *VPAddrHi         = VPAddrHi_int;
-    *VPRw             = VPRw_int;
+    *VPAddrWidth      = VPAddrWidth_int;
+    *VPOp             = VPOp_int;
     *VPBurstSize      = VPBurstSize_int;
     *VPTicks          = VPTicks_int;
     *VPDone           = VPDone_int;
     *VPError          = VPError_int;
-
-}
-
-// -------------------------------------------------------------------------
-// VUser()
-//
-// Calls a user registered function (if available) when
-// $vprocuser(node) called in verilog
-//
-// -------------------------------------------------------------------------
-
-VPROC_RTN_TYPE VProcUser(VPROCUSER_PARAMS)
-{
-    if (ns[node]->VUserCB != NULL)
-    {
-        (*(ns[node]->VUserCB))(value);
-    }
+#else
+    argIdx            = VTRANS_START_OF_OUTPUTS;
+    args[argIdx++]    = VPDataOut_int;
+    args[argIdx++]    = VPDataOutHi_int;
+    args[argIdx++]    = VPDataWidth_int;
+    args[argIdx++]    = VPAddr_int;
+    args[argIdx++]    = VPAddrHi_int;
+    args[argIdx++]    = VPAddrWidth_int;
+    args[argIdx++]    = VPOp_int;
+    args[argIdx++]    = VPBurstSize_int;
+    args[argIdx++]    = VPTicks_int;
+    args[argIdx++]    = VPDone_int;
+    args[argIdx++]    = VPError_int;
+    
+    setVhpiParams(cb, args, VTRANS_START_OF_OUTPUTS, VTRANS_NUM_ARGS);
+#endif
 }
 
 // -------------------------------------------------------------------------

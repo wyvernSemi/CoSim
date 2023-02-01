@@ -32,15 +32,6 @@
 #  limitations under the License.
 #
 
-if {$::osvvm::ToolName eq "NVC"} {
-  set osname [string tolower [exec uname]]
-  if {"$osname" ne "linux"} {
-    set ::env(NVC_FOREIGN_OBJ) VProc.so
-  } else {
-    SetExtendedRunOptions --load=./VProc.so
-  }
-}
-
 # Analyze Axi4Lite testbench and run tests on it
 include  ./testbench/TbAxi4Lite
 # include  ./tests
@@ -55,3 +46,4 @@ include  ./testbench/TestCases
 # Analyze Axi4 testbench and run tests on it
 include ./testbench/TbAxi4_Interrupt
 include ./testbench/TestCases_Interrupt
+

@@ -40,7 +40,6 @@
 #  
 TestSuite  CoSim_Axi4
 library    osvvm_CoSim_TbAxi4
-analyze    OsvvmTestCommonPkg.vhd
 analyze    TestCtrl_e.vhd
 analyze    TbAddressBusMemory.vhd
 
