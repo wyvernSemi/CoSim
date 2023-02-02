@@ -58,29 +58,32 @@ pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
 // -------------------------------------------------------------------------
 
 PLI_VOID reg_foreign_procs() {
-    int idx = 0;
+    int idx;
     vhpiForeignDataT foreignDataArray[] = {
-        {vhpiProcF, "VProc.so", "VInit",           NULL, VInit},
-        {vhpiProcF, "VProc.so", "VTrans",          NULL, VTrans},
-        {vhpiProcF, "VProc.so", "VSetBurstRdByte", NULL, VSetBurstRdByte},
-        {vhpiProcF, "VProc.so", "VGetBurstWrByte", NULL, VGetBurstWrByte},
-        0
+        {vhpiProcF, "VProc", "VInit",           NULL, VInit},
+        {vhpiProcF, "VProc", "VTrans",          NULL, VTrans},
+        {vhpiProcF, "VProc", "VSetBurstRdByte", NULL, VSetBurstRdByte},
+        {vhpiProcF, "VProc", "VGetBurstWrByte", NULL, VGetBurstWrByte},
+        {(vhpiForeignT) 0}
     };
 
-    while (foreignDataArray[idx])
+    for (idx = 0; idx < ((sizeof(foreignDataArray)/sizeof(foreignDataArray[0]))-1); idx++)
     {
-        vhpi_register_foreignf(&(foreignDataArray[idx++]));
+        vhpi_register_foreignf(&(foreignDataArray[idx]));
     }
 }
 
 // -------------------------------------------------------------------------
 // List of user startup functions to call
 // -------------------------------------------------------------------------
+#ifdef WIN32
+__declspec ( dllexport )
+#endif
 
 PLI_VOID (*vhpi_startup_routines[])() = {
     reg_foreign_procs,
     0L
-}
+};
 
 // -------------------------------------------------------------------------
 // getVhpiParams()
@@ -98,7 +101,7 @@ static void getVhpiParams(const struct vhpiCbDataS* cb, int args[], int args_siz
     vhpiHandleT hScope   = cb->obj;
     vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
     
-    while (hParam = vhpi_scan(hIter) && idx < args_size)
+    while ((hParam = vhpi_scan(hIter)) && idx < args_size)
     {
         value.format     = vhpiIntVal;
         value.bufSize    = 0;
@@ -124,7 +127,7 @@ static void setVhpiParams(const struct vhpiCbDataS* cb, int args[], int start_of
     vhpiHandleT hScope   = cb->obj;
     vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
     
-    while (hParam = vhpi_scan(hIter) && idx < args_size)
+    while ((hParam = vhpi_scan(hIter)) && idx < args_size)
     {
         if (idx >= start_of_outputs)
         {
@@ -195,6 +198,12 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 
 VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 {
+    
+    int VPDataOut_int,   VPAddr_int,   VPOp_int, VPTicks_int;
+    int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int, VPDone_int;
+    int VPDataWidth_int, VPAddrWidth_int;
+    int VPError_int;
+    
 #if defined(ALDEC)
     int args[VTRANS_NUM_ARGS];
     int  node;
@@ -218,23 +227,18 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     int argIdx           = 0;
     node                 = args[argIdx++];
     Interrupt            = args[argIdx++];
-    VPDataIn             = args[argIdx++]; VPDataInHi = args[argIdx++];
-    VPDataOut            = args[argIdx++]; VPDataOut  = args[argIdx++];
-    VPDataWidth          = args[argIdx++];
-    VPAddr               = args[argIdx++]; VPAddrHi   = args[argIdx++];
-    VPAddrWidth          = args[argIdx++];
-    VPOp                 = args[argIdx++];
-    VPBurstSize          = args[argIdx++];
-    VPTicks              = args[argIdx++];
-    VPDone               = args[argIdx++];
-    VPError              = args[argIdx++];    
+    VPDataIn             = args[argIdx++]; VPDataInHi     = args[argIdx++];
+    VPDataOut_int        = args[argIdx++]; VPDataOut_int  = args[argIdx++];
+    VPDataWidth_int      = args[argIdx++];
+    VPAddr_int           = args[argIdx++]; VPAddrHi_int   = args[argIdx++];
+    VPAddrWidth_int      = args[argIdx++];
+    VPOp_int             = args[argIdx++];
+    VPBurstSize_int      = args[argIdx++];
+    VPTicks_int          = args[argIdx++];
+    VPDone_int           = args[argIdx++];
+    VPError_int          = args[argIdx++];    
     
 #endif
-
-    int VPDataOut_int,   VPAddr_int,   VPOp_int, VPTicks_int;
-    int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int, VPDone_int;
-    int VPDataWidth_int, VPAddrWidth_int;
-    int VPError_int;
 
     // Sample inputs and update node state
     if (ns[node]->send_buf.type != trans32_rd_burst && ns[node]->send_buf.type != trans32_wr_burst)
@@ -370,6 +374,17 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 
 VPROC_RTN_TYPE VSetBurstRdByte(VSETBURSTRDBYTE_PARAMS)
 {
+#if defined(ALDEC)
+    int args[VSETBURSTRDBYTE_NUM_ARGS];
+    
+    getVhpiParams(cb, args, VSETBURSTRDBYTE_NUM_ARGS);
+    
+    int argIdx           = 0;
+    int node             = args[argIdx++];
+    int idx              = args[argIdx++];
+    int data             = args[argIdx++];
+#endif
+
     ns[node]->rcv_buf.databuf[idx % DATABUF_SIZE] = data;
 }
 
@@ -380,6 +395,20 @@ VPROC_RTN_TYPE VSetBurstRdByte(VSETBURSTRDBYTE_PARAMS)
 
 VPROC_RTN_TYPE VGetBurstWrByte(VGETBURSTWRBYTE_PARAMS)
 {
+#if defined(ALDEC)
+    int args[VGETBURSTWRBYTE_NUM_ARGS];
+
+    getVhpiParams(cb, args, VGETBURSTWRBYTE_NUM_ARGS);
+    
+    int argIdx           = 0;
+    int node             = args[argIdx++];
+    int idx              = args[argIdx++];
+    
+    argIdx            = VGETBURSTWRBYTE_START_OF_OUTPUTS;
+    args[argIdx++]    = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];;
+    setVhpiParams(cb, args, VGETBURSTWRBYTE_START_OF_OUTPUTS, VGETBURSTWRBYTE_NUM_ARGS);
+#else   
     *data = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];
+#endif
 }
 

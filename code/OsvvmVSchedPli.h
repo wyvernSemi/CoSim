@@ -48,8 +48,8 @@
                                    int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
                                    int* VPOp,     int* VPBurstSize, int* VPTicks,     int* VPDone,      int* VPError
-#define VGETBURSTWRBYTE_PARAMS     int  node, int  idx,  int* data
-#define VSETBURSTRDBYTE_PARAMS     int  node, int  idx,  int  data
+#define VGETBURSTWRBYTE_PARAMS     int  node,     int  idx,         int* data
+#define VSETBURSTRDBYTE_PARAMS     int  node,     int  idx,         int  data
 
 #define VPROC_RTN_TYPE             void
 
@@ -58,19 +58,20 @@
 #include <vhpi_user.h>
 #include <aldecpli.h>
 
-#define VINIT_PARAMS               const struct vhpiCbDataS* cb
-#define VTRANS_PARAMS              const struct vhpiCbDataS* cb
-#define VGETBURSTWRBYTE_PARAMS     const struct vhpiCbDataS* cb
-#define VSETBURSTRDBYTE_PARAMS     const struct vhpiCbDataS* cb
+#define VINIT_PARAMS                        const struct vhpiCbDataS* cb
+#define VTRANS_PARAMS                       const struct vhpiCbDataS* cb
+#define VGETBURSTWRBYTE_PARAMS              const struct vhpiCbDataS* cb
+#define VSETBURSTRDBYTE_PARAMS              const struct vhpiCbDataS* cb
 
-#define VINIT_NUM_ARGS             1
-#define VTRANS_NUM_ARGS            15
-#define VGETBURSTWRBYTE_NUM_ARGS   3
-#define VSETBURSTRDBYTE_NUM_ARGS   3
+#define VINIT_NUM_ARGS                      1
+#define VTRANS_NUM_ARGS                     15
+#define VGETBURSTWRBYTE_NUM_ARGS            3
+#define VSETBURSTRDBYTE_NUM_ARGS            3
+                                            
+#define VTRANS_START_OF_OUTPUTS             4
+#define VGETBURSTWRBYTE_START_OF_OUTPUTS    2
 
-#define VTRANS_START_OF_OUTPUTS    4
-
-#define VPROC_RTN_TYPE             void
+#define VPROC_RTN_TYPE                      PLI_VOID
 
 #endif
 

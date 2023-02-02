@@ -34,7 +34,9 @@
 
 library    osvvm_cosim
 
-if {$::osvvm::ToolName eq "NVC"} {
+if {$::osvvm::ToolName eq "ActiveHDL"} {
+  analyze OsvvmVprocAldecPkg.vhd
+} elseif {$::osvvm::ToolName eq "NVC"} {
   analyze OsvvmVprocNvcPkg.vhd
   # exec uname does not work in Windows - it does work in MSYS2
   set osname [string tolower [exec uname]]

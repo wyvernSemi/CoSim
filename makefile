@@ -70,8 +70,12 @@ USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
+VPROCLIBSUFFIX     = so
+
 ifeq ("${SIM}", "ActiveHDL")
-  ARCHFLAG         = -m64 -DALDEC
+  ALDECDIR         =  /c/Aldec/Active-HDL-13-x64
+  ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
+  VPROCLIBSUFFIX   = dll
 else ifeq ("${SIM}", "GHDL")
   ARCHFLAG         = -m64
 else ifeq ("${SIM}", "NVC")
@@ -92,7 +96,7 @@ else
 endif
 
 # Generated  PLI C library
-VPROC_PLI          = ${OPDIR}/VProc.so
+VPROC_PLI          = ${OPDIR}/VProc.${VPROCLIBSUFFIX}
 VLIB               = ${TESTDIR}/libvproc.a
 
 VUSER_PLI          = ${OPDIR}/VUser.so
@@ -109,7 +113,7 @@ ifeq (${OSTYPE}, Linux)
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
   CPPSTD           =
-  WLIB             = -lWs2_32 -l:vproc.so
+  WLIB             = -lWs2_32 -l:vproc.${VPROCLIBSUFFIX}
 endif
 
 # Define the maximum number of supported VProcs in the compile pli library
@@ -171,7 +175,6 @@ ${VPROC_PLI}: ${VLIB}
             ${CFLAGS_SO}                                \
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
-            -lpthread                                   \
             -L${TESTDIR} -lvproc                        \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
@@ -183,7 +186,6 @@ ${VUSER_PLI}: ${VULIB} ${RV32TEST}
             ${CFLAGS_SO}                                \
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
-            -lpthread                                   \
             ${USRFLAGS}                                 \
             -L${TESTDIR} -lvuser                        \
             -Wl,-no-whole-archive                       \
