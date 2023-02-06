@@ -51,6 +51,18 @@ extern "C"
 
 static std::mutex acc_mx[VP_MAX_NODES];
 
+#if defined ALDEC
+#include <windows.h>
+
+#define dlsym GetProcAddress
+#define dlopen(_dll, _args) {LoadLibrary(_dll)}
+#define dlerror() ""
+
+typedef HINSTANCE symhdl_t;
+#else
+typedef void* symhdl_t;
+#endif
+
 // -------------------------------------------------------------------------
 // VInitSendBuf()
 //
@@ -100,6 +112,7 @@ static void VUserInit (const int node)
 {
     pVUserMain_t VUserMain_func;
     char funcname[DEFAULT_STR_BUF_SIZE];
+    char vusersoname[DEFAULT_STR_BUF_SIZE];
     int status;
 
     DebugVPrint("VUserInit(%d)\n", node);
@@ -109,8 +122,14 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
+#if !defined(ALDEC)
+    sprintf(vusersoname, "./VUser.so");
+#else
+    sprintf(vusersoname, "./VProc.so");
+#endif
+
     // Load user shared object to get handle to lookup VUsermain function symbols
-    void* hdlvu = dlopen("./VUser.so", RTLD_LAZY | RTLD_GLOBAL);
+    symhdl_t hdlvu = dlopen(vusersoname, RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvu == NULL)
     {
@@ -149,7 +168,7 @@ extern "C" int VUser (const int node)
     int status;
     int idx, jdx;
 
-    DebugVPrint("VUser(): node %d\n", node);
+    VPrint("VUser(): node %d\n", node);
 
     // Interrupt callback initialisation
     ns[node]->VIntVecCB  = NULL;
@@ -158,7 +177,7 @@ extern "C" int VUser (const int node)
     ns[node]->VUserCB = NULL;
 
     // Load VProc shared object to make symbols global
-    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+    symhdl_t hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvp == NULL)
     {
@@ -747,7 +766,7 @@ int VTick (const uint32_t ticks, const bool done, const bool error, const uint32
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
-    
+
     // Ensure the tick loop executes at least once to allow donr and/or error to be
     // set with a tick argument of 0.
     int loops = ticks ? ticks : 1;

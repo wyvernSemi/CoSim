@@ -38,7 +38,7 @@ package OsvvmVprocPkg is
   procedure VInit (
     node : in integer
   ) ;
-  attribute foreign of VInit : procedure is "VHPI VProc.dll; VInit" ;
+  attribute foreign of VInit : procedure is "VHPI VProc.so; VInit" ;
 
   procedure VTrans (
     node        : in  integer ;
@@ -57,21 +57,21 @@ package OsvvmVprocPkg is
     VPDone      : out integer ;
     VPError     : out integer
   ) ;
-  attribute foreign of VTrans : procedure is "VHPI VProc.dll; VTrans" ;
+  attribute foreign of VTrans : procedure is "VHPI VProc.so; VTrans" ;
 
   procedure VGetBurstWrByte (
     node      : in  integer ;
     idx       : in  integer ;
     data      : out integer
   ) ;
-  attribute foreign of VGetBurstWrByte : procedure is "VHPI VProc.dll; VGetBurstWrByte" ;
+  attribute foreign of VGetBurstWrByte : procedure is "VHPI VProc.so; VGetBurstWrByte" ;
 
   procedure VSetBurstRdByte (
     node      : in  integer ;
     idx       : in  integer ;
     data      : in  integer
   ) ;
-  attribute foreign of VSetBurstRdByte : procedure is "VHPI VProc.dll; VSetBurstRdByte" ;
+  attribute foreign of VSetBurstRdByte : procedure is "VHPI VProc.so; VSetBurstRdByte" ;
 
 end ;
 

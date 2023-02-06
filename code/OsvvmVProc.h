@@ -43,12 +43,14 @@
 #include <stdlib.h>
 #include <strings.h>
 
-# ifndef __USE_GNU
-# define __USE_GNU
-# include <dlfcn.h>
-# undef __USE_GNU
-# else
-# include <dlfcn.h>
+# if !defined(ALDEC)
+#  ifndef __USE_GNU
+#  define __USE_GNU
+#  include <dlfcn.h>
+#  undef __USE_GNU
+#  else
+#  include <dlfcn.h>
+#  endif
 # endif
 
 #include <pthread.h>

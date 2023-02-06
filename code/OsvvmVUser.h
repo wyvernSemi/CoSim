@@ -115,24 +115,28 @@ extern EXTC void VRegInterrupt       (const pVUserInt_t func, const uint32_t nod
 // In windows using the FLI, a \n in the printf format string causes
 // two lines to be advanced, so replace new lines with carriage returns
 // which seems to work
-# ifdef _WIN32
+# ifndef ALDEC
+#  ifdef _WIN32
 
-#define VPrint(format, ...) {int len;                                             \
-                             char formbuf[256];                                   \
-                             strncpy(formbuf, format, 255);                       \
-                             len = strlen(formbuf);                               \
-                             for(int i = 0; i < len; i++)                         \
-                               if (formbuf[i] == '\n')                            \
-                                 formbuf[i] = '\r';                               \
-                             printf (formbuf, ##__VA_ARGS__);                     \
-                             }
-# else
+# define VPrint(format, ...) {int len;                                             \
+                              char formbuf[256];                                   \
+                              strncpy(formbuf, format, 255);                       \
+                              len = strlen(formbuf);                               \
+                              for(int i = 0; i < len; i++)                         \
+                                if (formbuf[i] == '\n')                            \
+                                  formbuf[i] = '\r';                               \
+                              printf (formbuf, ##__VA_ARGS__);                     \
+                              }
+#  else
 // If compiled under C++, io_printf() uses PLI_BYTE* which can't have const char* cast,
 // so use buffers for a format string and single string buffer argument, and sprintf to
 // format the string into the msg buffer
 //# define VPrint(...) {char __msg[4096], fmt[10]; strcpy(fmt, "%s");sprintf(__msg, __VA_ARGS__); io_printf(fmt, __msg);}
-# define VPrint(...) {printf(__VA_ARGS__);}
+#  define VPrint(...) {printf(__VA_ARGS__);}
 
+#  endif
+# else
+#  define VPrint(...) {vhpi_printf(__VA_ARGS__);}
 # endif
 
 #ifdef DEBUG

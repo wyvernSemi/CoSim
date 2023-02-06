@@ -48,7 +48,9 @@ proc gen_lib_flags {libname} {
   set osname $::osvvm::OperatingSystemName
 
   # Select the RISC-V ISS library required
-  if {$::osvvm::ToolName ne "ModelSim" } {
+  if {$::osvvm::ToolName eq "ActiveHDL"} {
+    set rvlib ${libname}avhdl
+  } elseif {$::osvvm::ToolName ne "ModelSim" } {
 
     if {"$osname" eq "linux"} {
       set rvlib ${libname}x64
@@ -84,12 +86,19 @@ proc mk_vproc_common {testname libname} {
 # Get the OS that we are running on
   # set osname [string tolower [exec uname]]
   set osname $::osvvm::OperatingSystemName
+  
+  if {$::osvvm::ToolName eq "ActiveHDL" } {
+    set mkfilearg "makefile.avhdl"
+  } else {
+    set mkfilearg "makefile"
+  }
 
   set flags [ gen_lib_flags ${libname} ]
 
   exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
+            -f $mkfilearg                                         \
             SIM=$::osvvm::ToolName                                \
-            USRCDIR=$testname                         \
+            USRCDIR=$testname                                     \
             OPDIR=$::osvvm::CurrentSimulationDirectory            \
             USRFLAGS=${flags}
 
