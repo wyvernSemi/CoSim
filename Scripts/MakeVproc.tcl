@@ -203,7 +203,7 @@ proc MkVprocGhdlMain {testname {libname ""} } {
             USRFLAGS=${flags}                                                \
             OSVVMDIR=$::osvvm::OsvvmHomeDirectory                            \
             TBLIBRARY=[string tolower $::osvvm::VhdlWorkingLibrary]          \
-            VHDLLIB=[FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]     \
+            VHDLLIB=[file normalize [FindLibraryPathByName $::osvvm::VhdlWorkingLibrary]]     \
             COSIMDIR=${::osvvm::OsvvmCoSimDirectory}                         \
             CTESTDIR=[file normalize [file join $::osvvm::CurrentWorkingDirectory $testname]] \
             TESTBENCH=TbAb_CoSim

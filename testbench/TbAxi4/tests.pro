@@ -67,9 +67,9 @@ simulate   TbAb_CoSim [CoSim]
 
 if {$::osvvm::ToolName eq "GHDL"} {
 
-#  MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
+MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
 #  MkVprocGhdlMain  ../../tests/ghdl_main
-  MkVprocGhdlMain  ghdl_main
+#    MkVprocGhdlMain  ghdl_main
   TestName CoSim_ghdl_main
 
   set ::osvvm::GhdlRunCmd "-r"
