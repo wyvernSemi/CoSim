@@ -11,7 +11,7 @@
 //  Description:
 //    Contains the class definition for the rv32f_cpu derived class
 //    
-//    This file is part of the M extended RISC-V instruction
+//    This file is part of the F extended RISC-V instruction
 //    set simulator (rv32f_cpu).
 //
 //  Revision History:
@@ -37,7 +37,6 @@
 //
 // =========================================================================
 
-
 #ifndef _RV32F_CPU_H_
 #define _RV32F_CPU_H_
 
@@ -54,32 +53,32 @@ class rv32f_cpu : public RV32_F_INHERITANCE_CLASS
 {
 public:
 
-    const char flw_str           [DISASSEM_STR_SIZE] = "flw      ";
-    const char fsw_str           [DISASSEM_STR_SIZE] = "fsw      ";
-    const char fmadds_str        [DISASSEM_STR_SIZE] = "fmadd.s  ";
-    const char fmsubs_str        [DISASSEM_STR_SIZE] = "fmsub.s  ";
-    const char fnmsubs_str       [DISASSEM_STR_SIZE] = "fnmsub.s ";
-    const char fnmadds_str       [DISASSEM_STR_SIZE] = "fnmadd.s ";
-    const char fadds_str         [DISASSEM_STR_SIZE] = "fadd.s   ";
-    const char fsubs_str         [DISASSEM_STR_SIZE] = "fsub.s   ";
-    const char fmuls_str         [DISASSEM_STR_SIZE] = "fmul.s   ";
-    const char fdivs_str         [DISASSEM_STR_SIZE] = "fdiv.s   ";
-    const char fsqrts_str        [DISASSEM_STR_SIZE] = "fsqrt.s  ";
-    const char fsgnjs_str        [DISASSEM_STR_SIZE] = "fsgnj.s  ";
-    const char fsgnjns_str       [DISASSEM_STR_SIZE] = "fsgnjn.s ";
-    const char fsgnjxs_str       [DISASSEM_STR_SIZE] = "fsgnjx.s ";
-    const char fmins_str         [DISASSEM_STR_SIZE] = "fmin.s   ";
-    const char fmaxs_str         [DISASSEM_STR_SIZE] = "fmax.s   ";
-    const char fcvtws_str        [DISASSEM_STR_SIZE] = "fcvt.w.s ";
-    const char fcvtwus_str       [DISASSEM_STR_SIZE] = "fcvt.wu.s";
-    const char fmvxw_str         [DISASSEM_STR_SIZE] = "fmv.x.w  ";
-    const char feqs_str          [DISASSEM_STR_SIZE] = "feq.s    ";
-    const char flts_str          [DISASSEM_STR_SIZE] = "flt.s    ";
-    const char fles_str          [DISASSEM_STR_SIZE] = "fle.s    ";
-    const char fclasss_str       [DISASSEM_STR_SIZE] = "fclass.s ";
-    const char fcvtsw_str        [DISASSEM_STR_SIZE] = "fcvt.s.w ";
-    const char fcvtswu_str       [DISASSEM_STR_SIZE] = "fcvt.s.wu";
-    const char fmvwx_str         [DISASSEM_STR_SIZE] = "fmv.w.x  ";
+    static const char flw_str           [DISASSEM_STR_SIZE];
+    static const char fsw_str           [DISASSEM_STR_SIZE];
+    static const char fmadds_str        [DISASSEM_STR_SIZE];
+    static const char fmsubs_str        [DISASSEM_STR_SIZE];
+    static const char fnmsubs_str       [DISASSEM_STR_SIZE];
+    static const char fnmadds_str       [DISASSEM_STR_SIZE];
+    static const char fadds_str         [DISASSEM_STR_SIZE];
+    static const char fsubs_str         [DISASSEM_STR_SIZE];
+    static const char fmuls_str         [DISASSEM_STR_SIZE];
+    static const char fdivs_str         [DISASSEM_STR_SIZE];
+    static const char fsqrts_str        [DISASSEM_STR_SIZE];
+    static const char fsgnjs_str        [DISASSEM_STR_SIZE];
+    static const char fsgnjns_str       [DISASSEM_STR_SIZE];
+    static const char fsgnjxs_str       [DISASSEM_STR_SIZE];
+    static const char fmins_str         [DISASSEM_STR_SIZE];
+    static const char fmaxs_str         [DISASSEM_STR_SIZE];
+    static const char fcvtws_str        [DISASSEM_STR_SIZE];
+    static const char fcvtwus_str       [DISASSEM_STR_SIZE];
+    static const char fmvxw_str         [DISASSEM_STR_SIZE];
+    static const char feqs_str          [DISASSEM_STR_SIZE];
+    static const char flts_str          [DISASSEM_STR_SIZE];
+    static const char fles_str          [DISASSEM_STR_SIZE];
+    static const char fclasss_str       [DISASSEM_STR_SIZE];
+    static const char fcvtsw_str        [DISASSEM_STR_SIZE];
+    static const char fcvtswu_str       [DISASSEM_STR_SIZE];
+    static const char fmvwx_str         [DISASSEM_STR_SIZE];
 
              LIBRISCV32_API      rv32f_cpu      (FILE* dbgfp = stdout);
     virtual  LIBRISCV32_API      ~rv32f_cpu()   { };

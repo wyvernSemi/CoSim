@@ -91,7 +91,7 @@ public:
 
     };
 
-    // Define a class to hold the registers (times the number of 
+    // Define a class to hold the registers (times the number of
     // supported harts) and other internal state
     class rv32i_state
     {
@@ -117,12 +117,12 @@ public:
     // ------------------------------------------------
     // Public methods (user interface)
     // ------------------------------------------------
-    
+
     LIBRISCV32_API int         run                            (rv32i_cfg_s &cfg);
 
     // Read executable
     LIBRISCV32_API int         read_elf                       (const char* const filename);
-                                                              
+
     // External direct memory access
     LIBRISCV32_API uint32_t    read_mem                       (const uint32_t byte_addr, const int type, bool &fault);
     LIBRISCV32_API void        write_mem                      (const uint32_t byte_addr, const uint32_t data, const int type, bool &fault);
@@ -157,24 +157,24 @@ public:
     // ------------------------------------------------
 public:
 
-    // Mappings of register indexes to register name strings 
+    // Mappings of register indexes to register name strings
     const char* rmap_str[32] = { "zero", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",
                                  "s0",   "s1", "a0",  "a1",  "a2", "a3", "a4", "a5",
                                  "a6",   "a7", "s2",  "s3",  "s4", "s5", "s6", "s7",
                                  "s8",   "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
-    // Mappings of register indexes to register name strings 
+    // Mappings of register indexes to register name strings
     const char* xmap_str[32] = { "x0",  "x1",  "x2",  "x3",  "x4",  "x5",  "x6",  "x7",
                                  "x8",  "x9",  "x10", "x11", "x12", "x13", "x14", "x15",
                                  "x16", "x17", "x18", "x19", "x20", "x21", "x22", "x23",
                                  "x24", "x25", "x26", "x27", "x28", "x29", "x30", "x31"};
 
-    // Mappings of register indexes to register name strings 
+    // Mappings of register indexes to register name strings
     const char* fmap_str[32] = { "ft0", "ft1", "ft2",  "ft3",  "ft4", "ft5", "ft6",  "ft7",
                                  "fs0", "fs1", "fa0",  "fa1",  "fa2", "fa3", "fa4",  "fa5",
                                  "fa6", "fa7", "fs2",  "fs3",  "fs4", "fs5", "fs6",  "fs7",
                                  "fs8", "fs9", "fs10", "fs11", "ft8", "ft9", "ft10", "ft11"};
 
-    // Mappings of register indexes to register name strings 
+    // Mappings of register indexes to register name strings
     const char* fxmap_str[32] = { "f0",  "f1",  "f2",  "f3",  "f4",  "f5",  "f6",  "f7",
                                   "f8",  "f9",  "f10", "f11", "f12", "f13", "f14", "f15",
                                   "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
@@ -194,47 +194,47 @@ protected:
 
 
     // String constants for instruction disassembly
-    const char reserved_str[DISASSEM_STR_SIZE] = "reserved ";
-    const char lb_str      [DISASSEM_STR_SIZE] = "lb       ";
-    const char lh_str      [DISASSEM_STR_SIZE] = "lh       ";
-    const char lw_str      [DISASSEM_STR_SIZE] = "lw       ";
-    const char lbu_str     [DISASSEM_STR_SIZE] = "lbu      ";
-    const char lhu_str     [DISASSEM_STR_SIZE] = "lhu      ";
-    const char sb_str      [DISASSEM_STR_SIZE] = "sb       ";
-    const char sh_str      [DISASSEM_STR_SIZE] = "sh       ";
-    const char sw_str      [DISASSEM_STR_SIZE] = "sw       ";
-    const char beq_str     [DISASSEM_STR_SIZE] = "beq      ";
-    const char bne_str     [DISASSEM_STR_SIZE] = "bne      ";
-    const char blt_str     [DISASSEM_STR_SIZE] = "blt      ";
-    const char bge_str     [DISASSEM_STR_SIZE] = "bge      ";
-    const char bltu_str    [DISASSEM_STR_SIZE] = "bltu     ";
-    const char bgeu_str    [DISASSEM_STR_SIZE] = "bgeu     ";
-    const char jalr_str    [DISASSEM_STR_SIZE] = "jalr     ";
-    const char jal_str     [DISASSEM_STR_SIZE] = "jal      ";
-    const char fence_str   [DISASSEM_STR_SIZE] = "fence    ";
-    const char addi_str    [DISASSEM_STR_SIZE] = "addi     ";
-    const char slti_str    [DISASSEM_STR_SIZE] = "slti     ";
-    const char sltiu_str   [DISASSEM_STR_SIZE] = "sltiu    ";
-    const char xori_str    [DISASSEM_STR_SIZE] = "xori     ";
-    const char ori_str     [DISASSEM_STR_SIZE] = "ori      ";
-    const char andi_str    [DISASSEM_STR_SIZE] = "andi     ";
-    const char slli_str    [DISASSEM_STR_SIZE] = "slli     ";
-    const char srli_str    [DISASSEM_STR_SIZE] = "srli     ";
-    const char srai_str    [DISASSEM_STR_SIZE] = "srai     ";
-    const char add_str     [DISASSEM_STR_SIZE] = "add      ";
-    const char sub_str     [DISASSEM_STR_SIZE] = "sub      ";
-    const char sll_str     [DISASSEM_STR_SIZE] = "sll      ";
-    const char slt_str     [DISASSEM_STR_SIZE] = "slt      ";
-    const char sltu_str    [DISASSEM_STR_SIZE] = "sltu     ";
-    const char xor_str     [DISASSEM_STR_SIZE] = "xor      ";
-    const char srl_str     [DISASSEM_STR_SIZE] = "srl      ";
-    const char sra_str     [DISASSEM_STR_SIZE] = "sra      ";
-    const char or_str      [DISASSEM_STR_SIZE] = "or       ";
-    const char and_str     [DISASSEM_STR_SIZE] = "and      ";
-    const char ecall_str   [DISASSEM_STR_SIZE] = "ecall    ";
-    const char ebrk_str    [DISASSEM_STR_SIZE] = "ebreak   ";
-    const char auipc_str   [DISASSEM_STR_SIZE] = "auipc    ";
-    const char lui_str     [DISASSEM_STR_SIZE] = "lui      ";
+    static const char reserved_str[DISASSEM_STR_SIZE] ;
+    static const char lb_str      [DISASSEM_STR_SIZE] ;
+    static const char lh_str      [DISASSEM_STR_SIZE] ;
+    static const char lw_str      [DISASSEM_STR_SIZE] ;
+    static const char lbu_str     [DISASSEM_STR_SIZE] ;
+    static const char lhu_str     [DISASSEM_STR_SIZE] ;
+    static const char sb_str      [DISASSEM_STR_SIZE] ;
+    static const char sh_str      [DISASSEM_STR_SIZE] ;
+    static const char sw_str      [DISASSEM_STR_SIZE] ;
+    static const char beq_str     [DISASSEM_STR_SIZE] ;
+    static const char bne_str     [DISASSEM_STR_SIZE] ;
+    static const char blt_str     [DISASSEM_STR_SIZE] ;
+    static const char bge_str     [DISASSEM_STR_SIZE] ;
+    static const char bltu_str    [DISASSEM_STR_SIZE] ;
+    static const char bgeu_str    [DISASSEM_STR_SIZE] ;
+    static const char jalr_str    [DISASSEM_STR_SIZE] ;
+    static const char jal_str     [DISASSEM_STR_SIZE] ;
+    static const char fence_str   [DISASSEM_STR_SIZE] ;
+    static const char addi_str    [DISASSEM_STR_SIZE] ;
+    static const char slti_str    [DISASSEM_STR_SIZE] ;
+    static const char sltiu_str   [DISASSEM_STR_SIZE] ;
+    static const char xori_str    [DISASSEM_STR_SIZE] ;
+    static const char ori_str     [DISASSEM_STR_SIZE] ;
+    static const char andi_str    [DISASSEM_STR_SIZE] ;
+    static const char slli_str    [DISASSEM_STR_SIZE] ;
+    static const char srli_str    [DISASSEM_STR_SIZE] ;
+    static const char srai_str    [DISASSEM_STR_SIZE] ;
+    static const char add_str     [DISASSEM_STR_SIZE] ;
+    static const char sub_str     [DISASSEM_STR_SIZE] ;
+    static const char sll_str     [DISASSEM_STR_SIZE] ;
+    static const char slt_str     [DISASSEM_STR_SIZE] ;
+    static const char sltu_str    [DISASSEM_STR_SIZE] ;
+    static const char xor_str     [DISASSEM_STR_SIZE] ;
+    static const char srl_str     [DISASSEM_STR_SIZE] ;
+    static const char sra_str     [DISASSEM_STR_SIZE] ;
+    static const char or_str      [DISASSEM_STR_SIZE] ;
+    static const char and_str     [DISASSEM_STR_SIZE] ;
+    static const char ecall_str   [DISASSEM_STR_SIZE] ;
+    static const char ebrk_str    [DISASSEM_STR_SIZE] ;
+    static const char auipc_str   [DISASSEM_STR_SIZE] ;
+    static const char lui_str     [DISASSEM_STR_SIZE] ;
 
     // ------------------------------------------------
     // Internal Type definitions
@@ -349,7 +349,7 @@ protected:
 
     // Fetch next instruction. For RV32I, always a simple 32 bit read.
     // Can be overridden to support compressed instructions (RV32C),
-    // expanding to 32 bits, and managing half word PC increments. 
+    // expanding to 32 bits, and managing half word PC increments.
     virtual uint32_t fetch_instruction()
     {
         bool fault;
@@ -427,7 +427,7 @@ protected:
         return str[str_idx];
     }
 
-    // Return real time as the number of microseconds 
+    // Return real time as the number of microseconds
     inline uint64_t real_time_us() {
         using namespace std::chrono;
         return time_point_cast<microseconds>(system_clock::now()).time_since_epoch().count();
@@ -498,7 +498,7 @@ private:
     void slli                            (const p_rv32i_decode_t);
     void srli                            (const p_rv32i_decode_t);
     void srai                            (const p_rv32i_decode_t);
-                                         
+
     void addr                            (const p_rv32i_decode_t);
     void subr                            (const p_rv32i_decode_t);
     void sllr                            (const p_rv32i_decode_t);

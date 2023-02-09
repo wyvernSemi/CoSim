@@ -168,7 +168,7 @@ extern "C" int VUser (const int node)
     int status;
     int idx, jdx;
 
-    VPrint("VUser(): node %d\n", node);
+    DebugVPrint("VUser(): node %d\n", node);
 
     // Interrupt callback initialisation
     ns[node]->VIntVecCB  = NULL;
