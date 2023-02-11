@@ -171,9 +171,9 @@ begin
     WaitForBarrier(GenerateIntSync) ; 
     -- IntReq <= '1' after IterationCount * 10 ns + 5 ns, '0' after IterationCount * 10 ns + 50 ns ;
     wait for IterationCount * 10 ns + 5 ns ;
-    Send(IntGenBit0Rec, "1") ; 
+    Send(InterruptRecArray(0), "1") ; 
     wait for 45 ns ;
-    Send(IntGenBit0Rec, "0") ; 
+    Send(InterruptRecArray(0), "0") ; 
     
     IterationCount := IterationCount + 1 ; 
   end process GenInterruptProc ;

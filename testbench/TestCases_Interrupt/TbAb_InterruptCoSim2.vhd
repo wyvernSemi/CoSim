@@ -134,9 +134,9 @@ begin
 
 --    IntReq <= '1' after 105 ns , '0' after 155 ns ;
     wait for 105 ns ; 
-    Send(IntGenBit0Rec, "1") ; 
+    Send(InterruptRecArray(0), "1") ; 
     wait for 50 ns ; 
-    Send(IntGenBit0Rec, "0") ; 
+    Send(InterruptRecArray(0), "0") ; 
 
     wait ;
 
