@@ -138,10 +138,10 @@ begin
 --    IntReq <= '1' after 105 ns , '0' after 155 ns ;
     wait for 105 ns ; 
 --    gIntReq(0) <= force '1' ;
-    Send(IntGenBit0Rec, "" & INT_POLARITY) ; 
+    Send(InterruptRecArray(0), "" & INT_POLARITY) ; 
     wait for 50 ns ; 
 --    gIntReq(0) <= force '0' ;
-    Send(IntGenBit0Rec, "" & not INT_POLARITY) ; 
+    Send(InterruptRecArray(0), "" & not INT_POLARITY) ; 
   
     wait ;
   

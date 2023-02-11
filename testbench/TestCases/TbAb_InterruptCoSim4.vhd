@@ -137,9 +137,9 @@ begin
     wait until nReset = '1' ;
   
     wait for 105 ns ; 
-    Send(IntGenBit0Rec, "" & INT_POLARITY) ; 
+    Send(InterruptRecArray(0), "" & INT_POLARITY) ; 
     wait for 1 ns ; 
-    Send(IntGenBit0Rec, "" & not INT_POLARITY) ; 
+    Send(InterruptRecArray(0), "" & not INT_POLARITY) ; 
   
     wait ;
   
