@@ -125,8 +125,9 @@ architecture TestHarness of TbAddressBusMemory is
     )
   ) ;
   
-  signal IntReq : std_logic_vector(gIntReq'range) ;
-  signal InterruptRecArray : InterruptGeneratorRecArrayType ; 
+  signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
+  signal InterruptRecArray : StreamRecArrayType(0 downto 0)(
+    DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
 
 
   component TestCtrl is
@@ -142,7 +143,7 @@ architecture TestHarness of TbAddressBusMemory is
       ManagerRec        : inout AddressBusRecType ;
       SubordinateRec    : inout AddressBusRecType ;
       
-      InterruptRecArray : inout InterruptGeneratorRecArrayType 
+      InterruptRecArray : inout StreamRecArrayType 
     ) ;
   end component TestCtrl ;
   
@@ -331,7 +332,7 @@ begin
   ) ;
   
   ------------------------------------------------------------
-  InterruptGen : for i in gIntReq'range generate
+  InterruptGen : for i in InterruptRecArray'range generate
   ------------------------------------------------------------
     InterruptGeneratorBit_1 : InterruptGeneratorBit 
     generic map (

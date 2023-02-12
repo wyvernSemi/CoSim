@@ -117,7 +117,7 @@ begin
       
       if (ManagerRec.Operation = WRITE_OP) and (ManagerRec.Address = x"AFFFFFFC") then
         -- IntReq <= ManagerRec.DataToModel(0) ;
-        Send(IntGenBit0Rec, "" & ManagerRec.DataToModel(0)) ; 
+        Send(InterruptRecArray(0), "" & ManagerRec.DataToModel(0)) ; 
       end if;
 
       -- Finish flagged by software
