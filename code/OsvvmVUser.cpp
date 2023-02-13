@@ -49,18 +49,19 @@ extern "C"
 }
 #include "OsvvmVUser.h"
 
-static std::mutex acc_mx[VP_MAX_NODES];
+#if defined(ALDEC)
 
-#if defined ALDEC
-#include <windows.h>
+# include <windows.h>
 
-#define dlsym GetProcAddress
-#define dlopen(_dll, _args) {LoadLibrary(_dll)}
-#define dlerror() ""
+# define dlsym GetProcAddress
+# define dlopen(_dll, _args) {LoadLibrary(_dll)}
+# define dlerror() ""
 
 typedef HINSTANCE symhdl_t;
+static std::mutex *acc_mx[VP_MAX_NODES];
 #else
 typedef void* symhdl_t;
+static std::mutex acc_mx[VP_MAX_NODES];
 #endif
 
 // -------------------------------------------------------------------------
@@ -122,10 +123,11 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
-#if !defined(ALDEC)
-    sprintf(vusersoname, "./VUser.so");
-#else
+#if defined(ALDEC)
+    acc_mx[node] = new std::mutex;
     sprintf(vusersoname, "./VProc.so");
+#else
+    sprintf(vusersoname, "./VUser.so");
 #endif
 
     // Load user shared object to get handle to lookup VUsermain function symbols
@@ -174,8 +176,6 @@ extern "C" int VUser (const int node)
     ns[node]->VIntVecCB  = NULL;
     ns[node]->last_int   = 0;
 
-    ns[node]->VUserCB = NULL;
-
     // Load VProc shared object to make symbols global
     symhdl_t hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
@@ -213,7 +213,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
+#if defined(ALDEC)
+    acc_mx[node]->lock();
+#else
     acc_mx[node].lock();
+#endif
 
     int status;
 
@@ -225,6 +229,19 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     {
         printf("***Error: bad sem_post status (%d) on node %d (VExch)\n", status, node);
         exit(1);
+    }
+
+    // If this is the last message from the user code
+    // unlock/destroy the mutex, as GUI runs seem to
+    // hold on to the mutex state which hangs a simulation
+    // on subsequent runs.
+    if (ns[node]->send_buf.done)
+    {
+#if defined(ALDEC)
+        delete acc_mx[node];
+#else
+        acc_mx[node].unlock();
+#endif
     }
 
     // Wait for response message from simulator
@@ -243,7 +260,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
+#if defined(ALDEC)
+    acc_mx[node]->unlock();
+#else
     acc_mx[node].unlock();
+#endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }

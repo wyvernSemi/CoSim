@@ -112,6 +112,9 @@ extern "C" void VUserMain1()
             wdata += 0x10;
         }
     }
+    
+    // Flag to the simulation we're finished, after 10 more iterations
+    cosim.tick(10, true, error);
 
 
     // If ever got this far then sleep forever
