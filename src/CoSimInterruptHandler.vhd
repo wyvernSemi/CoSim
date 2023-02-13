@@ -66,12 +66,15 @@ port (
 ) ;
 end entity CoSimInterruptHandler ;
 architecture Behavioral of CoSimInterruptHandler is
+  signal gIntReqDelayed : gIntReq'subtype ; 
 begin
 
+  gIntReqDelayed <= gIntReq ; 
+  
   GenInterrupts : for i in gIntReq'range generate
     gIntReq(i) <= 
       -- Clear when read by VProc. gIntReq'delayed is what was read by VProc
-      '0'  when gVProcReadInterrupts'event and gIntReq(i)'delayed = '1' and EDGE_LEVEL(i) = INTERRUPT_ON_EDGE else
+      '0'  when gVProcReadInterrupts'event and gIntReqDelayed(i) = '1' and EDGE_LEVEL(i) = INTERRUPT_ON_EDGE else
 
       -- If level, pass IntReq(i) thru qualified by POLARITY
       to_01(IntReq(i)) xnor POLARITY(i)  when EDGE_LEVEL(i) = INTERRUPT_ON_LEVEL else
