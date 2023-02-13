@@ -56,6 +56,7 @@ extern "C"
 # define dlsym GetProcAddress
 # define dlopen(_dll, _args) {LoadLibrary(_dll)}
 # define dlerror() ""
+# define dlclose FreeLibrary
 
 typedef HINSTANCE symhdl_t;
 static std::mutex *acc_mx[VP_MAX_NODES];
@@ -63,6 +64,8 @@ static std::mutex *acc_mx[VP_MAX_NODES];
 typedef void* symhdl_t;
 static std::mutex acc_mx[VP_MAX_NODES];
 #endif
+
+static symhdl_t hdlvp;
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -115,6 +118,7 @@ static void VUserInit (const int node)
     char funcname[DEFAULT_STR_BUF_SIZE];
     char vusersoname[DEFAULT_STR_BUF_SIZE];
     int status;
+    symhdl_t hdlvu;
 
     DebugVPrint("VUserInit(%d)\n", node);
 
@@ -125,18 +129,17 @@ static void VUserInit (const int node)
 
 #if defined(ALDEC)
     acc_mx[node] = new std::mutex;
-    sprintf(vusersoname, "./VProc.so");
+    hdlvu = hdlvp;
 #else
     sprintf(vusersoname, "./VUser.so");
-#endif
-
     // Load user shared object to get handle to lookup VUsermain function symbols
-    symhdl_t hdlvu = dlopen(vusersoname, RTLD_LAZY | RTLD_GLOBAL);
+    hdlvu = dlopen(vusersoname, RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvu == NULL)
     {
         VPrint("***Error: failed to load VUser.so. %s\n", dlerror());
     }
+#endif
 
     // Get the function pointer for the entry routine
     if ((VUserMain_func = (pVUserMain_t) dlsym(hdlvu, funcname)) == NULL)
@@ -144,6 +147,10 @@ static void VUserInit (const int node)
         printf("***Error: failed to find user code symbol %s (VUserInit)\n", funcname);
         exit(1);
     }
+
+#if defined(ALDEC)   
+    dlclose(hdlvp);
+#endif
 
     DebugVPrint("VUserInit(): got user function (%s) for node %d (%p)\n", funcname, node, VUserMain_func);
 
@@ -177,7 +184,7 @@ extern "C" int VUser (const int node)
     ns[node]->last_int   = 0;
 
     // Load VProc shared object to make symbols global
-    symhdl_t hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+    hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvp == NULL)
     {
