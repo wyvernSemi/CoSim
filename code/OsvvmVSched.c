@@ -154,6 +154,8 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
     int node;
     int args[VINIT_NUM_ARGS];
     
+    setvbuf(stdout, 0, _IONBF, 0);
+    
     getVhpiParams(cb, args, VINIT_NUM_ARGS);
     node = args[0];
 #endif
