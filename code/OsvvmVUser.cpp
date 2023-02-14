@@ -53,11 +53,13 @@ extern "C"
 
 # include <windows.h>
 
+// Map Linux dynamic laoding calls to Windows equivalents
 # define dlsym GetProcAddress
 # define dlopen(_dll, _args) {LoadLibrary(_dll)}
 # define dlerror() ""
 # define dlclose FreeLibrary
 
+// Aldec seems to doesn't free mutexes unless deleted, so make pointers
 typedef HINSTANCE symhdl_t;
 static std::mutex *acc_mx[VP_MAX_NODES];
 #else
@@ -128,7 +130,10 @@ static void VUserInit (const int node)
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
 #if defined(ALDEC)
+    // Create a new mutex for this node in ALDEC
     acc_mx[node] = new std::mutex;
+    
+    // No separate user DLL under ALDEC so simply use the VProc.so handle
     hdlvu = hdlvp;
 #else
     sprintf(vusersoname, "./VUser.so");
@@ -148,7 +153,8 @@ static void VUserInit (const int node)
         exit(1);
     }
 
-#if defined(ALDEC)   
+#if defined(ALDEC)  
+    // Close the VProc.so handle to decrement the count, incremented with the open
     dlclose(hdlvp);
 #endif
 

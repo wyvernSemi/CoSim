@@ -48,10 +48,7 @@ proc gen_lib_flags {libname} {
   set osname $::osvvm::OperatingSystemName
 
   # Select the RISC-V ISS library required
-  if {$::osvvm::ToolName eq "ActiveHDL"} {
-    set rvlib ${libname}avhdl
-  } elseif {$::osvvm::ToolName ne "ModelSim" } {
-
+  if {$::osvvm::ToolName ne "ModelSim" } {
     if {"$osname" eq "linux"} {
       set rvlib ${libname}x64
     } else {
