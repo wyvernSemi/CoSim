@@ -48,4 +48,8 @@ analyze TbAb_InterruptCoSim3.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptIss rv32
 simulate TbAb_InterruptCoSim3 [CoSim]
 
+analyze TbAb_InterruptCoSim4.vhd
+MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interrupt4
+simulate TbAb_InterruptCoSim4 [CoSim] [generic NUM_INTERRUPTS 2]
+
 

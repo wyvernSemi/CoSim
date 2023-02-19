@@ -57,6 +57,11 @@ library OSVVM_CoSim ;
   context OSVVM_CoSim.CoSimContext ;
 
 entity TbAddressBusMemory is
+generic (
+  NUM_INTERRUPTS       : integer := 1 ;
+  INT_EDGE_LEVEL       : std_logic := INTERRUPT_ON_LEVEL ;
+  INT_POLARITY         : std_logic := '1' 
+) ;
 end entity TbAddressBusMemory ;
 architecture TestHarness of TbAddressBusMemory is
   constant AXI_ADDR_WIDTH : integer := 32 ;
@@ -120,6 +125,10 @@ architecture TestHarness of TbAddressBusMemory is
   ) ;
 
   component TestCtrl is
+    generic (
+      INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
+      INT_POLARITY      : std_logic := '1' 
+    ) ;
     port (
       -- Global Signal Interface
       nReset            : In    std_logic ;
@@ -134,7 +143,7 @@ architecture TestHarness of TbAddressBusMemory is
   end component TestCtrl ;
 
   signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
-  signal InterruptRecArray : StreamRecArrayType(0 downto 0)(
+  signal InterruptRecArray : StreamRecArrayType(NUM_INTERRUPTS-1 downto 0)(
     DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
   
 begin
@@ -324,7 +333,7 @@ begin
   ------------------------------------------------------------
   port map (
     -- Interrupt Input
-    IntReq       => IntReq(0),
+    IntReq       => IntReq,
 
     -- From TestCtrl
     TransRec     => ManagerRec,
@@ -340,7 +349,7 @@ begin
     InterruptGeneratorBit_1 : InterruptGeneratorBit 
     generic map (
       MODEL_ID_NAME    => "InterruptGeneratorBit_" & to_string(i),
-      POLARITY         => '1'
+      POLARITY         => INT_POLARITY
     ) 
     port map (
       -- Interrupt Input
@@ -354,6 +363,10 @@ begin
   ------------------------------------------------------------
   TestCtrl_1 : TestCtrl
   ------------------------------------------------------------
+  generic map (
+    INT_EDGE_LEVEL       => INT_EDGE_LEVEL,
+    INT_POLARITY         => INT_POLARITY
+  ) 
   port map (
     -- Global Signal Interface
     nReset            => nReset,

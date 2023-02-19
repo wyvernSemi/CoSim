@@ -60,6 +60,7 @@ library OSVVM_CoSim ;
 
 entity TbAddressBusMemory is
 generic (
+  NUM_INTERRUPTS       : integer := 1 ;
   INT_EDGE_LEVEL       : std_logic := INTERRUPT_ON_LEVEL ;
   INT_POLARITY         : std_logic := '1' 
 ) ;
@@ -126,7 +127,7 @@ architecture TestHarness of TbAddressBusMemory is
   ) ;
   
   signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
-  signal InterruptRecArray : StreamRecArrayType(0 downto 0)(
+  signal InterruptRecArray : StreamRecArrayType(NUM_INTERRUPTS-1 downto 0)(
     DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
 
 
