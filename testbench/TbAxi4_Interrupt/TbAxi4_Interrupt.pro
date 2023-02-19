@@ -42,4 +42,8 @@ TestSuite  CoSim_Axi4_Interrupt
 library    osvvm_CoSim_Axi4_Interrupt
 
 analyze    TestCtrl_e.vhd
-analyze    TbAddressBusMemory.vhd
+if {$::osvvm::ToolName ne "GHDL"} { 
+  analyze    TbAddressBusMemory.vhd
+} else {
+  analyze    TbAddressBusMemory_GHDL.vhd
+}
