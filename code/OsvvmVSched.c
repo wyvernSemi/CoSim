@@ -301,26 +301,36 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
                 VPAddrWidth_int = 32;
                 VPDataWidth_int = 32;
                 break;
+            case stream_snd_byte:
+            case stream_get_byte:
             case trans64_wr_byte:
             case trans64_rd_byte:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 8;
                 break;
+            case stream_snd_hword:
+            case stream_get_hword:
             case trans64_wr_hword:
             case trans64_rd_hword:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 16;
                 break;
+            case stream_snd_word:
+            case stream_get_word:
             case trans64_wr_word:
             case trans64_rd_word:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 32;
                 break;
+            case stream_snd_dword:
+            case stream_get_dword:
             case trans64_wr_dword:
             case trans64_rd_dword:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 64;
                 break ;
+            case stream_snd_burst:
+            case stream_get_burst:
             case trans64_wr_burst:
             case trans64_rd_burst:
                 VPAddrWidth_int = 64;

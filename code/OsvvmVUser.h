@@ -107,10 +107,22 @@ extern void     VTransBurstWrite (const uint64_t addr, uint8_t  *data, const int
 extern void     VTransBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 extern void     VTransBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 
+extern uint8_t  VStreamSend      (const uint8_t   data, const uint32_t node = 0);
+extern void     VStreamGet       (      uint8_t  *data, const uint32_t node = 0);
+extern uint8_t  VStreamSend      (const uint16_t  data, const uint32_t node = 0);
+extern void     VStreamGet       (      uint16_t *data, const uint32_t node = 0);
+extern uint8_t  VStreamSend      (const uint32_t  data, const uint32_t node = 0);
+extern void     VStreamGet       (      uint32_t *data, const uint32_t node = 0);
+extern uint8_t  VStreamSend      (const uint64_t  data, const uint32_t node = 0);
+extern void     VStreamGet       (      uint64_t *data, const uint32_t node = 0);
+
+extern void     VStreamBurstSend (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
+extern void     VStreamBurstGet  (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
+
 #endif
 
-extern EXTC int  VUser               (const int node);
-extern EXTC void VRegInterrupt       (const pVUserInt_t func, const uint32_t node);
+extern EXTC int  VUser           (const int node);
+extern EXTC void VRegInterrupt   (const pVUserInt_t func, const uint32_t node);
 
 // In windows using the FLI, a \n in the printf format string causes
 // two lines to be advanced, so replace new lines with carriage returns

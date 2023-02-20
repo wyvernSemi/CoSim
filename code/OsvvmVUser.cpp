@@ -79,6 +79,7 @@ static void VInitSendBuf(send_buf_t &sbuf)
 {
     sbuf.op              = NOT_DRIVEN;
     sbuf.type            = trans_idle;
+    sbuf.addr            = 0;
     sbuf.prot            = 0;
     sbuf.num_burst_bytes = 0;
     sbuf.ticks           = 0;
@@ -775,6 +776,245 @@ void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, c
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.op              = READ_BURST;
+    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+
+    VExch(&sbuf, &rbuf, node);
+
+    for (int idx = 0; idx < rbuf.num_burst_bytes; idx++)
+    {
+        data[idx] = rbuf.databuf[idx];
+    }
+
+    return;
+}
+
+// -------------------------------------------------------------------------
+// VStreamSend()
+//
+// Invokes an 8-bit send transaction exchange
+//
+// -------------------------------------------------------------------------
+
+uint8_t VStreamSend (const uint8_t data, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_snd_byte;
+    sbuf.op              = (addr_bus_trans_op_t)SEND;
+
+    *((uint8_t*)sbuf.data) = data & 0xffU;
+
+    VExch(&sbuf, &rbuf, node);
+
+    return rbuf.data_in & 0xffU;
+}
+
+// -------------------------------------------------------------------------
+// VStreamGet()
+//
+// Invokes an 8-bit read stream transaction exchange
+//
+// -------------------------------------------------------------------------
+
+void VStreamGet (uint8_t *rdata, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_get_byte;
+    sbuf.op              = (addr_bus_trans_op_t)GET;
+
+    VExch(&sbuf, &rbuf, node);
+
+    *rdata = rbuf.data_in & 0xffU;
+}
+
+// -------------------------------------------------------------------------
+// VStreamSend()
+//
+// Invokes an 16-bit send transaction exchange
+//
+// -------------------------------------------------------------------------
+
+uint8_t VStreamSend (const uint16_t data, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_snd_hword;
+    sbuf.op              = (addr_bus_trans_op_t)SEND;
+
+    *((uint16_t*)sbuf.data) = data & 0xffffU;
+
+    VExch(&sbuf, &rbuf, node);
+
+    return rbuf.data_in & 0xffffU;
+}
+
+// -------------------------------------------------------------------------
+// VStreamGet()
+//
+// Invokes an 16-bit read stream transaction exchange
+//
+// -------------------------------------------------------------------------
+
+void VStreamGet (uint16_t *rdata, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_get_hword;
+    sbuf.op              = (addr_bus_trans_op_t)GET;
+
+    VExch(&sbuf, &rbuf, node);
+
+    *rdata = rbuf.data_in & 0xffffU;
+}
+
+// -------------------------------------------------------------------------
+// VStreamSend()
+//
+// Invokes an 32-bit send transaction exchange
+//
+// -------------------------------------------------------------------------
+
+uint8_t VStreamSend (const uint32_t data, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_snd_word;
+    sbuf.op              = (addr_bus_trans_op_t)SEND;
+
+    *((uint32_t*)sbuf.data) = data & 0xffffffffU;
+
+    VExch(&sbuf, &rbuf, node);
+
+    return rbuf.data_in & 0xffffffffU;
+}
+
+
+// -------------------------------------------------------------------------
+// VStreamGet()
+//
+// Invokes an 32-bit read stream transaction exchange
+//
+// -------------------------------------------------------------------------
+
+void VStreamGet (uint32_t *rdata, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_get_word;
+    sbuf.op              = (addr_bus_trans_op_t)GET;
+
+    VExch(&sbuf, &rbuf, node);
+
+    *rdata = rbuf.data_in & 0xffffffffU;
+}
+
+// -------------------------------------------------------------------------
+// VStreamSend()
+//
+// Invokes an 64-bit send transaction exchange
+//
+// -------------------------------------------------------------------------
+
+uint8_t VStreamSend (const uint64_t data,const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_snd_dword;
+    sbuf.op              = (addr_bus_trans_op_t)SEND;
+
+    *((uint64_t*)sbuf.data) = data;
+
+    VExch(&sbuf, &rbuf, node);
+
+    return (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+}
+
+// -------------------------------------------------------------------------
+// VStreamGet()
+//
+// Invokes an 64-bit read stream transaction exchange
+//
+// -------------------------------------------------------------------------
+
+void VStreamGet (uint64_t *rdata, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_get_dword;
+    sbuf.op              = (addr_bus_trans_op_t)GET;
+
+    VExch(&sbuf, &rbuf, node);
+
+    *rdata = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+}
+
+// -------------------------------------------------------------------------
+// VStreamBurstSend()
+//
+// Invokes a send burst transaction exchange )
+// -------------------------------------------------------------------------
+
+void VStreamBurstSend (uint8_t* data, const int bytesize, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_snd_burst;
+    sbuf.op              = (addr_bus_trans_op_t)SEND_BURST;
+    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+
+    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    {
+        sbuf.databuf[idx] = data[idx];
+    }
+
+    VExch(&sbuf, &rbuf, node);
+
+    return;
+}
+
+// -------------------------------------------------------------------------
+// VStreamBurstGet()
+//
+// Invokes a read burst transaction exchange (64-bit address)
+// -------------------------------------------------------------------------
+
+void VTransBurstRead  (uint8_t* data, const int bytesize, const uint32_t node)
+{
+    rcv_buf_t    rbuf;
+    send_buf_t   sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type            = stream_get_burst;
+    sbuf.op              = (addr_bus_trans_op_t)GET_BURST;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
     VExch(&sbuf, &rbuf, node);

@@ -117,6 +117,20 @@ typedef enum trans_type_e
   trans64_rd_dword,
   trans64_rd_qword,
   trans64_rd_burst,
+  
+  stream_snd_byte,
+  stream_snd_hword,
+  stream_snd_word,
+  stream_snd_dword,
+  stream_snd_qword,
+  stream_snd_burst,
+  stream_get_byte,
+  stream_get_hword,
+  stream_get_word,
+  stream_get_dword,
+  stream_get_qword,
+  stream_get_burst,
+  
   trans_idle
 
 } trans_type_e;
@@ -161,6 +175,35 @@ typedef enum addr_bus_trans_op_e
     
     SET_TEST_NAME = 1024
 } addr_bus_trans_op_t;
+
+typedef enum stream_operation_e
+{
+    //NOT_DRIVEN = 0,  
+    //WAIT_FOR_CLOCK, 
+    //WAIT_FOR_TRANSACTION,
+    //GET_TRANSACTION_COUNT,
+    //GET_ALERTLOG_ID,
+    //SET_BURST_MODE,
+    //GET_BURST_MODE,
+    //GOT_BURST, 
+    //SET_MODEL_OPTIONS,
+    //GET_MODEL_OPTIONS,
+    SEND = 10,                // This first (cf. write)
+    SEND_ASYNC,
+    SEND_BURST,          // This first (cf. write burst)
+    SEND_BURST_ASYNC,
+    GET,                 // This first (cf. read)    
+    TRY_GET,
+    GET_BURST,           // This first (cf. read burst)
+    TRY_GET_BURST,
+    CHECK,
+    TRY_CHECK,
+    CHECK_BURST,
+    TRY_CHECK_BURST,
+    //MULTIPLE_DRIVER_DETECT,
+    
+    //SET_TEST_NAME = 1024
+} stream_operation_t;
 
 typedef enum arch_e
 {
