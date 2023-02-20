@@ -81,11 +81,13 @@ proc gen_lib_flags {libname} {
 proc mk_vproc_common {testname libname} {
 
 # Get the OS that we are running on
-  # set osname [string tolower [exec uname]]
-  set osname $::osvvm::OperatingSystemName
+
+  set vendorflags ""
   
   if {$::osvvm::ToolName eq "ActiveHDL" } {
     set mkfilearg "makefile.avhdl"
+    set avhdlpath [exec which avhdl]
+    set vendorflags "ALDECDIR=${avhdlpath}/../../"
   } else {
     set mkfilearg "makefile"
   }
@@ -97,7 +99,8 @@ proc mk_vproc_common {testname libname} {
             SIM=$::osvvm::ToolName                                \
             USRCDIR=$testname                                     \
             OPDIR=$::osvvm::CurrentSimulationDirectory            \
-            USRFLAGS=${flags}
+            USRFLAGS=${flags}                                     \
+            $vendorflags
 
 }
 
