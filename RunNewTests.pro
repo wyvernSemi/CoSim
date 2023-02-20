@@ -37,10 +37,10 @@
 # include  ./testbench/TbAxi4Lite/tests.pro
 
 # Analyze Axi4 testbench and run tests on it
-include  ./testbench/TbAxi4
-include  ./testbench/TbAxi4/tests.pro
-include  ./testbench/TestCases
+# include  ./testbench/TbAxi4
+# include  ./testbench/TbAxi4/tests.pro
+# include  ./testbench/TestCases
 
 # # Analyze Axi4 testbench and run tests on it
-# include ./testbench/TbAxi4_Interrupt
-# include ./testbench/TestCases_Interrupt
+include ./testbench/TbAxi4_Interrupt
+include ./testbench/TestCases_Interrupt/RunDemoTests.pro

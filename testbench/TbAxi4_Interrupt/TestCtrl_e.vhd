@@ -63,6 +63,10 @@ library OSVVM_CoSim ;
   context OSVVM_CoSim.CoSimContext ;
 
 entity TestCtrl is
+  generic (
+    INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
+    INT_POLARITY      : std_logic := '1' 
+  ) ;
   port (
     -- Global Signal Interface
     nReset            : In    std_logic ;

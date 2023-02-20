@@ -143,7 +143,7 @@ architecture TestHarness of TbAddressBusMemory is
   end component TestCtrl ;
 
   signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
-  signal InterruptRecArray : StreamRecArrayType(NUM_INTERRUPTS-1 downto 0)(
+  signal InterruptRecArray : StreamRecArrayType(gIntReq'range)(
     DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
   
 begin
