@@ -780,7 +780,7 @@ void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, c
 
     VExch(&sbuf, &rbuf, node);
 
-    for (int idx = 0; idx < rbuf.num_burst_bytes; idx++)
+    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
     {
         data[idx] = rbuf.databuf[idx];
     }
@@ -1006,7 +1006,7 @@ void VStreamBurstSend (uint8_t* data, const int bytesize, const uint32_t node)
 // Invokes a read burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-void VTransBurstRead  (uint8_t* data, const int bytesize, const uint32_t node)
+void VStreamBurstGet (uint8_t* data, const int bytesize, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -1019,7 +1019,7 @@ void VTransBurstRead  (uint8_t* data, const int bytesize, const uint32_t node)
 
     VExch(&sbuf, &rbuf, node);
 
-    for (int idx = 0; idx < rbuf.num_burst_bytes; idx++)
+    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
     {
         data[idx] = rbuf.databuf[idx];
     }
