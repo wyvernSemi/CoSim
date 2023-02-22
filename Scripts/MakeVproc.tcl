@@ -83,7 +83,7 @@ proc mk_vproc_common {testname libname} {
 # Get the OS that we are running on
 
   # Default of no additional vendor specific flags
-  set vendorflags ""
+  set vendorflags "DUMMY="
   
   if {$::osvvm::ToolName eq "ActiveHDL" } {
     set mkfilearg "makefile.avhdl"
