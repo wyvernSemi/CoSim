@@ -393,6 +393,8 @@ package body OsvvmTestCoSimPkg is
     variable RdDataInt       : integer ;
     variable WrDataInt       : integer ;
     variable TestName        : string(1 to VPBurstSize) ;
+    
+    variable PacketLength    : integer ; 
 
   begin
 
@@ -412,7 +414,9 @@ package body OsvvmTestCoSimPkg is
           Send (TxRec, WrData(VPDataWidth-1 downto 0)) ;
 
         when GET_BURST =>
-          GetBurst(RxRec, VPBurstSize) ;
+          PacketLength := VPBurstSize;
+          GetBurst(RxRec, PacketLength) ;
+          AffirmIfEqual(PacketLength, VPBurstSize, "Get burst packet Length") ;
 
           -- encapsulate the following:
           -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
