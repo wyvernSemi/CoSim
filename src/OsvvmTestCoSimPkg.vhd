@@ -89,7 +89,7 @@ procedure CoSimTrans (
 
   ------------------------------------------------------------
   ------------------------------------------------------------
-  procedure CoSimStreams (
+  procedure CoSimStream (
     signal   TxRec            : inout  StreamRecType ;
     signal   RxRec            : inout  StreamRecType ;
     variable Done             : inout  integer ;
@@ -321,7 +321,7 @@ package body OsvvmTestCoSimPkg is
   -- a transaction.
   --
   ------------------------------------------------------------
-  procedure CoSimStreams (
+  procedure CoSimStream (
     -- Transaction  interface
     signal   TxRec           : inout  StreamRecType ;
     signal   RxRec           : inout  StreamRecType ;
@@ -369,7 +369,7 @@ package body OsvvmTestCoSimPkg is
                             VPBurstSize, VPTicks,     NodeNum) ;
 
 
-  end procedure CoSimStreams ;
+  end procedure CoSimStream ;
 
   ------------------------------------------------------------
   -- Co-simulation procedure to dispatch one stream transaction
