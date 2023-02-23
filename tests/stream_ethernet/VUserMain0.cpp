@@ -99,7 +99,7 @@ extern "C" void VUserMain0()
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[bufidx++] = ~idx; //random() & 0xff;
+        TestData0[bufidx++] = random() & 0xff;
     }
     
     // reset the buffer index
