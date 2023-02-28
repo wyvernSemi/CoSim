@@ -70,8 +70,6 @@ USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
-ALDECDIR           =  /c/Aldec/Active-HDL-13-x64
-
 ifeq ("${SIM}", "ActiveHDL")
   ALDECDIR         =  /c/Aldec/Active-HDL-13-x64
   ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
