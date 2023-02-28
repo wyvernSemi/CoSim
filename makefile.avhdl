@@ -71,8 +71,15 @@ VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CP
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
 ALDECDIR           =  /c/Aldec/Active-HDL-13-x64
-ARCHFLAG           = -m64 -DALDEC -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
- 
+
+ifeq ("${SIM}", "ActiveHDL")
+  ALDECDIR         =  /c/Aldec/Active-HDL-13-x64
+  ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
+else
+  ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
+  ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/interfaces/include -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
+endif
+
 RV32EXE            = test.exe
 RV32CMD            = cp ${USRCDIR}/test.exe ${OPDIR}
 
@@ -93,11 +100,9 @@ OSTYPE:=$(shell uname)
 # Set OS specific variables between Linux and Windows (MinGW)
 ifeq (${OSTYPE}, Linux)
   CFLAGS_SO        = -shared -lpthread -lrt -rdynamic
-  CPPSTD           = -std=c++11
   WLIB             =
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
-  CPPSTD           = -std=c++11
   WLIB             = -lWs2_32
 endif
 
