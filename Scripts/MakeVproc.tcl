@@ -85,12 +85,19 @@ proc mk_vproc_common {testname libname} {
   # Default of no additional vendor specific flags
   set vendorflags "DUMMY="
   
+  # Default to using the normal makefile
+  set mkfilearg "makefile"
+  
+  # When an ALDEC simulator ...
   if {($::osvvm::ToolName eq "ActiveHDL") || ($::osvvm::ToolName eq "RivieraPRO") } {
-    set mkfilearg "makefile.avhdl"
-    set avhdlpath [file normalize $::env(_)/../..]
-    set vendorflags "ALDECDIR=${avhdlpath}"
-  } else {
-    set mkfilearg "makefile"
+    # If ActiveHDL, the choose its own makefile
+    if {($::osvvm::ToolName eq "ActiveHDL")} {
+      set mkfilearg "makefile.avhdl"
+    }
+    
+    # Ensure the correct path to the ALDEC tools
+    set aldecpath [file normalize $::env(_)/../..]
+    set vendorflags "ALDECDIR=${aldecpath}"
   }
 
   set flags [ gen_lib_flags ${libname} ]

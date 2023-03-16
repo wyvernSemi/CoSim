@@ -67,7 +67,9 @@ typedef void* symhdl_t;
 static std::mutex acc_mx[VP_MAX_NODES];
 #endif
 
+#if defined (ACTIVEHDL) || defined(SIEMENS)
 static symhdl_t hdlvp;
+#endif
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -133,8 +135,10 @@ static void VUserInit (const int node)
 #if defined(ALDEC)
     // Create a new mutex for this node in ALDEC
     acc_mx[node] = new std::mutex;
-    
-    // No separate user DLL under ALDEC so simply use the VProc.so handle
+#endif
+
+#if defined(ACTIVEHDL)
+    // No separate user DLL under Active-HDL so simply use the VProc.so handle
     hdlvu = hdlvp;
 #else
     sprintf(vusersoname, "./VUser.so");
@@ -154,7 +158,7 @@ static void VUserInit (const int node)
         exit(1);
     }
 
-#if defined(ALDEC)  
+#if defined(ACTIVEHDL) || defined(SIEMENS)
     // Close the VProc.so handle to decrement the count, incremented with the open
     dlclose(hdlvp);
 #endif
@@ -190,6 +194,9 @@ extern "C" int VUser (const int node)
     ns[node]->VIntVecCB  = NULL;
     ns[node]->last_int   = 0;
 
+    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
+
+#if defined(ACTIVEHDL) || defined (SIEMENS)
     // Load VProc shared object to make symbols global
     hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
@@ -197,8 +204,8 @@ extern "C" int VUser (const int node)
     {
         VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
     }
+#endif
 
-    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
 #ifndef DISABLE_VUSERMAIN_THREAD
     // Set off the user code thread

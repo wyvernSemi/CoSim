@@ -1,5 +1,6 @@
 #  File Name:         makefile
 #  Purpose:           make file for compiling cosimulation shared object
+#                     for Active-HDL
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell email:  simon@gmail.com
@@ -38,12 +39,14 @@
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
 #   USRFLAGS    : Additional user defined compile and link flags
+#   AVHDLCDIR   : Location of Active-HDL installation
 #
 # --------------------------------------------------------------------------
 
 USRCDIR            = usercode
 OPDIR              = .
 USRFLAGS           =
+AVHDLCDIR          = /c/Aldec/Active-HDL-13-x64
 
 # Derived directory locations
 SRCDIR             = code
@@ -70,13 +73,7 @@ USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
-ifeq ("${SIM}", "ActiveHDL")
-  ALDECDIR         =  /c/Aldec/Active-HDL-13-x64
-  ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
-else
-  ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
-  ARCHFLAG         = -m64 -DALDEC -I${ALDECDIR}/interfaces/include -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
-endif
+AVHDLFLAGS         = -m64 -DALDEC -DACTIVEHDL -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
 
 RV32EXE            = test.exe
 RV32CMD            = cp ${USRCDIR}/test.exe ${OPDIR}
@@ -111,7 +108,7 @@ CC                 = gcc
 C++                = g++
 CPPSTD             = -std=c++11
 CCSTD              = -std=c99
-CFLAGS             =  ${ARCHFLAG}                          \
+CFLAGS             =  ${AVHDLFLAGS}                        \
                      -g                                    \
                      -I${SRCDIR}                           \
                      -I${USRCDIR}                          \
