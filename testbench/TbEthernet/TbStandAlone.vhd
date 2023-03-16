@@ -49,9 +49,6 @@ library osvvm ;
 library osvvm_ethernet ;
     context osvvm_ethernet.xMiiContext ;
     
-library OSVVM_CoSim ;
-  context OSVVM_CoSim.CoSimContext ;
-    
 entity TbStandAlone is
   generic (
     MII_INTERFACE : xMiiInterfaceType := GMII ;

@@ -45,7 +45,9 @@ library OSVVM ;
 
 library OSVVM_Common ;
   use OSVVM_Common.AddressBusTransactionPkg.all ;
-  use OSVVM_Common.StreamTransactionPkg.all ;
+  
+library osvvm_ethernet ;
+    context osvvm_ethernet.xMiiContext ;
 
 library osvvm_cosim ;
   use osvvm_cosim.OsvvmVprocPkg.all ;
@@ -435,7 +437,7 @@ package body OsvvmTestCoSimPkg is
             WrByteData := to_signed(WrDataInt, WrByteData'length);
             Push(TxRec.BurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
           end loop ;
-
+          
           SendBurst(TxRec, VPBurstSize) ;
 
         when others =>
