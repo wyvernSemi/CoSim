@@ -38,7 +38,9 @@
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
 #   USRFLAGS    : Additional user defined compile and link flags
-#   SIM         : The target simulator. One of GHDL, NVC, QuestaSim, or ModelSim
+#   SIM         : The target simulator. One of GHDL, NVC, RivieraPRO, 
+#                 QuestaSim, or ModelSim
+#   ALDECDIR    : Location of RivieraPRO installation, when selected by SIM
 #
 # --------------------------------------------------------------------------
 
@@ -57,7 +59,6 @@ VPROC_C            = $(wildcard ${SRCDIR}/*.c*)
 VPROC_C_BASE       = $(notdir $(filter %c, ${VPROC_C}))
 VPROC_CPP_BASE     = $(notdir $(filter %cpp, ${VPROC_C}))
 
-
 # Test user code
 USER_C             = $(wildcard ${USRCDIR}/*.c*)
 EXCLFILE           = 
@@ -73,13 +74,16 @@ VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP
 VPROCLIBSUFFIX     = so
 
 ifeq ("${SIM}", "GHDL")
-  ARCHFLAG         = -m64
+  TOOLFLAGS        = -m64
 else ifeq ("${SIM}", "NVC")
-  ARCHFLAG         = -m64
+  TOOLFLAGS        = -m64
 else ifeq ("${SIM}", "QuestaSim")
-  ARCHFLAG         = -m64
+  TOOLFLAGS        = -m64 -DSIEMENS
+else ifeq ("${SIM}", "RivieraPRO")
+  ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
+  TOOLFLAGS        = -m64 -DALDEC -I${ALDECDIR}/interfaces/include -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
 else
-  ARCHFLAG         = -m32
+  TOOLFLAGS        = -m32 -DSIEMENS
 endif
 
 RV32EXE            = test.exe
@@ -118,7 +122,7 @@ MAX_NUM_VPROC      = 16
 CC                 = gcc
 C++                = g++
 CFLAGS             = -fPIC                                 \
-                     ${ARCHFLAG}                           \
+                     ${TOOLFLAGS}                          \
                      -g                                    \
                      -I${SRCDIR}                           \
                      -I${USRCDIR}                          \
