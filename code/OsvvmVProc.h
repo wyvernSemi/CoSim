@@ -43,12 +43,14 @@
 #include <stdlib.h>
 #include <strings.h>
 
-# ifndef __USE_GNU
-# define __USE_GNU
-# include <dlfcn.h>
-# undef __USE_GNU
-# else
-# include <dlfcn.h>
+# if !defined(ALDEC)
+#  ifndef __USE_GNU
+#  define __USE_GNU
+#  include <dlfcn.h>
+#  undef __USE_GNU
+#  else
+#  include <dlfcn.h>
+#  endif
 # endif
 
 #include <pthread.h>
@@ -196,7 +198,6 @@ typedef void * handle_t;
 
 // Interrupt function pointer type
 typedef int  (*pVUserInt_t)      (int);
-typedef int  (*pVUserCB_t)       (int);
 
 typedef struct
 {
@@ -206,7 +207,6 @@ typedef struct
     rcv_buf_t           rcv_buf;
     pVUserInt_t         VIntVecCB;
     unsigned int        last_int;
-    pVUserCB_t          VUserCB;
 } SchedState_t, *pSchedState_t;
 
 extern pSchedState_t ns[VP_MAX_NODES];

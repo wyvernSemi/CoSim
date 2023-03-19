@@ -70,7 +70,7 @@ entity TestCtrl is
     ManagerRec        : inout AddressBusRecType ;
     SubordinateRec    : inout AddressBusRecType ;
     
-    InterruptRecArray : inout InterruptGeneratorRecArrayType
+    InterruptRecArray : inout StreamRecArrayType
   ) ;
   
   -- Derive AXI interface properties from the ManagerRec
@@ -82,7 +82,4 @@ entity TestCtrl is
   -- Simplifying access to Burst FIFOs using aliases
   alias WriteBurstFifo : ScoreboardIdType is ManagerRec.WriteBurstFifo ;
   alias ReadBurstFifo  : ScoreboardIdType is ManagerRec.ReadBurstFifo ;
-  
-  alias IntGenBit0Rec is InterruptRecArray(0) ; 
-
 end entity TestCtrl ;

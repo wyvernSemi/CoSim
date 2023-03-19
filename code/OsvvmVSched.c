@@ -108,6 +108,7 @@ static void getVhpiParams(const struct vhpiCbDataS* cb, int args[], int args_siz
         value.value.intg = 0;
         vhpi_get_value(hParam, &value);
         args[idx++]      = value.value.intg;
+        DebugVPrint("getVhpiParams(): %s = %d\n", vhpi_get_str(vhpiNameP, hParam), value.value.intg);
     }
 }
 
@@ -131,11 +132,13 @@ static void setVhpiParams(const struct vhpiCbDataS* cb, int args[], int start_of
     {
         if (idx >= start_of_outputs)
         {
+            DebugVPrint("setVhpiParams(): %s = %d\n", vhpi_get_str(vhpiNameP, hParam), args[idx]);
             value.format     = vhpiIntVal;
             value.bufSize    = 0;
-            value.value.intg = args[idx++];
+            value.value.intg = args[idx];
             vhpi_put_value(hParam, &value, vhpiDeposit);
         }
+        idx++;
     }
 }
 #endif
@@ -150,6 +153,8 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 #if defined(ALDEC)
     int node;
     int args[VINIT_NUM_ARGS];
+    
+    setvbuf(stdout, 0, _IONBF, 0);
     
     getVhpiParams(cb, args, VINIT_NUM_ARGS);
     node = args[0];
@@ -228,15 +233,16 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     node                 = args[argIdx++];
     Interrupt            = args[argIdx++];
     VPDataIn             = args[argIdx++]; VPDataInHi     = args[argIdx++];
-    VPDataOut_int        = args[argIdx++]; VPDataOut_int  = args[argIdx++];
-    VPDataWidth_int      = args[argIdx++];
-    VPAddr_int           = args[argIdx++]; VPAddrHi_int   = args[argIdx++];
-    VPAddrWidth_int      = args[argIdx++];
-    VPOp_int             = args[argIdx++];
-    VPBurstSize_int      = args[argIdx++];
-    VPTicks_int          = args[argIdx++];
-    VPDone_int           = args[argIdx++];
-    VPError_int          = args[argIdx++];    
+    
+    VPDataOut_int        = 0; VPDataOut_int  = 0;
+    VPDataWidth_int      = 0;
+    VPAddr_int           = 0; VPAddrHi_int   = 0;
+    VPAddrWidth_int      = 0;
+    VPOp_int             = 0;
+    VPBurstSize_int      = 0;
+    VPTicks_int          = 0;
+    VPDone_int           = 0;
+    VPError_int          = 0;    
     
 #endif
 

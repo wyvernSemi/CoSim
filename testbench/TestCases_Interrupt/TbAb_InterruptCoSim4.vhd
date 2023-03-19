@@ -1,5 +1,5 @@
 --
---  File Name:         TbAb_InterruptCoSim1.vhd
+--  File Name:         TbAb_InterruptCoSim4.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
@@ -34,9 +34,9 @@
 --  limitations under the License.
 --
 
-architecture InterruptCoSim1 of TestCtrl is
+architecture InterruptCoSim4 of TestCtrl is
 
-  signal ManagerSync1, MemorySync1, TestDone, GenerateIntSync : integer_barrier := 1 ;
+  signal ManagerSync1, MemorySync1, TestDone, GenerateIntSync1, GenerateIntSync2 : integer_barrier := 1 ;
 
 begin
 
@@ -48,14 +48,14 @@ begin
   begin
 
     -- Initialization of test
---    SetTestName("TbAb_InterruptCoSim1") ;
+--    SetTestName("TbAb_InterruptCoSim4") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;      -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim1.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim4.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -70,7 +70,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_InterruptCoSim1.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim1.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_InterruptCoSim4.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim4.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -107,7 +107,11 @@ begin
         CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
       end loop ;
 
-      WaitForBarrier(GenerateIntSync) ; 
+      if i mod 2 = 0 then 
+        WaitForBarrier(GenerateIntSync1) ; 
+      else
+        WaitForBarrier(GenerateIntSync2) ; 
+      end if ; 
       wait for 9 ns ;
       WaitForClock(ManagerRec, 1) ;
       log("WaitForClock #1 finished") ;
@@ -165,18 +169,35 @@ begin
   -- InterruptGeneratorProc
   --   Generate transactions for AxiSubordinate
   ------------------------------------------------------------
-  GenInterruptProc : process
+  GenInterruptProc1 : process
     variable IterationCount : integer := 0 ; 
   begin
-    WaitForBarrier(GenerateIntSync) ; 
+    WaitForBarrier(GenerateIntSync1) ; 
     -- IntReq <= '1' after IterationCount * 10 ns + 5 ns, '0' after IterationCount * 10 ns + 50 ns ;
     wait for IterationCount * 10 ns + 5 ns ;
     Send(InterruptRecArray(0), "1") ; 
     wait for 45 ns ;
     Send(InterruptRecArray(0), "0") ; 
     
-    IterationCount := IterationCount + 1 ; 
-  end process GenInterruptProc ;
+    IterationCount := IterationCount + 2 ; 
+  end process GenInterruptProc1 ;
+
+  ------------------------------------------------------------
+  -- InterruptGeneratorProc
+  --   Generate transactions for AxiSubordinate
+  ------------------------------------------------------------
+  GenInterruptProc2 : process
+    variable IterationCount : integer := 1 ; 
+  begin
+    WaitForBarrier(GenerateIntSync2) ; 
+    -- IntReq <= '1' after IterationCount * 10 ns + 5 ns, '0' after IterationCount * 10 ns + 50 ns ;
+    wait for IterationCount * 10 ns + 5 ns ;
+    Send(InterruptRecArray(1), "1") ; 
+    wait for 45 ns ;
+    Send(InterruptRecArray(1), "0") ; 
+    
+    IterationCount := IterationCount + 2 ; 
+  end process GenInterruptProc2 ;
 
 
   ------------------------------------------------------------
@@ -195,15 +216,15 @@ begin
   end process SubordinateProc ;
 
 
-end InterruptCoSim1 ;
+end InterruptCoSim4 ;
 
-Configuration TbAb_InterruptCoSim1 of TbAddressBusMemory is
+Configuration TbAb_InterruptCoSim4 of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(InterruptCoSim1) ;
+      use entity work.TestCtrl(InterruptCoSim4) ;
     end for ;
 --!!    for Subordinate_1 : Axi4Subordinate
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAb_InterruptCoSim1 ;
+end TbAb_InterruptCoSim4 ;

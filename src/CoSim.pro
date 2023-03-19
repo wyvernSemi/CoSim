@@ -34,17 +34,10 @@
 
 library    osvvm_cosim
 
-if {$::osvvm::ToolName eq "ActiveHDL"} {
+if {($::osvvm::ToolName eq "ActiveHDL") || ($::osvvm::ToolName eq "RivieraPRO")} {
   analyze OsvvmVprocAldecPkg.vhd
 } elseif {$::osvvm::ToolName eq "NVC"} {
   analyze OsvvmVprocNvcPkg.vhd
-  # exec uname does not work in Windows - it does work in MSYS2
-  set osname [string tolower [exec uname]]
-  if {"$osname" ne "linux"} {
-    set ::env(NVC_FOREIGN_OBJ) VProc.so
-  } else {
-    SetExtendedRunOptions --load=./VProc.so
-  }
 } elseif {$::osvvm::ToolName eq "GHDL"} {
   analyze OsvvmVprocGhdlPkg.vhd
 } else {

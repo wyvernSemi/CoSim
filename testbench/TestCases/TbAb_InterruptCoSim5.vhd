@@ -1,19 +1,22 @@
 --
---  File Name:         TbAb_InterruptCoSim2.vhd
+--  File Name:         TbAb_InterruptCoSim5.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
 --  Maintainer:        Simon Southwell  email: simon.southwell@gmail.com
 --  Contributor(s):
 --     Simon Southwell      simon.southwell@gmail.com
+--     Jim Lewis            jim@synthworks.com
 --
 --
 --  Description:
 --      Test interrupt handling done in CoSim interface
+--      Edge generated interrupt
 --
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2023.01    Initial revision
+--    12/2022   2023.01    Updated interrupts to use global signal
+--    10/2022   ------     Initial revision
 --
 --
 --  This file is part of OSVVM.
@@ -33,7 +36,7 @@
 --  limitations under the License.
 --
 
-architecture InterruptCoSim2 of TestCtrl is
+architecture InterruptCoSim5 of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
 
@@ -47,14 +50,13 @@ begin
   begin
 
     -- Initialization of test
---    SetTestName("TbAb_InterruptCoSim2") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim2.txt") ;
+    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_InterruptCoSim5.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -69,7 +71,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_InterruptCoSim2.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim2.txt", "") ;
+    -- AlertIfDiff("./results/TbAb_InterruptCoSim5.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim5.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -88,13 +90,13 @@ begin
     variable Int         : integer := 0 ;
     variable WaitForClockRV : RandomPType ;
   begin
-    wait until nReset = '1' ;
-    WaitForClock(ManagerRec, 2) ;
-
     -- Initialise VProc code
     CoSimInit(Node);
     -- Fetch the SetTestName
     CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
+
+    wait until nReset = '1' ;
+    WaitForClock(ManagerRec, 2) ;
 
     OperationLoop : loop
 
@@ -102,7 +104,7 @@ begin
       if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
-
+      
       -- Inspect interrupt state and and convert to integer
       Int         := to_integer(signed(gIntReq)) ;
 
@@ -111,6 +113,10 @@ begin
 
       -- Alter if an error
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
+
+      if (ManagerRec.Operation = WRITE_OP) and (ManagerRec.Address = x"AFFFFFFC") then
+         Send(InterruptRecArray(0), "" & ManagerRec.DataToModel(0)) ;
+      end if;
 
       -- Finish when counts == 0
       exit when Done /= 0;
@@ -129,14 +135,6 @@ begin
   ------------------------------------------------------------
   InterruptProc : process
   begin
-
-    wait until nReset = '1' ;
-
---    IntReq <= '1' after 105 ns , '0' after 155 ns ;
-    wait for 105 ns ; 
-    Send(InterruptRecArray(0), "1") ; 
-    wait for 50 ns ; 
-    Send(InterruptRecArray(0), "0") ; 
 
     wait ;
 
@@ -158,15 +156,15 @@ begin
   end process SubordinateProc ;
 
 
-end InterruptCoSim2 ;
+end InterruptCoSim5 ;
 
-Configuration TbAb_InterruptCoSim2 of TbAddressBusMemory is
+Configuration TbAb_InterruptCoSim5 of TbAddressBusMemory is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(InterruptCoSim2) ;
+      use entity work.TestCtrl(InterruptCoSim5) ;
     end for ;
 --!!    for Subordinate_1 : Axi4Subordinate
 --!!      use entity OSVVM_AXI4.Axi4Memory ;
 --!!    end for ;
   end for ;
-end TbAb_InterruptCoSim2 ;
+end TbAb_InterruptCoSim5 ;

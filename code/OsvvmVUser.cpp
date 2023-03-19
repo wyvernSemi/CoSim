@@ -49,7 +49,27 @@ extern "C"
 }
 #include "OsvvmVUser.h"
 
+#if defined(ALDEC)
+
+# include <windows.h>
+
+// Map Linux dynamic laoding calls to Windows equivalents
+# define dlsym GetProcAddress
+# define dlopen(_dll, _args) {LoadLibrary(_dll)}
+# define dlerror() ""
+# define dlclose FreeLibrary
+
+// Aldec seems to doesn't free mutexes unless deleted, so make pointers
+typedef HINSTANCE symhdl_t;
+static std::mutex *acc_mx[VP_MAX_NODES];
+#else
+typedef void* symhdl_t;
 static std::mutex acc_mx[VP_MAX_NODES];
+#endif
+
+#if defined (ACTIVEHDL) || defined(SIEMENS)
+static symhdl_t hdlvp;
+#endif
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -100,7 +120,9 @@ static void VUserInit (const int node)
 {
     pVUserMain_t VUserMain_func;
     char funcname[DEFAULT_STR_BUF_SIZE];
+    char vusersoname[DEFAULT_STR_BUF_SIZE];
     int status;
+    symhdl_t hdlvu;
 
     DebugVPrint("VUserInit(%d)\n", node);
 
@@ -109,13 +131,24 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
+#if defined(ALDEC)
+    // Create a new mutex for this node in ALDEC
+    acc_mx[node] = new std::mutex;
+#endif
+
+#if defined(ACTIVEHDL)
+    // No separate user DLL under Active-HDL so simply use the VProc.so handle
+    hdlvu = hdlvp;
+#else
+    sprintf(vusersoname, "./VUser.so");
     // Load user shared object to get handle to lookup VUsermain function symbols
-    void* hdlvu = dlopen("./VUser.so", RTLD_LAZY | RTLD_GLOBAL);
+    hdlvu = dlopen(vusersoname, RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvu == NULL)
     {
         VPrint("***Error: failed to load VUser.so. %s\n", dlerror());
     }
+#endif
 
     // Get the function pointer for the entry routine
     if ((VUserMain_func = (pVUserMain_t) dlsym(hdlvu, funcname)) == NULL)
@@ -123,6 +156,11 @@ static void VUserInit (const int node)
         printf("***Error: failed to find user code symbol %s (VUserInit)\n", funcname);
         exit(1);
     }
+
+#if defined(ACTIVEHDL) || defined(SIEMENS)
+    // Close the VProc.so handle to decrement the count, incremented with the open
+    dlclose(hdlvp);
+#endif
 
     DebugVPrint("VUserInit(): got user function (%s) for node %d (%p)\n", funcname, node, VUserMain_func);
 
@@ -155,17 +193,18 @@ extern "C" int VUser (const int node)
     ns[node]->VIntVecCB  = NULL;
     ns[node]->last_int   = 0;
 
-    ns[node]->VUserCB = NULL;
+    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
+#if defined(ACTIVEHDL) || defined (SIEMENS)
     // Load VProc shared object to make symbols global
-    void* hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
+    hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
     if (hdlvp == NULL)
     {
         VPrint("***Error: failed to load VProc.so. %s\n", dlerror());
     }
+#endif
 
-    DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
 #ifndef DISABLE_VUSERMAIN_THREAD
     // Set off the user code thread
@@ -194,7 +233,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
+#if defined(ALDEC)
+    acc_mx[node]->lock();
+#else
     acc_mx[node].lock();
+#endif
 
     int status;
 
@@ -206,6 +249,19 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     {
         printf("***Error: bad sem_post status (%d) on node %d (VExch)\n", status, node);
         exit(1);
+    }
+
+    // If this is the last message from the user code
+    // unlock/destroy the mutex, as GUI runs seem to
+    // hold on to the mutex state which hangs a simulation
+    // on subsequent runs.
+    if (ns[node]->send_buf.done)
+    {
+#if defined(ALDEC)
+        delete acc_mx[node];
+#else
+        acc_mx[node].unlock();
+#endif
     }
 
     // Wait for response message from simulator
@@ -224,7 +280,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
+#if defined(ALDEC)
+    acc_mx[node]->unlock();
+#else
     acc_mx[node].unlock();
+#endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }
@@ -747,7 +807,7 @@ int VTick (const uint32_t ticks, const bool done, const bool error, const uint32
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
-    
+
     // Ensure the tick loop executes at least once to allow donr and/or error to be
     // set with a tick argument of 0.
     int loops = ticks ? ticks : 1;

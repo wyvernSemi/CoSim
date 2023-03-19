@@ -11,7 +11,7 @@
 //  Description:
 //    Contains the definitions for the rv32csr_cpu derived class
 //
-//    This file is part of the M extended RISC-V instruction
+//    This file is part of the A extended RISC-V instruction
 //    set simulator (rv32a_cpu).
 //
 //  Revision History:
@@ -83,17 +83,17 @@ private:
     // Granularity of LR.W reserved areas
     static const uint32_t rsvd_mem_block_bytes        = 32;
 
-    const char lrw_str     [DISASSEM_STR_SIZE] = "lr.w     ";
-    const char scw_str     [DISASSEM_STR_SIZE] = "sc.w     ";
-    const char amoswap_str [DISASSEM_STR_SIZE] = "amoswap.w";
-    const char amoadd_str  [DISASSEM_STR_SIZE] = "amoadd.w ";
-    const char amoxor_str  [DISASSEM_STR_SIZE] = "amoxor.w ";
-    const char amoand_str  [DISASSEM_STR_SIZE] = "amoand.w ";
-    const char amoor_str   [DISASSEM_STR_SIZE] = "amoor.w  ";
-    const char amomin_str  [DISASSEM_STR_SIZE] = "amomin.w ";
-    const char amomax_str  [DISASSEM_STR_SIZE] = "amomax.w ";
-    const char amominu_str [DISASSEM_STR_SIZE] = "amominu.w";
-    const char amomaxu_str [DISASSEM_STR_SIZE] = "amomaxu.w";
+    static const char lrw_str     [DISASSEM_STR_SIZE];
+    static const char scw_str     [DISASSEM_STR_SIZE];
+    static const char amoswap_str [DISASSEM_STR_SIZE];
+    static const char amoadd_str  [DISASSEM_STR_SIZE];
+    static const char amoxor_str  [DISASSEM_STR_SIZE];
+    static const char amoand_str  [DISASSEM_STR_SIZE];
+    static const char amoor_str   [DISASSEM_STR_SIZE];
+    static const char amomin_str  [DISASSEM_STR_SIZE];
+    static const char amomax_str  [DISASSEM_STR_SIZE];
+    static const char amominu_str [DISASSEM_STR_SIZE];
+    static const char amomaxu_str [DISASSEM_STR_SIZE];
 
     // Tertiary table for AMO.W instructions
     rv32i_decode_table_t  amow_tbl       [RV32I_NUM_TERTIARY_OPCODES];

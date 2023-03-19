@@ -41,7 +41,11 @@
 TestSuite  CoSim_Axi4
 library    osvvm_CoSim_TbAxi4
 analyze    TestCtrl_e.vhd
-analyze    TbAddressBusMemory.vhd
+if {$::osvvm::ToolName ne "GHDL"} { 
+  analyze    TbAddressBusMemory.vhd
+} else {
+  analyze    TbAddressBusMemory_GHDL.vhd
+}
 
 analyze    ../TestCases/TbAb_CoSim.vhd
 

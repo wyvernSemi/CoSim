@@ -56,14 +56,14 @@ private:
     // Private member variables
     // ------------------------------------------------
 
-    const char mul_str     [DISASSEM_STR_SIZE] = "mul      ";
-    const char mulh_str    [DISASSEM_STR_SIZE] = "mulh     ";
-    const char mulhsu_str  [DISASSEM_STR_SIZE] = "mulhsu   ";
-    const char mulhu_str   [DISASSEM_STR_SIZE] = "mulhu    ";
-    const char div_str     [DISASSEM_STR_SIZE] = "div      ";
-    const char divu_str    [DISASSEM_STR_SIZE] = "divu     ";
-    const char rem_str     [DISASSEM_STR_SIZE] = "rem      ";
-    const char remu_str    [DISASSEM_STR_SIZE] = "remu     ";
+    static const char mul_str     [DISASSEM_STR_SIZE];
+    static const char mulh_str    [DISASSEM_STR_SIZE];
+    static const char mulhsu_str  [DISASSEM_STR_SIZE];
+    static const char mulhu_str   [DISASSEM_STR_SIZE];
+    static const char div_str     [DISASSEM_STR_SIZE];
+    static const char divu_str    [DISASSEM_STR_SIZE];
+    static const char rem_str     [DISASSEM_STR_SIZE];
+    static const char remu_str    [DISASSEM_STR_SIZE];
 
     // ------------------------------------------------
     // Private member functions

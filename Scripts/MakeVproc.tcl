@@ -49,7 +49,6 @@ proc gen_lib_flags {libname} {
 
   # Select the RISC-V ISS library required
   if {$::osvvm::ToolName ne "ModelSim" } {
-
     if {"$osname" eq "linux"} {
       set rvlib ${libname}x64
     } else {
@@ -82,16 +81,34 @@ proc gen_lib_flags {libname} {
 proc mk_vproc_common {testname libname} {
 
 # Get the OS that we are running on
-  # set osname [string tolower [exec uname]]
-  set osname $::osvvm::OperatingSystemName
+
+  # Default of no additional vendor specific flags
+  set vendorflags "DUMMY="
+  
+  # Default to using the normal makefile
+  set mkfilearg "makefile"
+  
+  # When an ALDEC simulator ...
+  if {($::osvvm::ToolName eq "ActiveHDL") || ($::osvvm::ToolName eq "RivieraPRO") } {
+    # If ActiveHDL, the choose its own makefile
+    if {($::osvvm::ToolName eq "ActiveHDL")} {
+      set mkfilearg "makefile.avhdl"
+    }
+    
+    # Ensure the correct path to the ALDEC tools
+    set aldecpath [file normalize $::env(_)/../..]
+    set vendorflags "ALDECDIR=${aldecpath}"
+  }
 
   set flags [ gen_lib_flags ${libname} ]
 
   exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
+            -f $mkfilearg                                         \
             SIM=$::osvvm::ToolName                                \
-            USRCDIR=$testname                         \
+            USRCDIR=$testname                                     \
             OPDIR=$::osvvm::CurrentSimulationDirectory            \
-            USRFLAGS=${flags}
+            USRFLAGS=${flags}                                     \
+            $vendorflags
 
 }
 

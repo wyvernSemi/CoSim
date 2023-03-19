@@ -1,5 +1,6 @@
 #  File Name:         makefile
 #  Purpose:           make file for compiling cosimulation shared object
+#                     for Active-HDL
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell email:  simon@gmail.com
@@ -38,16 +39,14 @@
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
 #   USRFLAGS    : Additional user defined compile and link flags
-#   SIM         : The target simulator. One of GHDL, NVC, RivieraPRO, 
-#                 QuestaSim, or ModelSim
-#   ALDECDIR    : Location of RivieraPRO installation, when selected by SIM
+#   AVHDLCDIR   : Location of Active-HDL installation
 #
 # --------------------------------------------------------------------------
 
 USRCDIR            = usercode
 OPDIR              = .
 USRFLAGS           =
-SIM                = ModelSim
+AVHDLCDIR          = /c/Aldec/Active-HDL-13-x64
 
 # Derived directory locations
 SRCDIR             = code
@@ -59,11 +58,14 @@ VPROC_C            = $(wildcard ${SRCDIR}/*.c*)
 VPROC_C_BASE       = $(notdir $(filter %c, ${VPROC_C}))
 VPROC_CPP_BASE     = $(notdir $(filter %cpp, ${VPROC_C}))
 
+
 # Test user code
 USER_C             = $(wildcard ${USRCDIR}/*.c*)
-EXCLFILE           = 
+EXCLFILE           =
 USER_CPP_BASE      = $(patsubst ${EXCLFILE},,$(notdir $(filter %cpp, ${USER_C})))
 USER_C_BASE        = $(notdir $(filter %c, ${USER_C}))
+
+#$(info ${USRCDIR})
 
 SRC_INCL           = $(wildcard ${SRCDIR}/*.h)
 USER_INCL          = $(wildcard ${USRCDIR}/*.h)
@@ -71,20 +73,7 @@ USER_INCL          = $(wildcard ${USRCDIR}/*.h)
 VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
 VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
 
-VPROCLIBSUFFIX     = so
-
-ifeq ("${SIM}", "GHDL")
-  TOOLFLAGS        = -m64
-else ifeq ("${SIM}", "NVC")
-  TOOLFLAGS        = -m64
-else ifeq ("${SIM}", "QuestaSim")
-  TOOLFLAGS        = -m64 -DSIEMENS
-else ifeq ("${SIM}", "RivieraPRO")
-  ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
-  TOOLFLAGS        = -m64 -DALDEC -I${ALDECDIR}/interfaces/include -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
-else
-  TOOLFLAGS        = -m32 -DSIEMENS
-endif
+AVHDLFLAGS         = -m64 -DALDEC -DACTIVEHDL -I${ALDECDIR}/pli/Include -L${ALDECDIR}/pli/Lib -l:aldecpli.lib
 
 RV32EXE            = test.exe
 RV32CMD            = cp ${USRCDIR}/test.exe ${OPDIR}
@@ -96,10 +85,8 @@ else
 endif
 
 # Generated  PLI C library
-VPROC_PLI          = ${OPDIR}/VProc.${VPROCLIBSUFFIX}
+VPROC_PLI          = ${OPDIR}/VProc.so
 VLIB               = ${TESTDIR}/libvproc.a
-
-VUSER_PLI          = ${OPDIR}/VUser.so
 VULIB              = ${TESTDIR}/libvuser.a
 
 # Get OS type
@@ -108,12 +95,10 @@ OSTYPE:=$(shell uname)
 # Set OS specific variables between Linux and Windows (MinGW)
 ifeq (${OSTYPE}, Linux)
   CFLAGS_SO        = -shared -lpthread -lrt -rdynamic
-  CPPSTD           = -std=c++11
   WLIB             =
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
-  CPPSTD           =
-  WLIB             = -lWs2_32 -l:vproc.${VPROCLIBSUFFIX}
+  WLIB             = -lWs2_32
 endif
 
 # Define the maximum number of supported VProcs in the compile pli library
@@ -121,8 +106,9 @@ MAX_NUM_VPROC      = 16
 
 CC                 = gcc
 C++                = g++
-CFLAGS             = -fPIC                                 \
-                     ${TOOLFLAGS}                          \
+CPPSTD             = -std=c++11
+CCSTD              = -std=c99
+CFLAGS             =  ${AVHDLFLAGS}                        \
                      -g                                    \
                      -I${SRCDIR}                           \
                      -I${USRCDIR}                          \
@@ -133,16 +119,16 @@ CFLAGS             = -fPIC                                 \
 # BUILD RULES
 #------------------------------------------------------
 
-all: ${VPROC_PLI} ${VUSER_PLI}
+all: ${VPROC_PLI}
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.c ${SRC_INCL}
-	@${CC} -c ${CFLAGS} ${USRFLAGS} $< -o $@
+	@${CC} -c ${CCSTD} ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
-	@${C++} -c ${CFLAGS} ${USRFLAGS} $< -o $@
+	@${C++} -c ${CPPSTD} ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.c ${USER_INCL}
-	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
+	@${CC} -Wno-write-strings -c ${CCSTD} ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.cpp ${USER_INCL}
 	@${C++} ${CPPSTD} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
@@ -169,27 +155,15 @@ ${RV32EXE}:
 .PHONY: dummy
 dummy:
 
-${VPROC_PLI}: ${VLIB}
-	@${C++} ${CPPSTD}                                   \
-            ${CFLAGS_SO}                                \
-            -Wl,-whole-archive                          \
-            ${CFLAGS}                                   \
-            -L${TESTDIR} -lvproc                        \
-            -Wl,-no-whole-archive                       \
-            ${WLIB}                                     \
-            -ldl                                        \
-            -o $@
-
-${VUSER_PLI}: ${VULIB} ${RV32TEST}
+${VPROC_PLI}: ${VLIB} ${VULIB} ${RV32TEST}
 	@${C++} ${CPPSTD}                                   \
             ${CFLAGS_SO}                                \
             -Wl,-whole-archive                          \
             ${CFLAGS}                                   \
             ${USRFLAGS}                                 \
-            -L${TESTDIR} -lvuser                        \
+            -L${TESTDIR} -lvproc -lvuser                \
             -Wl,-no-whole-archive                       \
             ${WLIB}                                     \
-            -ldl                                        \
             -o $@
 
 #------------------------------------------------------

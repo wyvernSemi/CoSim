@@ -63,6 +63,10 @@ library OSVVM_CoSim ;
   context OSVVM_CoSim.CoSimContext ;
 
 entity TestCtrl is
+  generic (
+    INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
+    INT_POLARITY      : std_logic := '1' 
+  ) ;
   port (
     -- Global Signal Interface
     nReset            : In    std_logic ;
@@ -72,7 +76,7 @@ entity TestCtrl is
     InterruptRec      : inout AddressBusRecType ;
     SubordinateRec    : inout AddressBusRecType ;
       
-    InterruptRecArray : inout InterruptGeneratorRecArrayType 
+    InterruptRecArray : inout StreamRecArrayType 
   ) ;
   
   -- Derive AXI interface properties from the ManagerRec
@@ -80,6 +84,4 @@ entity TestCtrl is
   constant AXI_DATA_WIDTH : integer := ManagerRec.DataToModel'length ;  
   constant AXI_DATA_BYTE_WIDTH : integer := AXI_DATA_WIDTH / 8 ;
   constant AXI_BYTE_ADDR_WIDTH : integer := integer(ceil(log2(real(AXI_DATA_BYTE_WIDTH)))) ;
-    
-  alias IntGenBit0Rec is InterruptRecArray(0) ; 
 end entity TestCtrl ;

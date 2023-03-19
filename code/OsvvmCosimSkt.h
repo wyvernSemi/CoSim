@@ -136,7 +136,7 @@ private:
            static const int  MAXBACKLOG          = 5;
 
            // Hexadecimal character LUT
-                  const char HEXCHARS[HEX_BUF_SIZE] = "0123456789abcdef";
+           static const char HEXCHARS[HEX_BUF_SIZE] ;
 
     // Internal type definition
 

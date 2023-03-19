@@ -9,7 +9,7 @@
 --
 --
 --  Description:
---      Simple AXI + Interrupt Handler
+--      Simple AXI Lite Manager Model
 --
 --
 --  Developed by:
@@ -19,12 +19,14 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    04/2021   2021.04    Initial revision
+--    12/2020   2020.12    Updated signal and port names
+--    01/2020   2020.01    Updated license notice
+--    04/2018   2018       Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2021 by SynthWorks Design Inc.
+--  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -49,7 +51,7 @@ library osvvm ;
 
 library OSVVM_AXI4 ;
   context OSVVM_AXI4.Axi4Context ;
-
+  
 library OSVVM_Common ;
   context OSVVM_Common.OsvvmCommonContext ;
 
@@ -71,8 +73,8 @@ architecture TestHarness of TbAddressBusMemory is
   constant tperiod_Clk : time := 10 ns ;
   constant tpd         : time := 2 ns ;
 
-  signal Clk           : std_logic ;
-  signal nReset        : std_logic ;
+  signal Clk         : std_logic ;
+  signal nReset      : std_logic ;
 
 --  -- Testbench Transaction Interface
 --  subtype LocalTransactionRecType is AddressBusRecType(
@@ -82,7 +84,7 @@ architecture TestHarness of TbAddressBusMemory is
 --  ) ;
 --  signal ManagerRec   : LocalTransactionRecType ;
 --  signal SubordinateRec  : LocalTransactionRecType ;
-  signal ManagerRec, InterruptRec, VCRec, SubordinateRec  : AddressBusRecType (
+  signal ManagerRec, SubordinateRec  : AddressBusRecType (
           Address(AXI_ADDR_WIDTH-1 downto 0),
           DataToModel(AXI_DATA_WIDTH-1 downto 0),
           DataFromModel(AXI_DATA_WIDTH-1 downto 0)
@@ -123,6 +125,11 @@ architecture TestHarness of TbAddressBusMemory is
       User(7 downto 0)
     )
   ) ;
+  
+  signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
+  signal InterruptRecArray : StreamRecArrayType(gIntReq'range)(
+    DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
+
 
   component TestCtrl is
     generic (
@@ -135,38 +142,29 @@ architecture TestHarness of TbAddressBusMemory is
 
       -- Transaction Interfaces
       ManagerRec        : inout AddressBusRecType ;
-      InterruptRec      : inout AddressBusRecType ;
       SubordinateRec    : inout AddressBusRecType ;
       
       InterruptRecArray : inout StreamRecArrayType 
     ) ;
   end component TestCtrl ;
-
-  signal IntReq            : std_logic_vector(gIntReq'range) := (others => '0');
-  signal InterruptRecArray : StreamRecArrayType(NUM_INTERRUPTS-1 downto 0)(
-    DataToModel(0 downto 0), DataFromModel(0 downto 0), ParamToModel(NULL_RANGE_TYPE), ParamFromModel(NULL_RANGE_TYPE)) ;
   
 begin
 
   -- create Clock
-  ------------------------------------------------------------
   Osvvm.TbUtilPkg.CreateClock (
-  ------------------------------------------------------------
     Clk        => Clk,
     Period     => Tperiod_Clk
   )  ;
 
   -- create nReset
-  ------------------------------------------------------------
   Osvvm.TbUtilPkg.CreateReset (
-  ------------------------------------------------------------
     Reset       => nReset,
     ResetActive => '0',
     Clk         => Clk,
     Period      => 7 * tperiod_Clk,
     tpd         => tpd
   ) ;
-
+  
   ------------------------------------------------------------
   Axi4PassThru_1 : Axi4PassThru 
   ------------------------------------------------------------
@@ -285,25 +283,22 @@ begin
     sRUser        => AxiBus1.ReadData.User,   
     sRID          => AxiBus1.ReadData.ID
   ) ;
-    
-  ------------------------------------------------------------
+  
+  -- Behavioral model.  Replaces DUT for labs
   Memory_1 : Axi4Memory
-  ------------------------------------------------------------
   port map (
     -- Globals
     Clk         => Clk,
     nReset      => nReset,
 
     -- AXI Manager Functional Interface
-    AxiBus      => AxiBus2,
+    AxiBus  => AxiBus2,
     
     -- Testbench Transaction Interface
     TransRec    => SubordinateRec
   ) ;
-  
-  ------------------------------------------------------------
+
   Manager_1 : Axi4Manager
-  ------------------------------------------------------------
   port map (
     -- Globals
     Clk         => Clk,
@@ -312,13 +307,12 @@ begin
     -- AXI Manager Functional Interface
     AxiBus      => AxiBus1,
 
-    -- Testbench Transaction Interface - From InterruptHandler
-    TransRec    => VCRec
+    -- Testbench Transaction Interface
+    TransRec    => ManagerRec
   ) ;
 
-  ------------------------------------------------------------
+
   Monitor_1 : Axi4Monitor
-  ------------------------------------------------------------
   port map (
     -- Globals
     Clk         => Clk,
@@ -327,22 +321,17 @@ begin
     -- AXI Manager Functional Interface
     AxiBus      => AxiBus1
   ) ;
-
-  ------------------------------------------------------------
-  InterruptHandler_1 : InterruptHandler 
-  ------------------------------------------------------------
+  
+  CoSimInterruptHandler_1 : CoSimInterruptHandler 
+  generic map (
+    EDGE_LEVEL       => (gIntReq'range => INT_EDGE_LEVEL),
+    POLARITY         => (gIntReq'range => INT_POLARITY)
+  ) 
   port map (
     -- Interrupt Input
-    IntReq       => IntReq,
-
-    -- From TestCtrl
-    TransRec     => ManagerRec,
-    InterruptRec => InterruptRec,
-    
-    -- To Verification Component
-    VCRec        => VCRec
+    IntReq          => IntReq
   ) ;
-
+  
   ------------------------------------------------------------
   InterruptGen : for i in InterruptRecArray'range generate
   ------------------------------------------------------------
@@ -360,9 +349,8 @@ begin
     ) ;
   end generate InterruptGen ;
 
-  ------------------------------------------------------------
+
   TestCtrl_1 : TestCtrl
-  ------------------------------------------------------------
   generic map (
     INT_EDGE_LEVEL       => INT_EDGE_LEVEL,
     INT_POLARITY         => INT_POLARITY
@@ -373,8 +361,7 @@ begin
 
     -- Transaction Interfaces
     ManagerRec        => ManagerRec,
-    InterruptRec      => InterruptRec,
-    SubordinateRec    => SubordinateRec,
+    SubordinateRec    => SubordinateRec, 
     
     InterruptRecArray => InterruptRecArray
   ) ;
