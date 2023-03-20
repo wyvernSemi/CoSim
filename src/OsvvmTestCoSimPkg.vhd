@@ -45,7 +45,7 @@ library OSVVM ;
 
 library OSVVM_Common ;
   use OSVVM_Common.AddressBusTransactionPkg.all ;
-  
+
 library osvvm_ethernet ;
     context osvvm_ethernet.xMiiContext ;
 
@@ -112,6 +112,7 @@ procedure CoSimTrans (
     constant VPDataWidth     : in     integer ;
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
     constant NodeNum         : in     integer
   ) ;
 
@@ -175,6 +176,8 @@ package body OsvvmTestCoSimPkg is
     variable VPDone          : integer ;
     variable VPError         : integer ;
     variable VPOperation     : integer ;
+    variable VPParam         : integer ;
+    variable UnusedStatus    : integer := 0 ;
 
   begin
 
@@ -192,12 +195,12 @@ package body OsvvmTestCoSimPkg is
     end if;
 
     -- Call VTrans to generate a new access
-    VTrans(NodeNum,   IntReq,
+    VTrans(NodeNum,   IntReq,      UnusedStatus,
            VPDataIn,  VPDataInHi,
            VPDataOut, VPDataOutHi, VPDataWidth,
            VPAddr,    VPAddrHi,    VPAddrWidth,
            VPOp,      VPBurstSize, VPTicks,
-           VPDone,    VPError) ;
+           VPDone,    VPError,     VPParam) ;
 
     Done  := VPDone  ;
     Error := VPError ;
@@ -261,7 +264,7 @@ package body OsvvmTestCoSimPkg is
           ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
 
           -- encapsulate the following:
-          -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
+          -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
           RdData := (others => '0');
           for bidx in 0 to VPBurstSize-1 loop
             Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
@@ -332,8 +335,6 @@ package body OsvvmTestCoSimPkg is
     variable NodeNum         : in     integer := 0
     ) is
 
-    -- variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
-
     variable VPDataIn          : integer ;
     variable VPDataInHi        : integer ;
     variable VPDataOut         : integer ;
@@ -344,23 +345,34 @@ package body OsvvmTestCoSimPkg is
     variable VPTicks           : integer ;
     variable VPDone            : integer ;
     variable VPError           : integer ;
+    variable VPParam           : integer ;
     variable VPOperation       : integer ;
+    variable VPStatus          : integer ;
 
     variable UnusedVPAddr      : integer ;
     variable UnusedVPAddrHi    : integer ;
     variable UnusedVPAddrWidth : integer ;
     variable UnusedIntReq      : integer ;
 
+    variable RdData            : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+    variable Status            : std_logic_vector (31 downto 0) ;
+
   begin
 
+    Status     := osvvm.TbUtilPkg.MetaTo01(SafeResize(RxRec.ParamFromModel, Status'length)) ;
+    VPStatus   := to_integer(signed(Status)) ;
+
+    RdData     := osvvm.TbUtilPkg.MetaTo01(SafeResize(RxRec.DataFromModel, RdData'length)) ;
+    VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
+    VPDataInHi := 0 ;
 
     -- Call VTrans to generate a new TX access
-    VTrans(NodeNum,      UnusedIntReq,
+    VTrans(NodeNum,      UnusedIntReq,   VPStatus,
            VPDataIn,     VPDataInHi,
            VPDataOut,    VPDataOutHi,    VPDataWidth,
            UnusedVPAddr, UnusedVPAddrHi, UnusedVPAddrWidth,
            VPOp,         VPBurstSize,    VPTicks,
-           VPDone,       VPError) ;
+           VPDone,       VPError,        VPParam) ;
 
     Done  := VPDone  ;
     Error := VPError ;
@@ -368,7 +380,8 @@ package body OsvvmTestCoSimPkg is
     CoSimDispatchOneStream (TxRec, RxRec,
                             VPOp,
                             VPDataOut,   VPDataOutHi, VPDataWidth,
-                            VPBurstSize, VPTicks,     NodeNum) ;
+                            VPBurstSize, VPTicks,     VPParam,
+                            NodeNum) ;
 
 
   end procedure CoSimStream ;
@@ -386,23 +399,26 @@ package body OsvvmTestCoSimPkg is
     constant VPDataWidth     : in     integer ;
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
     constant NodeNum         : in     integer
   ) is
 
     variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
     variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+    variable Param           : std_logic_vector (31 downto 0) ;
     variable WrByteData      : signed (DATA_WIDTH_MAX-1 downto 0) ;
     variable RdDataInt       : integer ;
     variable WrDataInt       : integer ;
     variable TestName        : string(1 to VPBurstSize) ;
-    
-    variable PacketLength    : integer ; 
+
+    variable PacketLength    : integer ;
 
   begin
 
     -- Convert write data to std_logic_vectors
     WrData(31 downto 0 )  := std_logic_vector(to_signed(VPDataOut,   32)) ;
     WrData(63 downto 32)  := std_logic_vector(to_signed(VPDataOutHi, 32)) ;
+    Param(31 downto 0)    := std_logic_vector(to_signed(VPParam,     32)) ;
 
     if VpOperation < 1024 then
       case StreamOperationType'val(VpOperation) is
@@ -410,10 +426,11 @@ package body OsvvmTestCoSimPkg is
           WaitForClock(TxRec, VPTicks) ;
 
         when GET =>
-          Get  (RxRec, RdData(VPDataWidth-1 downto 0)) ;
+          Param := (others => '0');
+          Get  (RxRec, RdData(VPDataWidth-1 downto 0), Param(RxRec.ParamFromModel'length -1 downto 0)) ;
 
         when SEND =>
-          Send (TxRec, WrData(VPDataWidth-1 downto 0)) ;
+          Send (TxRec, WrData(VPDataWidth-1 downto 0), Param(TxRec.ParamToModel'length -1 downto 0)) ;
 
         when GET_BURST =>
           PacketLength := VPBurstSize;
@@ -421,7 +438,7 @@ package body OsvvmTestCoSimPkg is
           AffirmIfEqual(PacketLength, VPBurstSize, "Get burst packet Length") ;
 
           -- encapsulate the following:
-          -- Pop the bytes from the read fifo and write them the the co-sim receive buffer
+          -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
           RdData := (others => '0');
           for bidx in 0 to VPBurstSize-1 loop
             Pop(RxRec.BurstFifo, RdData(7 downto 0)) ;
@@ -437,7 +454,7 @@ package body OsvvmTestCoSimPkg is
             WrByteData := to_signed(WrDataInt, WrByteData'length);
             Push(TxRec.BurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
           end loop ;
-          
+
           SendBurst(TxRec, VPBurstSize) ;
 
         when others =>

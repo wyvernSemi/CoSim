@@ -16,11 +16,11 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    09/2022   2022       Initial revision
+//    02/2023   2023       Initial revision
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by Simon Southwell
+//  Copyright (c) 2023 by Simon Southwell
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -90,10 +90,10 @@ extern "C" void VUserMain1()
     {
         TestData1[bufidx++] = random() & 0xff;
     }
-    
+
     // Reset the buffer index
     bufidx = 0;
-    
+
     // Send some burst of data over TX stream
     txrx.streamBurstSend(&TestData1[bufidx], 128); bufidx += 128;
     txrx.streamBurstSend(&TestData1[bufidx], 128); bufidx += 128;
@@ -102,28 +102,28 @@ extern "C" void VUserMain1()
     txrx.streamBurstSend(&TestData1[bufidx], 32);  bufidx += 32;
 
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 16);  ridx += 16;
-    txrx.streamBurstGet(&RxData[ridx], 16);  ridx += 16;
-    txrx.streamBurstGet(&RxData[ridx], 256); ridx += 256;
-    
+    txrx.streamBurstGet(&RxData[ridx], 16);        ridx += 16;
+    txrx.streamBurstGet(&RxData[ridx], 16);        ridx += 16;
+    txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
+
     // Send some burst of data over TX stream
     txrx.streamBurstSend(&TestData1[bufidx], 64);  bufidx += 64;
     txrx.streamBurstSend(&TestData1[bufidx], 128); bufidx += 128;
-    
+
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 32);  ridx += 32;
-    txrx.streamBurstGet(&RxData[ridx], 64);  ridx += 64;
-    txrx.streamBurstGet(&RxData[ridx], 128); ridx += 128;
-    
+    txrx.streamBurstGet(&RxData[ridx], 32);        ridx += 32;
+    txrx.streamBurstGet(&RxData[ridx], 64);        ridx += 64;
+    txrx.streamBurstGet(&RxData[ridx], 128);       ridx += 128;
+
     // Send some burst of data over TX stream
     txrx.streamBurstSend(&TestData1[bufidx], 256); bufidx += 256;
     txrx.streamBurstSend(&TestData1[bufidx], 256); bufidx += 256;
-    
+
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 256); ridx += 256;
-    txrx.streamBurstGet(&RxData[ridx], 256); ridx += 256;
-    
-    // Check all the received data against that sent
+    txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
+    txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
+
+    // Check all the received data against that expected
     for (int idx = 0; idx < BUF_SIZE; idx++)
     {
         error |= checkRdata(RxData[idx], TestData0[idx], idx, node);

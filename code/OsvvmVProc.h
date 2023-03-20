@@ -221,6 +221,7 @@ typedef struct
     uint8_t             data[16];
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
+    int                 param;
     int                 ticks;
     int                 done;
     int                 error;
@@ -232,6 +233,7 @@ typedef struct
     unsigned int        data_in_hi;
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
+    int                 status;
     unsigned int        interrupt;
 } rcv_buf_t, *prcv_buf_t;
 

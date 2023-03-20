@@ -802,7 +802,7 @@ void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, c
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint8_t data, const uint32_t node)
+uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -811,6 +811,7 @@ uint8_t VStreamSend (const uint8_t data, const uint32_t node)
 
     sbuf.type            = stream_snd_byte;
     sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.param           = param;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -826,7 +827,7 @@ uint8_t VStreamSend (const uint8_t data, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint8_t *rdata, const uint32_t node)
+void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -838,6 +839,7 @@ void VStreamGet (uint8_t *rdata, const uint32_t node)
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
     *rdata = rbuf.data_in & 0xffU;
 }
 
@@ -848,7 +850,7 @@ void VStreamGet (uint8_t *rdata, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint16_t data, const uint32_t node)
+uint8_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -857,6 +859,7 @@ uint8_t VStreamSend (const uint16_t data, const uint32_t node)
 
     sbuf.type            = stream_snd_hword;
     sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.param           = param;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -872,7 +875,7 @@ uint8_t VStreamSend (const uint16_t data, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint16_t *rdata, const uint32_t node)
+void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -884,6 +887,7 @@ void VStreamGet (uint16_t *rdata, const uint32_t node)
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
     *rdata = rbuf.data_in & 0xffffU;
 }
 
@@ -894,7 +898,7 @@ void VStreamGet (uint16_t *rdata, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint32_t data, const uint32_t node)
+uint8_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -903,6 +907,7 @@ uint8_t VStreamSend (const uint32_t data, const uint32_t node)
 
     sbuf.type            = stream_snd_word;
     sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.param           = param;
 
     *((uint32_t*)sbuf.data) = data & 0xffffffffU;
 
@@ -919,7 +924,7 @@ uint8_t VStreamSend (const uint32_t data, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint32_t *rdata, const uint32_t node)
+void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -931,6 +936,7 @@ void VStreamGet (uint32_t *rdata, const uint32_t node)
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
     *rdata = rbuf.data_in & 0xffffffffU;
 }
 
@@ -941,7 +947,7 @@ void VStreamGet (uint32_t *rdata, const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint64_t data,const uint32_t node)
+uint8_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -950,6 +956,7 @@ uint8_t VStreamSend (const uint64_t data,const uint32_t node)
 
     sbuf.type            = stream_snd_dword;
     sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.param           = param;
 
     *((uint64_t*)sbuf.data) = data;
 
@@ -965,7 +972,7 @@ uint8_t VStreamSend (const uint64_t data,const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint64_t *rdata, const uint32_t node)
+void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -977,7 +984,8 @@ void VStreamGet (uint64_t *rdata, const uint32_t node)
 
     VExch(&sbuf, &rbuf, node);
 
-    *rdata = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+    *status = rbuf.status;
+    *rdata  = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
 }
 
 // -------------------------------------------------------------------------

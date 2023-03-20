@@ -90,7 +90,7 @@ extern "C" void VUserMain0()
     int      ridx = 0;
 
     bool                  error = false;
-    std::string           test_name("CoSim_streams");
+    std::string           test_name("CoSim_ethernet_streams");
     OsvvmCosimStream      txrx(node, test_name);
 
     // Use node number, inverted, as the random number generator seed.
@@ -111,11 +111,11 @@ extern "C" void VUserMain0()
     txrx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
 
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 128); ridx += 128;
-    txrx.streamBurstGet(&RxData[ridx], 128); ridx += 128;
-    txrx.streamBurstGet(&RxData[ridx], 16);  ridx += 16;
-    txrx.streamBurstGet(&RxData[ridx], 16);  ridx += 16;
-    txrx.streamBurstGet(&RxData[ridx], 32);  ridx += 32;
+    txrx.streamBurstGet(&RxData[ridx], 128);       ridx += 128;
+    txrx.streamBurstGet(&RxData[ridx], 128);       ridx += 128;
+    txrx.streamBurstGet(&RxData[ridx], 16);        ridx += 16;
+    txrx.streamBurstGet(&RxData[ridx], 16);        ridx += 16;
+    txrx.streamBurstGet(&RxData[ridx], 32);        ridx += 32;
 
     // Send some burst of data over TX stream
     txrx.streamBurstSend(&TestData0[bufidx], 32);  bufidx += 32;
@@ -123,18 +123,18 @@ extern "C" void VUserMain0()
     txrx.streamBurstSend(&TestData0[bufidx], 128); bufidx += 128;
 
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 64);  ridx += 64;
-    txrx.streamBurstGet(&RxData[ridx], 128); ridx += 128;
+    txrx.streamBurstGet(&RxData[ridx], 64);        ridx += 64;
+    txrx.streamBurstGet(&RxData[ridx], 128);       ridx += 128;
     
     // Send some burst of data over TX stream
-    txrx.streamBurstSend(&TestData0[bufidx], 256);  bufidx += 256;
-    txrx.streamBurstSend(&TestData0[bufidx], 256);  bufidx += 256;
+    txrx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
+    txrx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
     
     // Get some burst data from RX stream
-    txrx.streamBurstGet(&RxData[ridx], 256); ridx += 256;
-    txrx.streamBurstGet(&RxData[ridx], 256); ridx += 256;
+    txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
+    txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
 
-    // Check all the received data against that sent
+    // Check all the received data against that expected
     for (int idx = 0; idx < BUF_SIZE; idx++)
     {
         error |= checkRdata(RxData[idx], TestData1[idx], idx, node);

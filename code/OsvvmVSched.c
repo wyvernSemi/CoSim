@@ -1,7 +1,7 @@
 // =========================================================================
 //
 //  File Name:         OsvvmVProc.h
-//  Design Unit Name:  
+//  Design Unit Name:
 //  Revision:          OSVVM MODELS STANDARD VERSION
 //
 //  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    02/2023   2023.??    Added support from streaming
 //    10/2022   2023.01    Initial revision
 //
 //
@@ -96,11 +97,11 @@ static void getVhpiParams(const struct vhpiCbDataS* cb, int args[], int args_siz
 {
     int         idx      = 0;
     vhpiValueT  value;
-    
+
     vhpiHandleT hParam;
     vhpiHandleT hScope   = cb->obj;
     vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
-    
+
     while ((hParam = vhpi_scan(hIter)) && idx < args_size)
     {
         value.format     = vhpiIntVal;
@@ -123,11 +124,11 @@ static void setVhpiParams(const struct vhpiCbDataS* cb, int args[], int start_of
 {
     int         idx      = 0;
     vhpiValueT  value;
-    
+
     vhpiHandleT hParam;
     vhpiHandleT hScope   = cb->obj;
     vhpiHandleT hIter    = vhpi_iterator(vhpiParamDecls, hScope);
-    
+
     while ((hParam = vhpi_scan(hIter)) && idx < args_size)
     {
         if (idx >= start_of_outputs)
@@ -153,9 +154,9 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 #if defined(ALDEC)
     int node;
     int args[VINIT_NUM_ARGS];
-    
+
     setvbuf(stdout, 0, _IONBF, 0);
-    
+
     getVhpiParams(cb, args, VINIT_NUM_ARGS);
     node = args[0];
 #endif
@@ -203,16 +204,17 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 
 VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 {
-    
+
     int VPDataOut_int,   VPAddr_int,   VPOp_int, VPTicks_int;
     int VPDataOutHi_int, VPAddrHi_int, VPBurstSize_int, VPDone_int;
     int VPDataWidth_int, VPAddrWidth_int;
-    int VPError_int;
-    
+    int VPError_int,     VPParam_int;
+
 #if defined(ALDEC)
-    int args[VTRANS_NUM_ARGS];
+    int  args[VTRANS_NUM_ARGS];
     int  node;
     int  Interrupt;
+    int  VPStatus;
     int  VPDataIn;
     int  VPDataInHi;
     int* VPDataOut;
@@ -226,14 +228,16 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     int* VPTicks;
     int* VPDone;
     int* VPError;
-    
+    int* VPParam;
+
     getVhpiParams(cb, args, VTRANS_NUM_ARGS);
-    
+
     int argIdx           = 0;
     node                 = args[argIdx++];
     Interrupt            = args[argIdx++];
+    VPStatus             = args[argIdx++];
     VPDataIn             = args[argIdx++]; VPDataInHi     = args[argIdx++];
-    
+
     VPDataOut_int        = 0; VPDataOut_int  = 0;
     VPDataWidth_int      = 0;
     VPAddr_int           = 0; VPAddrHi_int   = 0;
@@ -242,8 +246,9 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     VPBurstSize_int      = 0;
     VPTicks_int          = 0;
     VPDone_int           = 0;
-    VPError_int          = 0;    
-    
+    VPError_int          = 0;
+    VPParam_int          = 0;
+
 #endif
 
     // Sample inputs and update node state
@@ -257,6 +262,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         ns[node]->rcv_buf.num_burst_bytes = ns[node]->send_buf.num_burst_bytes;
     }
     ns[node]->rcv_buf.interrupt  = Interrupt;
+    ns[node]->rcv_buf.status     = VPStatus;
 
     // Send message to VUser with VPDataIn value
     DebugVPrint("VTrans(): setting rcv[%d] semaphore\n", node);
@@ -278,6 +284,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
         VPTicks_int     = ns[node]->send_buf.ticks;
         VPDone_int      = ns[node]->send_buf.done;
         VPError_int     = ns[node]->send_buf.error;
+        VPParam_int     = ns[node]->send_buf.param;
 
         switch(ns[node]->send_buf.type)
         {
@@ -336,10 +343,10 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 64;
                 break;
-              
+
             case trans_idle:
                 break;
-              
+
             default:
                 // Unsupported
                 break;
@@ -349,7 +356,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     }
 
     DebugVPrint("VTrans(): returning to simulation from node %d\n\n", node);
-    
+
     DebugVPrint("===> addr=%08x rnw=%d burst=%d ticks=%d\n", VPAddr_int, VPRw_int, VPBurstSize_int, VPTicks_int);
 
 #if !defined(ALDEC)
@@ -365,6 +372,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     *VPTicks          = VPTicks_int;
     *VPDone           = VPDone_int;
     *VPError          = VPError_int;
+    *VPParam          = VPParam_int;
 #else
     argIdx            = VTRANS_START_OF_OUTPUTS;
     args[argIdx++]    = VPDataOut_int;
@@ -378,7 +386,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     args[argIdx++]    = VPTicks_int;
     args[argIdx++]    = VPDone_int;
     args[argIdx++]    = VPError_int;
-    
+    args[argIdx++]    = VPParam_int;
+
     setVhpiParams(cb, args, VTRANS_START_OF_OUTPUTS, VTRANS_NUM_ARGS);
 #endif
 }
@@ -392,9 +401,9 @@ VPROC_RTN_TYPE VSetBurstRdByte(VSETBURSTRDBYTE_PARAMS)
 {
 #if defined(ALDEC)
     int args[VSETBURSTRDBYTE_NUM_ARGS];
-    
+
     getVhpiParams(cb, args, VSETBURSTRDBYTE_NUM_ARGS);
-    
+
     int argIdx           = 0;
     int node             = args[argIdx++];
     int idx              = args[argIdx++];
@@ -415,15 +424,15 @@ VPROC_RTN_TYPE VGetBurstWrByte(VGETBURSTWRBYTE_PARAMS)
     int args[VGETBURSTWRBYTE_NUM_ARGS];
 
     getVhpiParams(cb, args, VGETBURSTWRBYTE_NUM_ARGS);
-    
+
     int argIdx           = 0;
     int node             = args[argIdx++];
     int idx              = args[argIdx++];
-    
+
     argIdx            = VGETBURSTWRBYTE_START_OF_OUTPUTS;
     args[argIdx++]    = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];;
     setVhpiParams(cb, args, VGETBURSTWRBYTE_START_OF_OUTPUTS, VGETBURSTWRBYTE_NUM_ARGS);
-#else   
+#else
     *data = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];
 #endif
 }

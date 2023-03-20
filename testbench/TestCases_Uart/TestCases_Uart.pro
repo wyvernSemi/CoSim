@@ -37,33 +37,11 @@
 #  limitations under the License.
 #  
 
-TestSuite Ethernet
-library Ethernet_TestStandAlone
-
-#analyze OsvvmTestCommonPkg.vhd
-
-analyze TestCtrl_e.vhd
-analyze TbStandAlone.vhd
-
-analyze Tb_xMii1.vhd
+analyze TbUart_SendGet1.vhd
 
 ChangeWorkingDirectory ../../tests
-MkVproc  stream_ethernet
+MkVproc  stream_uart
 
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE GMII] [generic MII_BPS BPS_1G]    [CoSim]
+TestName   CoSim_uart_streams
+simulate TbUart_SendGet1 [CoSim]
 
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE RGMII] [generic MII_BPS BPS_1G]   [CoSim]
-
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_100M] [CoSim]
-
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE MII]   [generic MII_BPS BPS_10M]  [CoSim]
-
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_100M] [CoSim]
-
-TestName   CoSim_streams
-simulate Tb_xMii1 [generic MII_INTERFACE RMII]  [generic MII_BPS BPS_10M]  [CoSim]
