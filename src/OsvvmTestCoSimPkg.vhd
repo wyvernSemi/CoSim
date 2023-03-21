@@ -57,12 +57,18 @@ package OsvvmTestCoSimPkg is
   type CoSimOperationType is (SET_TEST_NAME) ;
 
   ------------------------------------------------------------
+  -- Co-simulation procedure to initialise and start user code
+  -- for a given node.
   ------------------------------------------------------------
 
 procedure CoSimInit (
   variable NodeNum          : in     integer := 0
   ) ;
 
+  ------------------------------------------------------------
+  -- Co-simulation procedure to generate addreass bus
+  -- transactions.
+  ------------------------------------------------------------
 procedure CoSimTrans (
   signal   ManagerRec       : inout  AddressBusRecType ;
   variable Done             : inout  integer ;
@@ -72,8 +78,22 @@ procedure CoSimTrans (
   ) ;
 
   ------------------------------------------------------------
-  -- Co-simulation procedure to dispatch one transactions
+  -- Co-simulation procedure to generate streaming
+  -- transactions.
   ------------------------------------------------------------
+  procedure CoSimStream (
+    signal   TxRec            : inout  StreamRecType ;
+    signal   RxRec            : inout  StreamRecType ;
+    variable Done             : inout  integer ;
+    variable Error            : inout  integer ;
+    variable NodeNum          : in     integer := 0
+  ) ;
+
+  ------------------------------------------------------------
+  -- Co-simulation procedure to dispatch one address bus
+  -- transactions
+  ------------------------------------------------------------
+
   procedure CoSimDispatchOneTransaction (
     -- Transaction  interface
     signal   ManagerRec      : inout  AddressBusRecType ;
@@ -90,18 +110,10 @@ procedure CoSimTrans (
   ) ;
 
   ------------------------------------------------------------
+  -- Co-simulation procedure to dispatch one stream
+  -- transaction
   ------------------------------------------------------------
-  procedure CoSimStream (
-    signal   TxRec            : inout  StreamRecType ;
-    signal   RxRec            : inout  StreamRecType ;
-    variable Done             : inout  integer ;
-    variable Error            : inout  integer ;
-    variable NodeNum          : in     integer := 0
-  ) ;
 
-  ------------------------------------------------------------
-  -- Co-simulation procedure to dispatch one stream transaction
-  ------------------------------------------------------------
   procedure CoSimDispatchOneStream (
     -- Transaction  interface
     signal   TxRec           : inout  StreamRecType ;
