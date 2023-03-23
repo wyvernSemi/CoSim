@@ -42,5 +42,11 @@
 # include  ./testbench/TestCases
 
 # # Analyze Axi4 testbench and run tests on it
-include ./testbench/TbAxi4_Interrupt
-include ./testbench/TestCases_Interrupt/RunDemoTests.pro
+# include ./testbench/TbAxi4_Interrupt
+# include ./testbench/TestCases_Interrupt/RunDemoTests.pro
+
+# include ./testbench/TbUart
+# include ./testbench/TestCases_Uart
+
+include ./testbench/TbAxi4Stream
+include ./testbench/TestCases_Axi4Stream

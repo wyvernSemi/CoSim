@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------------------
 //
-//  File Name:           VUserMain0.cpp
-//  Design Unit Name:    Co-simulation virtual processor test program
+//  File Name:           VUserMain1.cpp
+//  Design Unit Name:    Co-simulation stream Ethernet VC test program
 //  Revision:            OSVVM MODELS STANDARD VERSION
 //
 //  Maintainer:          Simon Southwell      email:  simon.southwell@gmail.com
@@ -9,18 +9,18 @@
 //     Simon Southwell   simon.southwell@gmail.com
 //
 //  Description:
-//      Co-simulation test transaction source
+//      Co-simulation burst treaming test using OSVVM Ethernet VC
 //
 //  Developed by:
 //        Simon Southwell
 //
 //  Revision History:
 //    Date      Version    Description
-//    02/2023   2023       Initial revision
+//    02/2023   2023.04    Initial revision
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 by Simon Southwell
+//  Copyright (c) 2023 by [OSVVM Authors](AUTHORS.md) 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-// Import VProc user API
+// Import OSVVM user API
 #include "OsvvmCosimStream.h"
 
 #ifdef _WIN32
@@ -58,7 +58,7 @@ extern uint8_t TestData0[BUF_SIZE];
 static uint8_t RxData[BUF_SIZE] = {{0xcc}};
 
 // ------------------------------------------------------------------------------
-// Use VUserMain0 checkRdata function (re-entrant)
+// Use VUserMain0's checkRdata function (re-entrant)
 // ------------------------------------------------------------------------------
 
 extern bool checkRdata(uint8_t got, uint8_t exp, int idx, int node_num);

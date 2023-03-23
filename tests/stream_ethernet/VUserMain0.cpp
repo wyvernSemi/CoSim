@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------------------
 //
 //  File Name:           VUserMain0.cpp
-//  Design Unit Name:    Co-simulation virtual processor test program
+//  Design Unit Name:    Co-simulation stream Ethernet VC test program
 //  Revision:            OSVVM MODELS STANDARD VERSION
 //
 //  Maintainer:          Simon Southwell      email:  simon.southwell@gmail.com
@@ -9,18 +9,18 @@
 //     Simon Southwell   simon.southwell@gmail.com
 //
 //  Description:
-//      Co-simulation burst streaming test
+//      Co-simulation burst treaming test using OSVVM Ethernet VC
 //
 //  Developed by:
 //        Simon Southwell
 //
 //  Revision History:
 //    Date      Version    Description
-//    02/2023   2023       Initial revision
+//    02/2023   2023.04    Initial revision
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 by Simon Southwell
+//  Copyright (c) 2023 by [OSVVM Authors](AUTHORS.md) 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@
 #include <cstdlib>
 #include <cstdint>
 
-// Import VProc user API
+// Import OSVVM user API for streams
 #include "OsvvmCosimStream.h"
 
 #ifdef _WIN32

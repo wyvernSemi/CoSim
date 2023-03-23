@@ -53,3 +53,7 @@ include ./testbench/TestCases_Ethernet
 include ./testbench/TbUart
 include ./testbench/TestCases_Uart
 
+# Analyse AxiStream testbench and run tests on it
+include ./testbench/TbAxi4Stream
+include ./testbench/TestCases_Axi4Stream
+
