@@ -3,13 +3,14 @@
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+--  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
 --  Contributor(s):
---     Jim Lewis      jim@synthworks.com
+--     Simon Southwell simon.southwell@gmail.com
+--     Jim Lewis       jim@synthworks.com
 --
 --
 --  Description:
---      GetBurst with no last, just ID and Dest changes
+--      Test for OSVVM co-simulation Ethernet streams
 --
 --
 --  Developed by:
@@ -19,12 +20,12 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    10/2022   2022.10    Initial Release
+--    03/2023   2023.04    Initial Release
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by SynthWorks Design Inc.
+--  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -41,7 +42,6 @@
 architecture xMii1 of TestCtrl is
 
   signal   TestDone : integer_barrier := 1 ;
-
 
 begin
 
@@ -70,7 +70,6 @@ begin
     AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     TranscriptClose ;
---    AffirmIfNotDiff("Tb_xMii1.txt", OSVVM_PATH_TO_TESTS & "/validated_results/TestStandAlone/Tb_xMii1.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;

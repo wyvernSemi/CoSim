@@ -20,7 +20,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 by [OSVVM Authors](AUTHORS.md) 
+//  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md) 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

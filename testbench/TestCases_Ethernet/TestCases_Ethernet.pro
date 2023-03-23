@@ -1,13 +1,13 @@
-#  File Name:         testbench.pro
+#  File Name:         TestCases_Ethernet.pro
 #  Revision:          STANDARD VERSION
 #
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Maintainer:        Simon Soutghwell email:  simon.southwell@gmail.com
 #  Contributor(s):
-#     Jim Lewis      jim@synthworks.com
+#     Simon Southwell simon.southwell@gmail.com
 #
 #
 #  Description:
-#        Script to run one Axi Stream test  
+#        Script to run one Ethernet co-simulation stream test  
 #
 #  Developed for:
 #        SynthWorks Design Inc.
@@ -17,12 +17,12 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    10/2022   2022.10    Initial Release
+#     3/2023   2023.04    Initial release
 #
 #
 #  This file is part of OSVVM.
-#
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  
+#  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-#  
 
 analyze Tb_xMii1.vhd
 

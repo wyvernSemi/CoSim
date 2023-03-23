@@ -1,4 +1,4 @@
-#  File Name:         testbench.pro
+#  File Name:         TestCases_Axi4Stream.pro
 #  Revision:          STANDARD VERSION
 #
 #  Maintainer:        Simon Southwell  email:  simon.southwell@gmail.com
@@ -17,7 +17,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#     3/2023   2023.03    Compile Script for OSVVM
+#     3/2023   2023.04    Compile Script for OSVVM
 #
 #
 #  This file is part of OSVVM.

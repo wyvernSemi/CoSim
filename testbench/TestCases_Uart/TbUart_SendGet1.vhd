@@ -3,13 +3,14 @@
 --  Design Unit Name:  TbUart_SendGet1
 --  OSVVM Release:     OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+--  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
 --  Contributor(s):
---     Jim Lewis      jim@synthworks.com
+--     Simon Southwell simon.southwell@gmail.com
+--     Jim Lewis       jim@synthworks.com
 --
 --
 --  Description:
---    Validate send, get, check transactions with errors in PE, SE, and BE
+--    Test for OSVVM co-simulation streaming using UART
 --
 --
 --  Developed by:
@@ -19,14 +20,12 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    1999      1999.00    Developed for SynthWorks' Advanced VHDL Testbenches and Verification Class
---    05/2019   2019.05    Updated for OSVVM public release
---    01/2020   2020.01    Updated license notice
+--    03/2023   2023.04    Initial release
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 1999 - 2020 by SynthWorks Design Inc.
+--  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -81,10 +80,8 @@ begin
     -- Wait for test to finish
     WaitForBarrier(TestDone, 10 ms) ;
     AlertIf(now >= 10 ms, "Test finished due to timeout") ;
-    --AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     TranscriptClose ;
---    AlertIfDiff("./results/TbUart_SendGet1.txt", "../Uart/testbench/validated_results/TbUart_SendGet1.txt", "") ;
 
     EndOfTestReports(ReportAll => FALSE) ;
     std.env.stop ;

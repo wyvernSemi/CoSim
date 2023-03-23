@@ -1,18 +1,16 @@
 --
---  File Name:         TbStream_SendGet1.vhd
+--  File Name:         Tb_Axi4Stream.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+--  Maintainer:        Simon Southwell email:  simon.southwell@gmail.com
 --  Contributor(s):
---     Jim Lewis      jim@synthworks.com
+--     Simon Southwell simon.southwell@gmail.com
+--     Jim Lewis       jim@synthworks.com
 --
 --
 --  Description:
---      Validates Stream Model Independent Transactions
---      Send, Get, Check,
---      WaitForTransaction, GetTransactionCount
---      GetAlertLogID, GetErrorCount,
+--      OSVVM Co-simulation test using AxiStream VC
 --
 --
 --  Developed by:
@@ -27,7 +25,7 @@
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.
+--  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md) 
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -73,10 +71,8 @@ begin
     -- Wait for test to finish
     WaitForBarrier(TestDone, 35 ms) ;
     AlertIf(now >= 35 ms, "Test finished due to timeout") ;
-    --AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     TranscriptClose ;
---    AlertIfDiff("./results/CoSim_axi4_streams.txt", "../sim_shared/validated_results/CoSim_axi4_streams.txt", "") ;
 
     EndOfTestReports(ExternalErrors => (0, 0, 0)) ;
     std.env.stop ;
