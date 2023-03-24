@@ -62,14 +62,13 @@ private:
 
     rv32i_time_t          interrupt_wakeup_time;
 
-    // Strings for instruiction disassembly
-    static const char mret_str    [DISASSEM_STR_SIZE] ;
-    static const char csrrw_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrs_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrc_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrwi_str  [DISASSEM_STR_SIZE] ;
-    static const char csrrsi_str  [DISASSEM_STR_SIZE] ;
-    static const char csrrci_str  [DISASSEM_STR_SIZE] ;
+    const char mret_str    [DISASSEM_STR_SIZE] = "mret     ";
+    const char csrrw_str   [DISASSEM_STR_SIZE] = "csrrw    ";
+    const char csrrs_str   [DISASSEM_STR_SIZE] = "csrrs    ";
+    const char csrrc_str   [DISASSEM_STR_SIZE] = "csrrc    ";
+    const char csrrwi_str  [DISASSEM_STR_SIZE] = "csrrwi   ";
+    const char csrrsi_str  [DISASSEM_STR_SIZE] = "csrrsi   ";
+    const char csrrci_str  [DISASSEM_STR_SIZE] = "csrrci   ";
 
     // ------------------------------------------------
     // Private member functions

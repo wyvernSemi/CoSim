@@ -20,6 +20,8 @@
 #include "rv32.h"
 #include "rv32_cpu_gdb.h"
 
+#define DASM_SIM
+
 static const int node = 0;
 
 // Type definition for write transaction, for use in TCP/IP socket script generation
@@ -38,7 +40,11 @@ static FILE *sktfp = NULL;
 
 static void reg_dump(rv32* pCpu, FILE* dfp, bool abi_en)
 {
+#ifndef DASM_SIM
     fprintf(dfp, "\nRegister state:\n\n  ");
+#else
+    VPrint("\nRegister state:\n\n  ");
+#endif
 
     // Loop through all the registers
     for (int idx = 0; idx < RV32I_NUM_OF_REGISTERS; idx++)
@@ -53,19 +59,35 @@ static void reg_dump(rv32* pCpu, FILE* dfp, bool abi_en)
         uint32_t rval = pCpu->regi_val(idx);
 
         // Print out the register name (right justified) followed by the value
+#ifndef DASM_SIM
         fprintf(dfp, "%s%s = 0x%08x ", (slen == 2) ? "  " : (slen == 3) ? " ": "",
+                                         map_str,
+                                         rval);
+        // After every fourth value, output a new line
+        if ((idx % 4) == 3)
+        {
+            fprintf(dfp, "\n  ");
+        }
+#else
+        VPrint("%s%s = 0x%08x ", (slen == 2) ? "  " : (slen == 3) ? " ": "",
                                          map_str,
                                          rval);
 
         // After every fourth value, output a new line
         if ((idx % 4) == 3)
         {
-            fprintf(dfp, "\n  ");
+            VPrint("\n  ");
         }
+#endif
     }
 
     // Add a final new line
+#ifndef DASM_SIM
     fprintf(dfp, "\n");
+#else
+    VPrint("\n");
+    
+#endif
 }
 
 // -------------------------------------------------------------------------
@@ -163,6 +185,14 @@ static int memcosim (const uint32_t byte_addr, uint32_t &data, const int type, c
     return cycle_count;
 }
 
+// -------------------------------------------------------------------------
+// Function to print string (using VHPI) from external program
+// -------------------------------------------------------------------------
+extern "C" void extPrintSim (char* buf)
+{
+    VPrint("%s", buf);
+}
+
 // =========================================================================
 // Main entry point for co-simulation node 0
 // =========================================================================
@@ -172,6 +202,10 @@ extern "C" void VUserMain0()
     bool        error = false;
     std::string test_name("CoSim_iss");
     OsvvmCosim  cosim(node, test_name);
+
+    char buf[1024];
+    sprintf(buf, "VUserMain%d()\n", node);
+    extPrintSim(buf);
 
     // Create a configuration object
     rv32i_cfg_s cfg;

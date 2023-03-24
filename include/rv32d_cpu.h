@@ -72,34 +72,34 @@ private:
     // Private member variables
     // ------------------------------------------------
 
-    static const char fld_str           [DISASSEM_STR_SIZE];
-    static const char fsd_str           [DISASSEM_STR_SIZE];
-    static const char fmaddd_str        [DISASSEM_STR_SIZE];
-    static const char fmsubd_str        [DISASSEM_STR_SIZE];
-    static const char fnmsubd_str       [DISASSEM_STR_SIZE];
-    static const char fnmaddd_str       [DISASSEM_STR_SIZE];
-    static const char faddd_str         [DISASSEM_STR_SIZE];
-    static const char fsubd_str         [DISASSEM_STR_SIZE];
-    static const char fmuld_str         [DISASSEM_STR_SIZE];
-    static const char fdivd_str         [DISASSEM_STR_SIZE];
-    static const char fsqrtd_str        [DISASSEM_STR_SIZE];
-    static const char fsgnjd_str        [DISASSEM_STR_SIZE];
-    static const char fsgnjnd_str       [DISASSEM_STR_SIZE];
-    static const char fsgnjxd_str       [DISASSEM_STR_SIZE];
-    static const char fmind_str         [DISASSEM_STR_SIZE];
-    static const char fmaxd_str         [DISASSEM_STR_SIZE];
-    static const char fcvtwd_str        [DISASSEM_STR_SIZE];
-    static const char fcvtwud_str       [DISASSEM_STR_SIZE];
-    static const char feqd_str          [DISASSEM_STR_SIZE];
-    static const char fltd_str          [DISASSEM_STR_SIZE];
-    static const char fled_str          [DISASSEM_STR_SIZE];
-    static const char fclassd_str       [DISASSEM_STR_SIZE];
-    static const char fcvtdw_str        [DISASSEM_STR_SIZE];
-    static const char fcvtdwu_str       [DISASSEM_STR_SIZE];
-
+    const char fld_str           [DISASSEM_STR_SIZE] = "fld      ";
+    const char fsd_str           [DISASSEM_STR_SIZE] = "fsd      ";
+    const char fmaddd_str        [DISASSEM_STR_SIZE] = "fmadd.d  ";
+    const char fmsubd_str        [DISASSEM_STR_SIZE] = "fmsub.d  ";
+    const char fnmsubd_str       [DISASSEM_STR_SIZE] = "fnmsub.d ";
+    const char fnmaddd_str       [DISASSEM_STR_SIZE] = "fnmadd.d ";
+    const char faddd_str         [DISASSEM_STR_SIZE] = "fadd.d   ";
+    const char fsubd_str         [DISASSEM_STR_SIZE] = "fsub.d   ";
+    const char fmuld_str         [DISASSEM_STR_SIZE] = "fmul.d   ";
+    const char fdivd_str         [DISASSEM_STR_SIZE] = "fdiv.d   ";
+    const char fsqrtd_str        [DISASSEM_STR_SIZE] = "fsqrt.d  ";
+    const char fsgnjd_str        [DISASSEM_STR_SIZE] = "fsgnj.d  ";
+    const char fsgnjnd_str       [DISASSEM_STR_SIZE] = "fsgnjn.d ";
+    const char fsgnjxd_str       [DISASSEM_STR_SIZE] = "fsgnjx.d ";
+    const char fmind_str         [DISASSEM_STR_SIZE] = "fmin.d   ";
+    const char fmaxd_str         [DISASSEM_STR_SIZE] = "fmax.d   ";
+    const char fcvtwd_str        [DISASSEM_STR_SIZE] = "fcvt.w.d ";
+    const char fcvtwud_str       [DISASSEM_STR_SIZE] = "fcvt.wu.d";
+    const char feqd_str          [DISASSEM_STR_SIZE] = "feq.d    ";
+    const char fltd_str          [DISASSEM_STR_SIZE] = "flt.d    ";
+    const char fled_str          [DISASSEM_STR_SIZE] = "fle.s    ";
+    const char fclassd_str       [DISASSEM_STR_SIZE] = "fclass.d ";
+    const char fcvtdw_str        [DISASSEM_STR_SIZE] = "fcvt.d.w ";
+    const char fcvtdwu_str       [DISASSEM_STR_SIZE] = "fcvt.d.wu";
+    
     // New to RV32D
-    static const char fcvtsd_str        [DISASSEM_STR_SIZE];
-    static const char fcvtds_str        [DISASSEM_STR_SIZE];
+    const char fcvtsd_str        [DISASSEM_STR_SIZE] = "fcvt.s.d ";
+    const char fcvtds_str        [DISASSEM_STR_SIZE] = "fcvt.d.s ";
 
     int        curr_rnd_method;
 
