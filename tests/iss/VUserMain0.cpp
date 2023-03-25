@@ -97,7 +97,7 @@ static void reg_dump(rv32* pCpu, FILE* dfp, bool abi_en)
 static void mem_dump(uint32_t num, uint32_t start, rv32* pCpu, FILE* dfp)
 {
     bool fault;
-
+#ifndef DASM_SIM
     fprintf(dfp, "\nMEM state:\n\n");
     for (uint32_t idx = start; idx < ((start & 0xfffffffc) + num*4); idx+=4)
     {
@@ -105,6 +105,15 @@ static void mem_dump(uint32_t num, uint32_t start, rv32* pCpu, FILE* dfp)
         fprintf(dfp, "  0x%08x : 0x%08x\n", idx, rval);
     }
     fprintf(dfp, "\n");
+#else
+    VPrint("\nMEM state:\n\n");
+    for (uint32_t idx = start; idx < ((start & 0xfffffffc) + num*4); idx+=4)
+    {
+        uint32_t rval = pCpu->read_mem(idx, MEM_RD_ACCESS_WORD, fault);
+        VPrint("  0x%08x : 0x%08x\n", idx, rval);
+    }
+    VPrint("\n");
+#endif
 }
 
 // ------------------------------------------------------------------------------
