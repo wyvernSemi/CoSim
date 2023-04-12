@@ -1,6 +1,6 @@
 // =========================================================================
 //
-//  File Name:         OsvvmVProc.h
+//  File Name:         OsvvmSched.c
 //  Design Unit Name:
 //  Revision:          OSVVM MODELS STANDARD VERSION
 //
@@ -15,13 +15,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    02/2023   2023.??    Added support from streaming
-//    10/2022   2023.01    Initial revision
+//    05/2023   2023.05    Adding asynchronous transaction support
+//    03/2023   2023.04    Adding basic stream support
+//    01/2023   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -252,7 +253,7 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 #endif
 
     // Sample inputs and update node state
-    if (ns[node]->send_buf.type != trans32_rd_burst && ns[node]->send_buf.type != trans32_wr_burst)
+    if (ns[node]->send_buf.type != trans32_burst)
     {
         ns[node]->rcv_buf.data_in    = VPDataIn;
         ns[node]->rcv_buf.data_in_hi = VPDataInHi;
@@ -288,58 +289,43 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 
         switch(ns[node]->send_buf.type)
         {
-            case trans32_wr_byte:
-            case trans32_rd_byte:
+            case trans32_byte:
                 VPAddrWidth_int = 32;
                 VPDataWidth_int = 8;
                 break;
-            case trans32_wr_hword:
-            case trans32_rd_hword:
+            case trans32_hword:
                 VPAddrWidth_int = 32;
                 VPDataWidth_int = 16;
                 break;
-            case trans32_wr_word:
-            case trans32_rd_word:
+            case trans32_word:
+            case trans32_burst:
                 VPAddrWidth_int = 32;
                 VPDataWidth_int = 32;
                 break;
-            case trans32_wr_burst:
-            case trans32_rd_burst:
-                VPAddrWidth_int = 32;
-                VPDataWidth_int = 32;
-                break;
+            case trans64_byte:
             case stream_snd_byte:
             case stream_get_byte:
-            case trans64_wr_byte:
-            case trans64_rd_byte:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 8;
                 break;
+            case trans64_hword:
             case stream_snd_hword:
             case stream_get_hword:
-            case trans64_wr_hword:
-            case trans64_rd_hword:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 16;
                 break;
+            case trans64_word:
             case stream_snd_word:
             case stream_get_word:
-            case trans64_wr_word:
-            case trans64_rd_word:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 32;
                 break;
+            case trans64_dword:
             case stream_snd_dword:
             case stream_get_dword:
-            case trans64_wr_dword:
-            case trans64_rd_dword:
-                VPAddrWidth_int = 64;
-                VPDataWidth_int = 64;
-                break ;
             case stream_snd_burst:
             case stream_get_burst:
-            case trans64_wr_burst:
-            case trans64_rd_burst:
+            case trans64_burst:
                 VPAddrWidth_int = 64;
                 VPDataWidth_int = 64;
                 break;

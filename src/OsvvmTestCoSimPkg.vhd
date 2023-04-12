@@ -14,7 +14,9 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    09/2022   2023.01    Initial revision
+--    05/2023   2023.05    Adding asynchronous transaction support
+--    04/2023   2023.04    Adding basic stream support
+--    01/2023   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
@@ -272,6 +274,27 @@ package body OsvvmTestCoSimPkg is
         when WRITE_OP =>
           Write (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
 
+        when WRITE_AND_READ =>
+          WriteAndRead (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_WRITE =>
+          WriteAsync (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_WRITE_AND_READ =>
+          WriteAndReadAsync (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_WRITE_ADDRESS =>
+          WriteAddressAsync(ManagerRec, Address(VPAddrWidth-1 downto 0));
+
+        when ASYNC_WRITE_DATA =>
+          WriteDataAsync(ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0));
+
+        when ASYNC_READ_ADDRESS =>
+          ReadAddressAsync(ManagerRec, Address(VPAddrWidth-1 downto 0));
+
+        when READ_DATA =>
+          ReadData(ManagerRec, RdData(VPDataWidth-1 downto 0));
+
         when READ_BURST =>
           ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
 
@@ -284,7 +307,7 @@ package body OsvvmTestCoSimPkg is
             VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
           end loop;
 
-        when WRITE_BURST =>
+        when WRITE_BURST | ASYNC_WRITE_BURST =>
           -- encapsulate the following:
           -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
           for bidx in 0 to VPBurstSize-1 loop
@@ -293,7 +316,11 @@ package body OsvvmTestCoSimPkg is
             Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
           end loop ;
 
-          WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+          if AddressBusOperationType'val(VpOperation) = WRITE_BURST then
+            WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+          else
+            WriteBurstAsync(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+          end if ;
 
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
@@ -443,6 +470,9 @@ package body OsvvmTestCoSimPkg is
 
         when SEND =>
           Send (TxRec, WrData(VPDataWidth-1 downto 0), Param(TxRec.ParamToModel'length -1 downto 0)) ;
+          
+        when SEND_ASYNC =>
+          SendAsync (TxRec, WrData(VPDataWidth-1 downto 0), Param(TxRec.ParamToModel'length -1 downto 0)) ;
 
         when GET_BURST =>
           PacketLength := VPBurstSize;
@@ -458,7 +488,7 @@ package body OsvvmTestCoSimPkg is
             VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
           end loop;
 
-        when SEND_BURST =>
+        when SEND_BURST | SEND_BURST_ASYNC =>
           -- encapsulate the following:
           -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
           for bidx in 0 to VPBurstSize-1 loop
@@ -467,7 +497,11 @@ package body OsvvmTestCoSimPkg is
             Push(TxRec.BurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
           end loop ;
 
-          SendBurst(TxRec, VPBurstSize) ;
+          if StreamOperationType'val(VpOperation) = SEND_BURST then
+              SendBurst(TxRec, VPBurstSize) ;
+          else
+              SendBurstAsync(TxRec, VPBurstSize) ;
+          end if ;
 
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneStream received unimplemented transaction") ;

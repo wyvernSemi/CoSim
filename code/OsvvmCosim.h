@@ -15,12 +15,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    11/2022   2023.01    Initial revision
+//    05/2023   2023.05    Adding asynchronous transaction support
+//    03/2023   2023.04    Adding basic stream support
+//    01/2023   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -62,32 +64,70 @@ public:
 #endif
       }
 
-      uint8_t  transWrite      (const uint32_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint16_t transWrite      (const uint32_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint32_t transWrite      (const uint32_t addr, const uint32_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint8_t  transWrite      (const uint64_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint16_t transWrite      (const uint64_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint32_t transWrite      (const uint64_t addr, const uint32_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-      uint64_t transWrite      (const uint64_t addr, const uint64_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
-                               
-      void     transRead       (const uint32_t addr, uint8_t  *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint32_t addr, uint16_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint32_t addr, uint32_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint64_t addr, uint8_t  *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint64_t addr, uint16_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint64_t addr, uint32_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
-      void     transRead       (const uint64_t addr, uint64_t *data,      const int prot = 0) {VTransRead(addr, data, prot, node);}
+      uint8_t  transWrite             (const uint32_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint16_t transWrite             (const uint32_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint32_t transWrite             (const uint32_t addr, const uint32_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint8_t  transWrite             (const uint64_t addr, const uint8_t  data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint16_t transWrite             (const uint64_t addr, const uint16_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint32_t transWrite             (const uint64_t addr, const uint32_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint64_t transWrite             (const uint64_t addr, const uint64_t data, const int prot = 0) {return VTransWrite(addr, data, prot, node);}
+      uint8_t  transWriteAsync        (const uint32_t addr, const uint8_t  data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint16_t transWriteAsync        (const uint32_t addr, const uint16_t data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint32_t transWriteAsync        (const uint32_t addr, const uint32_t data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint8_t  transWriteAsync        (const uint64_t addr, const uint8_t  data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint16_t transWriteAsync        (const uint64_t addr, const uint16_t data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint32_t transWriteAsync        (const uint64_t addr, const uint32_t data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
+      uint64_t transWriteAsync        (const uint64_t addr, const uint64_t data, const int prot = 0) {return VTransWriteAsync(addr, data, prot, node);}
 
-      void     transBurstWrite (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
-      void     transBurstWrite (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
-      void     transBurstRead  (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
-      void     transBurstRead  (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {*rdata = VTransWriteAndRead(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {*rdata = VTransWriteAndReadAsync(addr, wdata, prot, node);}
 
-      void     regInterruptCB  (pVUserInt_t func)                                             {VRegInterrupt(func, node);}
-      
-      void     waitForSim      (void)                                                         {VWaitForSim(node);}
+      void     transWriteAddressAsync (const uint32_t addr)                                          {VTransWriteAddressAsync(addr, node);}
+      void     transWriteAddressAsync (const uint64_t addr)                                          {VTransWriteAddressAsync(addr, node);}
+      void     transWriteDataAsync    (const uint8_t  data, uint32_t bytelane = 0)                   {VTransWriteDataAsync(data, bytelane, node);}
+      void     transWriteDataAsync    (const uint16_t data, uint32_t bytelane = 0)                   {VTransWriteDataAsync(data, bytelane, node);}
+      void     transWriteDataAsync    (const uint32_t data, uint32_t bytelane = 0)                   {VTransWriteDataAsync(data, bytelane, node);}
+      void     transWriteDataAsync    (const uint64_t data, uint32_t bytelane = 0)                   {VTransWriteDataAsync(data, bytelane, node);}
 
-      int      getNodeNumber   () {return node;}
+      void     transReadAddressAsync  (const uint32_t addr)                                          {VTransReadAddressAsync(addr, node);}
+      void     transReadAddressAsync  (const uint64_t addr)                                          {VTransReadAddressAsync(addr, node);}
+      void     transReadData          (uint8_t       *data, const int prot = 0)                      {VTransReadData(data, node);}
+      void     transReadData          (uint16_t      *data, const int prot = 0)                      {VTransReadData(data, node);}
+      void     transReadData          (uint32_t      *data, const int prot = 0)                      {VTransReadData(data, node);}
+      void     transReadData          (uint64_t      *data, const int prot = 0)                      {VTransReadData(data, node);}
+
+      void     transRead              (const uint32_t addr, uint8_t  *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint32_t addr, uint16_t *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint32_t addr, uint32_t *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint64_t addr, uint8_t  *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint64_t addr, uint16_t *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint64_t addr, uint32_t *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+      void     transRead              (const uint64_t addr, uint64_t *data, const int prot = 0)      {VTransRead(addr, data, prot, node);}
+
+      void     transBurstWrite        (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
+      void     transBurstWrite        (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWrite(addr, data, bytesize, prot, node);}
+      void     transBurstWriteAsync   (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWriteAsync(addr, data, bytesize, prot, node);}
+      void     transBurstWriteAsync   (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstWriteAsync(addr, data, bytesize, prot, node);}
+      void     transBurstRead         (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
+      void     transBurstRead         (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0)  {VTransBurstRead (addr, data, bytesize, prot, node);}
+
+      void     regInterruptCB         (pVUserInt_t func) {VRegInterrupt(func, node);}
+
+      void     waitForSim             (void)             {VWaitForSim(node);}
+
+      int      getNodeNumber          (void)             {return node;}
 
 private:
 

@@ -37,6 +37,7 @@
 #  limitations under the License.
 #  
 
+TestSuite Cosim_Axi4Stream
 library osvvm_cosim_TbAxiStream
 
 analyze TestCtrl_e.vhd

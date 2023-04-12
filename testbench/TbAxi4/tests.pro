@@ -59,6 +59,10 @@ MkVproc    iss rv32
 TestName   CoSim_iss
 simulate   TbAb_CoSim [CoSim]
 
+MkVproc    async_trans
+TestName   CoSim_async_trans
+simulate   TbAb_CoSim [CoSim]
+
 # MkVprocSkt $::osvvm::OsvvmCoSimDirectory/tests/socket
 # simulate   TbAb_CoSim
 # 

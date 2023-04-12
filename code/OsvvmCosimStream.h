@@ -62,27 +62,33 @@ public:
 #endif
       }
 
-      uint8_t  streamSend      (const uint8_t  data, const int param=0) {return VStreamSend(data, param, node);}
-      uint16_t streamSend      (const uint16_t data, const int param=0) {return VStreamSend(data, param, node);}
-      uint32_t streamSend      (const uint32_t data, const int param=0) {return VStreamSend(data, param, node);}
-      uint64_t streamSend      (const uint64_t data, const int param=0) {return VStreamSend(data, param, node);}
+      uint8_t  streamSend           (const uint8_t  data, const int param=0) {return VStreamSend(data, param, node);}
+      uint16_t streamSend           (const uint16_t data, const int param=0) {return VStreamSend(data, param, node);}
+      uint32_t streamSend           (const uint32_t data, const int param=0) {return VStreamSend(data, param, node);}
+      uint64_t streamSend           (const uint64_t data, const int param=0) {return VStreamSend(data, param, node);}
 
-      void     streamGet       (uint8_t  *data)                         {int status; VStreamGet(data, &status, node);}
-      void     streamGet       (uint16_t *data)                         {int status; VStreamGet(data, &status, node);}
-      void     streamGet       (uint32_t *data)                         {int status; VStreamGet(data, &status, node);}
-      void     streamGet       (uint64_t *data)                         {int status; VStreamGet(data, &status, node);}
+      uint8_t  streamSendAsync      (const uint8_t  data, const int param=0) {return VStreamSendAsync(data, param, node);}
+      uint16_t streamSendAsync      (const uint16_t data, const int param=0) {return VStreamSendAsync(data, param, node);}
+      uint32_t streamSendAsync      (const uint32_t data, const int param=0) {return VStreamSendAsync(data, param, node);}
+      uint64_t streamSendAsync      (const uint64_t data, const int param=0) {return VStreamSendAsync(data, param, node);}
 
-      void     streamGet       (uint8_t  *data, int *status)            {VStreamGet(data, status, node);}
-      void     streamGet       (uint16_t *data, int *status)            {VStreamGet(data, status, node);}
-      void     streamGet       (uint32_t *data, int *status)            {VStreamGet(data, status, node);}
-      void     streamGet       (uint64_t *data, int *status)            {VStreamGet(data, status, node);}
+      void     streamGet            (uint8_t  *data)                         {int status; VStreamGet(data, &status, node);}
+      void     streamGet            (uint16_t *data)                         {int status; VStreamGet(data, &status, node);}
+      void     streamGet            (uint32_t *data)                         {int status; VStreamGet(data, &status, node);}
+      void     streamGet            (uint64_t *data)                         {int status; VStreamGet(data, &status, node);}
 
-      void     streamBurstSend (uint8_t  *data, const int bytesize)     {VStreamBurstSend(data, bytesize, node);}
-      void     streamBurstGet  (uint8_t  *data, const int bytesize)     {VStreamBurstGet (data, bytesize, node);}
+      void     streamGet            (uint8_t  *data, int *status)            {VStreamGet(data, status, node);}
+      void     streamGet            (uint16_t *data, int *status)            {VStreamGet(data, status, node);}
+      void     streamGet            (uint32_t *data, int *status)            {VStreamGet(data, status, node);}
+      void     streamGet            (uint64_t *data, int *status)            {VStreamGet(data, status, node);}
 
-      void     waitForSim      (void)                                   {VWaitForSim(node);}
+      void     streamBurstSend      (uint8_t  *data, const int bytesize)     {VStreamBurstSend      (data, bytesize, node);}
+      void     streamBurstSendAsync (uint8_t  *data, const int bytesize)     {VStreamBurstSendAsync (data, bytesize, node);}
+      void     streamBurstGet       (uint8_t  *data, const int bytesize)     {VStreamBurstGet       (data, bytesize, node);}
 
-      int      getNodeNumber   (void)                                   {return node;}
+      void     waitForSim           (void)                                   {VWaitForSim(node);}
+
+      int      getNodeNumber        (void)                                   {return node;}
 
 private:
 

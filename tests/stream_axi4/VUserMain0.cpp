@@ -60,7 +60,7 @@ static int node  = 0;
 int makeAxiStreamParam(const int TID, const int TDEST, const int TUSER, const int TLAST)
 {
     return ((TID & 0xff) << 9) | ((TDEST & 0xf) << 5) | ((TUSER & 0xf) << 1) | (TLAST & 0x1);
-}    
+}
 
 // ------------------------------------------------------------------------------
 // Main entry point for node 0 virtual processor software
@@ -73,11 +73,11 @@ int makeAxiStreamParam(const int TID, const int TDEST, const int TUSER, const in
 extern "C" void VUserMain0()
 {
     VPrint("VUserMain%d()\n", node);
-    
+
     const int TID   = 0xB;
     const int TDEST = 0xA;
     const int TUSER = 0xD;
-    
+
     const int DATASIZE = 5;
 
     bool                  error = false;
@@ -95,7 +95,7 @@ extern "C" void VUserMain0()
 
     // Send a series of words over Axi stream interface using TID, TDEST and TUSER,
     // flagging last one by setting TLAST
-    for(uint32_t idx = 0; idx < DATASIZE; idx++)
+    for (uint32_t idx = 0; idx < DATASIZE; idx++)
     {
         if (idx == DATASIZE-1)
         {
@@ -108,14 +108,14 @@ extern "C" void VUserMain0()
     for (int idx = 0; idx < DATASIZE; idx++)
     {
         int status, expstatus;
-        
+
         expstatus = makeAxiStreamParam(TID, TDEST, TUSER, (idx == DATASIZE-1));
-        
-        axistream.streamGet(&rdata, &status); 
+
+        axistream.streamGet(&rdata, &status);
 
         if (rdata != (wdata + idx))
         {
-            VPrint("VuserMain%d: ***ERROR mismatch in received byte. Got 0x%08x, expected 0x%08x\n", node, rdata, wdata+idx);
+            VPrint("VuserMain%d: ***ERROR mismatch in received data. Got 0x%08x, expected 0x%08x\n", node, rdata, wdata+idx);
             error = true;
         }
         else if (status != expstatus)
@@ -134,7 +134,7 @@ extern "C" void VUserMain0()
     {
         TestData0[bufidx++] = random() & 0xff;
     }
-    
+
     bufidx = 0;
 
     // Send a couple of bursts
@@ -142,7 +142,80 @@ extern "C" void VUserMain0()
     axistream.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
 
     bufidx = 0;
+
+    // Retrieve received data
+    axistream.streamBurstGet(&RxData[bufidx], 16);  bufidx += 16;
+    axistream.streamBurstGet(&RxData[bufidx], 256); bufidx += 256;
+
+    // Check data validity
+    for (int idx = 0; idx < bufidx; idx++)
+    {
+        if (RxData[idx] != TestData0[idx])
+        {
+            VPrint("VuserMain%d: ***ERROR mismatch in received byte. Got0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
+        }
+    }
+
+    // =============================================================
+    // Repeat test with asynchronous writes
     
+    VPrint("VUserMain%d: ===== STARTING ASYNC TESTS =====\n", node);
+    
+    bufidx = 0;
+    wdata  = 0x19640825;
+    param  = makeAxiStreamParam(TID, TDEST, TUSER, 0);
+
+    // Send a series of words over Axi stream interface using TID, TDEST and TUSER,
+    // flagging last one by setting TLAST
+    for (uint32_t idx = 0; idx < DATASIZE; idx++)
+    {
+        if (idx == DATASIZE-1)
+        {
+            param = makeAxiStreamParam(TID, TDEST, TUSER, 1);
+        }
+        axistream.streamSendAsync(wdata + idx, param);
+    }
+   
+
+    // Get received word data and check data and status values
+    for (int idx = 0; idx < DATASIZE; idx++)
+    {
+        int status, expstatus;
+
+        expstatus = makeAxiStreamParam(TID, TDEST, TUSER, (idx == DATASIZE-1));
+
+        axistream.streamGet(&rdata, &status);
+
+        if (rdata != (wdata + idx))
+        {
+            VPrint("VuserMain%d: ***ERROR mismatch in received data. Got 0x%08x, expected 0x%08x\n", node, rdata, wdata+idx);
+            error = true;
+        }
+        else if (status != expstatus)
+        {
+            VPrint("VuserMain%d: ***ERROR mismatch in received status. Got 0x%03x, expected 0x%03x\n", node, status, expstatus);
+            error = true;
+        }
+        else
+        {
+            VPrint("VuserMain%d: received byte 0x%08x\n", node, rdata);
+        }
+    }
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[bufidx++] = random() & 0xff;
+    }
+
+    bufidx = 0;
+
+    // Send a couple of bursts
+    axistream.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
+    axistream.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
+
+    bufidx = 0;
+
     // Retrieve received data
     axistream.streamBurstGet(&RxData[bufidx], 16);  bufidx += 16;
     axistream.streamBurstGet(&RxData[bufidx], 256); bufidx += 256;
