@@ -240,16 +240,203 @@ extern "C" void VUserMain0()
     cosim.transBurstWriteIncrementAsync(addr, wdata8, 16);
     cosim.transBurstWriteIncrement(addr+16, wdata8+16, 32);
     cosim.transBurstReadCheckIncrement(addr, wdata8, 48);
-    
+
     addr   = 0x5a9607a8;
     wdata8 = 0xdf;
 
     cosim.transBurstWriteRandomAsync(addr, wdata8, 64);
     cosim.transBurstWriteRandom(addr+64, wdata8 ^ 0xff, 48);
-    
+
     cosim.transBurstReadCheckRandom(addr, wdata8, 64);
     cosim.transBurstReadCheckRandom(addr+64, wdata8 ^ 0xff, 48);
 
+    // -------------------------------
+    // Test "Try" functions for 8 bit data
+
+    addr   = 0x40007000;
+    wdata8 = 0x99;
+
+    cosim.transWrite(addr, wdata8);
+
+    bool avail = cosim.transTryReadData(&rdata8);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadData\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadData(&rdata8);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadData\n");
+        error = true;
+    }
+
+    if (rdata8 != wdata8)
+    {
+        VPrint("***ERROR: mismatch for transTryReadData. Got 0x%02x, exp 0x%02x\n", rdata8, wdata8);
+        error = true;
+    }
+
+    // -------------------------------
+    // Test "Try" functions for 16 bit data
+
+    addr   = 0x40008000;
+    wdata16 = 0x70da;
+
+    cosim.transWrite(addr, wdata16);
+
+    avail = cosim.transTryReadData(&rdata16);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadData\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadData(&rdata16);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadData\n");
+        error = true;
+    }
+
+    if (rdata16 != wdata16)
+    {
+        VPrint("***ERROR: mismatch for transTryReadData. Got 0x%04x, exp 0x%04x\n", rdata16, wdata16);
+        error = true;
+    }
+
+    // -------------------------------
+    // Test "Try" functions for 16 bit data
+
+    addr    = 0x40009000;
+    wdata32 = 0x196de310;
+
+    cosim.transWrite(addr, wdata32);
+
+    avail = cosim.transTryReadData(&rdata32);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadData\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadData(&rdata32);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadData\n");
+        error = true;
+    }
+
+    if (rdata32 != wdata32)
+    {
+        VPrint("***ERROR: mismatch for transTryReadData. Got 0x%04x, exp 0x%04x\n", rdata32, wdata32);
+        error = true;
+    }
+
+    // -------------------------------
+    // Test "Try and check" functions for 8 bit data
+
+    addr   = 0x4000a000;
+    wdata8 = 0x3d;
+
+    cosim.transWrite(addr, wdata8);
+
+    avail = cosim.transTryReadDataCheck(wdata8);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadDataCheck(wdata8);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    // -------------------------------
+    // Test "Try" functions for 16 bit data
+
+    addr    = 0x4000b000;
+    wdata16 = 0xf31a;
+
+    cosim.transWrite(addr, wdata16);
+
+    avail = cosim.transTryReadDataCheck(wdata16);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadDataCheck(wdata16);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    // -------------------------------
+    // Test "Try" functions for 16 bit data
+
+    addr    = 0x4000c000;
+    wdata32 = 0x9e23a007;
+
+    cosim.transWrite(addr, wdata32);
+
+    avail = cosim.transTryReadDataCheck(wdata32);
+
+    if (avail)
+    {
+        VPrint("***ERROR: got unexpected data available returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    cosim.transReadAddressAsync(addr);
+
+    cosim.tick(20);
+
+    avail = cosim.transTryReadDataCheck(wdata32);
+
+    if (!avail)
+    {
+        VPrint("***ERROR: got unexpected data unavailable returned from transTryReadDataCheck\n");
+        error = true;
+    }
+
+    // -------------------------------
     // Flag to the simulation we're finished, after 10 more iterations
     cosim.tick(10, true, error);
 
