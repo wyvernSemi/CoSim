@@ -90,13 +90,7 @@ extern "C" void VUserMain0()
 
     for (i = 0; i < 4; i++)
     {
-        cosim.transRead(addr + i*4, &rdata32);
-
-        if (rdata32 != wdata32+i)
-        {
-            VPrint("***ERROR: mismatch for async write. Got 0x%08x, exp 0x%08x\n", rdata32, (wdata32+i));
-            error = true;
-        }
+        cosim.transReadCheck(addr + i*4, (uint32_t)(wdata32 + i));
     }
 
     // -------------------------------
@@ -117,13 +111,7 @@ extern "C" void VUserMain0()
 
     for (i = 0; i < 4; i++)
     {
-        cosim.transRead(addr + i*2, &rdata16);
-
-        if (rdata16 != wdata16+(i*0x1111))
-        {
-            VPrint("***ERROR: mismatch for async write. Got 0x%04x, exp 0x%04x\n", rdata16, (wdata16+(i*0x1111)));
-            error = true;
-        }
+        cosim.transReadCheck(addr + i*2, (uint16_t)(wdata16+(i*0x1111)));
     }
 
     // -------------------------------
@@ -144,13 +132,7 @@ extern "C" void VUserMain0()
 
     for (i = 0; i < 4; i++)
     {
-        cosim.transRead(addr + i, &rdata8);
-
-        if (rdata8 != wdata8+(i*0x22))
-        {
-            VPrint("***ERROR: mismatch for async write. Got 0x%02x, exp 0x%02x\n", rdata8, (wdata8+(i*0x22)));
-            error = true;
-        }
+        cosim.transReadCheck(addr + i, (uint8_t)(wdata8+(i*0x22)));
     }
 
     // -------------------------------
@@ -188,7 +170,7 @@ extern "C" void VUserMain0()
     // and data
 
     addr = 0x80010000;
-    
+
     cosim.transWriteDataAsync((uint32_t) 0xcafef00d);
     cosim.transWriteDataAsync((uint16_t) 0x0bad);
 
@@ -222,49 +204,51 @@ extern "C" void VUserMain0()
     // -------------------------------
     // Test asynchronous read address
     // and data
-    
+
     cosim.transReadAddressAsync(addr);
     cosim.transReadAddressAsync(addr + 1);
     cosim.transReadAddressAsync(addr + 2);
     cosim.transReadAddressAsync(addr + 3);
-    
+
     uint8_t expdata8[4] = {0x0d, 0xf0, 0xfe, 0xca};
-    
+
     for(i = 0; i < 4; i++)
     {
-        cosim.transReadData(&rdata8);
-        
-        if (rdata8 != expdata8[i])
-        {
-            VPrint("***ERROR: mismatch for async read address/data. Got 0x%02x, exp 0x%02x\n", rdata8, expdata8[i]);
-            error = true;
-        }
+        cosim.transReadDataCheck(expdata8[i]);
     }
-    
+
     cosim.transReadAddressAsync(addr + 4);
-    cosim.transReadData(&rdata32);
-    
-    if (rdata32 != expdata32[1])
-    {
-        VPrint("***ERROR: mismatch for async read address/data. Got 0x%08x, exp 0x%08x\n", rdata32, expdata32[1]);
-        error = true;
-    }
-    
+    cosim.transReadDataCheck(expdata32[1]);
+
+
     cosim.transReadAddressAsync(addr + 8);
     cosim.transReadAddressAsync(addr + 10);
-    
+
     for (i = 0; i < 2; i++)
     {
-        cosim.transReadData(&rdata16);
-        
         data16 = (expdata32[2] >> (i*16)) & 0xffff;
-        
-        if (rdata16 != data16)
-        {
-            VPrint("***ERROR: mismatch for async read address/data. Got 0x%04x, exp 0x%04x\n", rdata16, data16);
-            error = true;
-        }
+
+        cosim.transReadDataCheck(data16);
     }
+
+    // -------------------------------
+    // Test increment/random burst functions
+
+    addr   = 0x70091230;
+    wdata8 = 0x57;
+
+    cosim.transBurstWriteIncrementAsync(addr, wdata8, 16);
+    cosim.transBurstWriteIncrement(addr+16, wdata8+16, 32);
+    cosim.transBurstReadCheckIncrement(addr, wdata8, 48);
+    
+    addr   = 0x5a9607a8;
+    wdata8 = 0xdf;
+
+    cosim.transBurstWriteRandomAsync(addr, wdata8, 64);
+    cosim.transBurstWriteRandom(addr+64, wdata8 ^ 0xff, 48);
+    
+    cosim.transBurstReadCheckRandom(addr, wdata8, 64);
+    cosim.transBurstReadCheckRandom(addr+64, wdata8 ^ 0xff, 48);
 
     // Flag to the simulation we're finished, after 10 more iterations
     cosim.tick(10, true, error);

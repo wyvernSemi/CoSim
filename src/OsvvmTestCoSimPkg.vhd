@@ -57,6 +57,8 @@ library osvvm_cosim ;
 package OsvvmTestCoSimPkg is
 
   type CoSimOperationType is (SET_TEST_NAME) ;
+  type BurstWriteType     is (BURST_NORM, BURST_INCR, BURST_RAND) ;
+
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -108,6 +110,7 @@ procedure CoSimTrans (
     constant VPDataWidth     : in     integer ;
     constant VPBurstSize     : in     integer ;
     constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
     constant NodeNum         : in     integer
   ) ;
 
@@ -127,6 +130,7 @@ procedure CoSimTrans (
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
     constant VPParam         : in     integer ;
+    constant VPCount         : in     integer ;
     constant NodeNum         : in     integer
   ) ;
 
@@ -175,6 +179,7 @@ package body OsvvmTestCoSimPkg is
     ) is
 
     variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
+    variable Available       : boolean ;
 
     variable VPDataIn        : integer ;
     variable VPDataInHi      : integer ;
@@ -191,13 +196,14 @@ package body OsvvmTestCoSimPkg is
     variable VPError         : integer ;
     variable VPOperation     : integer ;
     variable VPParam         : integer ;
-    variable UnusedStatus    : integer := 0 ;
+    variable VPStatus        : integer ;
 
   begin
 
-    -- RdData won't have persisted from last call, so re-fetch from ManagerRec
+    -- RdData and Available status won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
     RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
+    VPstatus     := 1 when ManagerRec.BoolFromModel else 0 ;
 
     -- Sample the read data from last access, saved in RdData inout port
     if ManagerRec.DataWidth > 32 then
@@ -209,7 +215,7 @@ package body OsvvmTestCoSimPkg is
     end if;
 
     -- Call VTrans to generate a new access
-    VTrans(NodeNum,   IntReq,      UnusedStatus,
+    VTrans(NodeNum,   IntReq,      VPstatus,
            VPDataIn,  VPDataInHi,
            VPDataOut, VPDataOutHi, VPDataWidth,
            VPAddr,    VPAddrHi,    VPAddrWidth,
@@ -223,7 +229,8 @@ package body OsvvmTestCoSimPkg is
                                 VPOp,
                                 VPAddr,      VPAddrHi,    VPAddrWidth,
                                 VPDataOut,   VPDataOutHi, VPDataWidth,
-                                VPBurstSize, VPTicks,     NodeNum) ;
+                                VPBurstSize, VPTicks,     VPParam,
+                                NodeNum) ;
 
   end procedure CoSimTrans ;
 
@@ -242,6 +249,7 @@ package body OsvvmTestCoSimPkg is
     constant VPDataWidth     : in     integer ;
     constant VPBurstSize     : in     integer ;
     constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
     constant NodeNum         : in     integer
   ) is
 
@@ -252,6 +260,7 @@ package body OsvvmTestCoSimPkg is
     variable RdDataInt       : integer ;
     variable WrDataInt       : integer ;
     variable TestName        : string(1 to VPBurstSize) ;
+    variable Available       : boolean ;
 
   begin
 
@@ -270,6 +279,9 @@ package body OsvvmTestCoSimPkg is
 
         when READ_OP =>
           Read  (ManagerRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
+
+        when READ_CHECK =>
+          ReadCheck(ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
 
         when WRITE_OP =>
           Write (ManagerRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
@@ -294,27 +306,72 @@ package body OsvvmTestCoSimPkg is
 
         when READ_DATA =>
           ReadData(ManagerRec, RdData(VPDataWidth-1 downto 0));
+          
+        when ASYNC_READ_DATA =>
+          TryReadData(ManagerRec, RdData(VPDataWidth-1 downto 0), Available);
+          
+        when ASYNC_READ_DATA_CHECK =>
+          TryReadCheckData(ManagerRec, WrData(VPDataWidth-1 downto 0), Available);
+
+        when READ_DATA_CHECK =>
+          ReadCheckData(ManagerRec, WrData(VPDataWidth-1 downto 0));
 
         when READ_BURST =>
-          ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
 
-          -- encapsulate the following:
-          -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
-          RdData := (others => '0');
-          for bidx in 0 to VPBurstSize-1 loop
-            Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-            RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
-            VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
-          end loop;
+          case BurstWriteType'val(VPParam) is
+
+            when BURST_NORM =>
+              ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+
+              -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
+              RdData := (others => '0');
+              for bidx in 0 to VPBurstSize-1 loop
+                Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
+                RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
+                VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
+              end loop;
+
+            when BURST_INCR =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              ReadCheckBurstIncrement(ManagerRec, Address(VPAddrWidth-1 downto  0), std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_RAND =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              ReadCheckBurstRandom(ManagerRec, Address(VPAddrWidth-1 downto  0), std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when others =>
+                Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented burst type") ;
+
+          end case;
 
         when WRITE_BURST | ASYNC_WRITE_BURST =>
-          -- encapsulate the following:
-          -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
-          for bidx in 0 to VPBurstSize-1 loop
-            VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-            WrByteData := to_signed(WrDataInt, WrByteData'length);
-            Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
-          end loop ;
+
+          case BurstWriteType'val(VPParam) is
+
+            when BURST_NORM =>
+              -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
+              for bidx in 0 to VPBurstSize-1 loop
+                VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+                WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+                Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
+              end loop ;
+
+            when BURST_INCR =>
+               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+               WrByteData := to_signed(WrDataInt, WrByteData'length);
+               PushBurstIncrement(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize);
+
+            when BURST_RAND =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length);
+              PushBurstRandom(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize);
+
+            when others =>
+              Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented burst type") ;
+
+          end case ;
 
           if AddressBusOperationType'val(VpOperation) = WRITE_BURST then
             WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
@@ -345,6 +402,7 @@ package body OsvvmTestCoSimPkg is
             TestName(bidx+1) := character'val(WrDataInt);
           end loop ;
           SetTestName(TestName(1 to VPBurstSize)) ;
+
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
       end case ;
@@ -387,8 +445,8 @@ package body OsvvmTestCoSimPkg is
     variable VPParam           : integer ;
     variable VPOperation       : integer ;
     variable VPStatus          : integer ;
+    variable VPCount           : integer ;
 
-    variable UnusedVPAddr      : integer ;
     variable UnusedVPAddrHi    : integer ;
     variable UnusedVPAddrWidth : integer ;
     variable UnusedIntReq      : integer ;
@@ -406,10 +464,11 @@ package body OsvvmTestCoSimPkg is
     VPDataInHi := 0 ;
 
     -- Call VTrans to generate a new TX access
+    -- Note: VPAddr is overloaded (as VPCount) and used as a count for PUSH_BURST_xxxx operations
     VTrans(NodeNum,      UnusedIntReq,   VPStatus,
            VPDataIn,     VPDataInHi,
            VPDataOut,    VPDataOutHi,    VPDataWidth,
-           UnusedVPAddr, UnusedVPAddrHi, UnusedVPAddrWidth,
+           VPCount,      UnusedVPAddrHi, UnusedVPAddrWidth,
            VPOp,         VPBurstSize,    VPTicks,
            VPDone,       VPError,        VPParam) ;
 
@@ -419,7 +478,7 @@ package body OsvvmTestCoSimPkg is
     CoSimDispatchOneStream (TxRec, RxRec,
                             VPOp,
                             VPDataOut,   VPDataOutHi, VPDataWidth,
-                            VPBurstSize, VPTicks,     VPParam,
+                            VPBurstSize, VPTicks,     VPParam,     VPCount,
                             NodeNum) ;
 
 
@@ -439,6 +498,7 @@ package body OsvvmTestCoSimPkg is
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
     constant VPParam         : in     integer ;
+    constant VPCount         : in     integer ;
     constant NodeNum         : in     integer
   ) is
 
@@ -470,7 +530,7 @@ package body OsvvmTestCoSimPkg is
 
         when SEND =>
           Send (TxRec, WrData(VPDataWidth-1 downto 0), Param(TxRec.ParamToModel'length -1 downto 0)) ;
-          
+
         when SEND_ASYNC =>
           SendAsync (TxRec, WrData(VPDataWidth-1 downto 0), Param(TxRec.ParamToModel'length -1 downto 0)) ;
 
@@ -526,6 +586,7 @@ package body OsvvmTestCoSimPkg is
             TestName(bidx+1) := character'val(WrDataInt);
           end loop ;
           SetTestName(TestName(1 to VPBurstSize)) ;
+
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneStream received unimplemented transaction") ;
       end case ;

@@ -132,117 +132,150 @@ typedef void (*pVUserMain_t)(void);
 #ifdef __cplusplus
 
 // Function to advance simulation by a number of clock ticks
-extern int      VTick                   (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
+extern int      VTick                     (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
 
 // GHDL main support function to wait for simultion to be ready to call
-extern void     VWaitForSim             (const uint32_t node = 0);
+extern void     VWaitForSim               (const uint32_t node = 0);
 
 // OSVVM support function to set the test name
-extern void     VSetTestName            (const char* data, const int bytesize, const uint32_t node);
+extern void     VSetTestName              (const char* data, const int bytesize, const uint32_t node);
 
 // Overloaded write transaction functions for 32 and 64 bit architecture for byte,
 // half-word, word and double-word
-extern uint8_t  VTransWrite             (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransWrite             (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransWrite             (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint8_t  VTransWrite             (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransWrite             (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransWrite             (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint64_t VTransWrite             (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint8_t  VTransWrite               (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWrite               (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWrite               (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint8_t  VTransWrite               (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWrite               (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWrite               (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint64_t VTransWrite               (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded write asynchronous transaction functions for 32 and 64 bit architecture for byte,
 // half-word, word and double-word
-extern uint8_t  VTransWriteAsync        (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransWriteAsync        (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransWriteAsync        (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint8_t  VTransWriteAsync        (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransWriteAsync        (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransWriteAsync        (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-extern uint64_t VTransWriteAsync        (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint8_t  VTransWriteAsync          (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWriteAsync          (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWriteAsync          (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint8_t  VTransWriteAsync          (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern uint16_t VTransWriteAsync          (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint32_t VTransWriteAsync          (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern uint64_t VTransWriteAsync          (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded read transaction functions for 32 and 64 bit architecture for byte,
 // half-word, word, and double-word
-extern void     VTransRead              (const uint32_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint32_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint32_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint64_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint64_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint64_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
-extern void     VTransRead              (const uint64_t addr,       uint64_t *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint32_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint32_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint32_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint64_t addr,       uint8_t  *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint64_t addr,       uint16_t *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint64_t addr,       uint32_t *data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransRead                (const uint64_t addr,       uint64_t *data, const int prot = 0, const uint32_t node = 0);
+
+extern void     VTransReadCheck           (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+extern void     VTransReadCheck           (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded write-read transaction functions for 32 and 64 bit architecture for byte,
 // half-word, word and double-word
-uint8_t         VTransWriteAndRead      (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-uint16_t        VTransWriteAndRead      (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-uint32_t        VTransWriteAndRead      (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-uint8_t         VTransWriteAndRead      (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-uint16_t        VTransWriteAndRead      (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-uint32_t        VTransWriteAndRead      (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-uint64_t        VTransWriteAndRead      (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
+uint8_t         VTransWriteAndRead        (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+uint16_t        VTransWriteAndRead        (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+uint32_t        VTransWriteAndRead        (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+uint8_t         VTransWriteAndRead        (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+uint16_t        VTransWriteAndRead        (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+uint32_t        VTransWriteAndRead        (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+uint64_t        VTransWriteAndRead        (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded write-read asynchronous transaction functions for 32 and 64 bit architecture for byte,
 // half-word, word and double-word
-uint8_t         VTransWriteAndReadAsync (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-uint16_t        VTransWriteAndReadAsync (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-uint32_t        VTransWriteAndReadAsync (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-uint8_t         VTransWriteAndReadAsync (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
-uint16_t        VTransWriteAndReadAsync (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
-uint32_t        VTransWriteAndReadAsync (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
-uint64_t        VTransWriteAndReadAsync (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
+uint8_t         VTransWriteAndReadAsync   (const uint32_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+uint16_t        VTransWriteAndReadAsync   (const uint32_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+uint32_t        VTransWriteAndReadAsync   (const uint32_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+uint8_t         VTransWriteAndReadAsync   (const uint64_t addr, const uint8_t   data, const int prot = 0, const uint32_t node = 0);
+uint16_t        VTransWriteAndReadAsync   (const uint64_t addr, const uint16_t  data, const int prot = 0, const uint32_t node = 0);
+uint32_t        VTransWriteAndReadAsync   (const uint64_t addr, const uint32_t  data, const int prot = 0, const uint32_t node = 0);
+uint64_t        VTransWriteAndReadAsync   (const uint64_t addr, const uint64_t  data, const int prot = 0, const uint32_t node = 0);
 
-// Overloaded write address asynchronous transaction functions for 32 and 64 bit architecture 
-void            VTransWriteAddressAsync (const uint32_t addr, const uint32_t node = 0);
-void            VTransWriteAddressAsync (const uint64_t addr, const uint32_t node = 0);
+// Overloaded write address asynchronous transaction functions for 32 and 64 bit architecture
+void            VTransWriteAddressAsync   (const uint32_t addr, const uint32_t node = 0);
+void            VTransWriteAddressAsync   (const uint64_t addr, const uint32_t node = 0);
 
 // Overloaded write data transaction functions for byte, half-word, word and double-word
-void            VTransWriteDataAsync    (const uint8_t  data, const uint32_t bytelane = 0, const uint32_t node = 0);
-void            VTransWriteDataAsync    (const uint16_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
-void            VTransWriteDataAsync    (const uint32_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
-void            VTransWriteDataAsync    (const uint64_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
+void            VTransWriteDataAsync      (const uint8_t  data, const uint32_t bytelane = 0, const uint32_t node = 0);
+void            VTransWriteDataAsync      (const uint16_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
+void            VTransWriteDataAsync      (const uint32_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
+void            VTransWriteDataAsync      (const uint64_t data, const uint32_t bytelane = 0, const uint32_t node = 0);
 
 // Overloaded read address asynchronous transaction functions for 32 and 64 bit architecture
-void            VTransReadAddressAsync  (const uint32_t addr, const uint32_t node = 0);
-void            VTransReadAddressAsync  (const uint64_t addr, const uint32_t node = 0);
+void            VTransReadAddressAsync    (const uint32_t addr, const uint32_t node = 0);
+void            VTransReadAddressAsync    (const uint64_t addr, const uint32_t node = 0);
 
 // Overloaded write data transaction functions for byte, half-word, word and double-word
-void            VTransReadData          (uint8_t       *data, const uint32_t node = 0);
-void            VTransReadData          (uint16_t      *data, const uint32_t node = 0);
-void            VTransReadData          (uint32_t      *data, const uint32_t node = 0);
-void            VTransReadData          (uint64_t      *data, const uint32_t node = 0);
+void            VTransReadData            (uint8_t       *data, const uint32_t node = 0);
+void            VTransReadData            (uint16_t      *data, const uint32_t node = 0);
+void            VTransReadData            (uint32_t      *data, const uint32_t node = 0);
+void            VTransReadData            (uint64_t      *data, const uint32_t node = 0);
+
+bool            VTransTryReadData         (uint8_t       *data, const uint32_t node = 0);
+bool            VTransTryReadData         (uint16_t      *data, const uint32_t node = 0);
+bool            VTransTryReadData         (uint32_t      *data, const uint32_t node = 0);
+bool            VTransTryReadData         (uint64_t      *data, const uint32_t node = 0);
+
+// Overloaded write data transaction functions for byte, half-word, word and double-word
+void            VTransReadCheckData       (uint8_t        data, const uint32_t node = 0);
+void            VTransReadCheckData       (uint16_t       data, const uint32_t node = 0);
+void            VTransReadCheckData       (uint32_t       data, const uint32_t node = 0);
+void            VTransReadCheckData       (uint64_t       data, const uint32_t node = 0);
+
+bool            VTransTryReadCheckData    (uint8_t        data, const uint32_t node = 0);
+bool            VTransTryReadCheckData    (uint16_t       data, const uint32_t node = 0);
+bool            VTransTryReadCheckData    (uint32_t       data, const uint32_t node = 0);
+bool            VTransTryReadCheckData    (uint64_t       data, const uint32_t node = 0);
 
 // Overloaded write burst transaction functions for 32 and 64 bit architecture
-extern void     VTransBurstWrite        (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
-extern void     VTransBurstWrite        (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
-
-// Overloaded write burst asynchronous transaction functions for 32 and 64 bit architecture
-extern void     VTransBurstWriteAsync   (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
-extern void     VTransBurstWriteAsync   (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWrite          (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWrite          (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteAsync     (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteAsync     (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteIncrement      (const uint32_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteIncrement      (const uint64_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteIncrementAsync (const uint32_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteIncrementAsync (const uint64_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteRandom         (const uint32_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteRandom         (const uint64_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteRandomAsync    (const uint32_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstWriteRandomAsync    (const uint64_t addr, uint8_t *data, const int count, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded read burst transaction functions for 32 and 64 bit architecture
-extern void     VTransBurstRead         (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
-extern void     VTransBurstRead         (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstRead           (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransBurstRead           (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransCheckBurstReadIncrement (const uint32_t addr, uint8_t *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransCheckBurstReadIncrement (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransCheckBurstReadRandom    (const uint32_t addr, uint8_t *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void     VTransCheckBurstReadRandom    (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded stream send transaction functions for byte, half-word, word and double-word
-extern uint8_t  VStreamSend             (const uint8_t   data, const int  param = 0, const uint32_t node = 0);
-extern uint16_t VStreamSend             (const uint16_t  data, const int  param = 0, const uint32_t node = 0);
-extern uint32_t VStreamSend             (const uint32_t  data, const int  param = 0, const uint32_t node = 0);
-extern uint64_t VStreamSend             (const uint64_t  data, const int  param = 0, const uint32_t node = 0);
-
-extern uint8_t  VStreamSendAsync        (const uint8_t   data, const int  param = 0, const uint32_t node = 0);
-extern uint16_t VStreamSendAsync        (const uint16_t  data, const int  param = 0, const uint32_t node = 0);
-extern uint32_t VStreamSendAsync        (const uint32_t  data, const int  param = 0, const uint32_t node = 0);
-extern uint64_t VStreamSendAsync        (const uint64_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint8_t  VStreamSend               (const uint8_t   data, const int  param = 0, const uint32_t node = 0);
+extern uint16_t VStreamSend               (const uint16_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint32_t VStreamSend               (const uint32_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint64_t VStreamSend               (const uint64_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint8_t  VStreamSendAsync          (const uint8_t   data, const int  param = 0, const uint32_t node = 0);
+extern uint16_t VStreamSendAsync          (const uint16_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint32_t VStreamSendAsync          (const uint32_t  data, const int  param = 0, const uint32_t node = 0);
+extern uint64_t VStreamSendAsync          (const uint64_t  data, const int  param = 0, const uint32_t node = 0);
 
 // Overloaded stream get transaction functions for byte, half-word, word and double-word
-extern void     VStreamGet              (      uint8_t  *data,       int *stream, const uint32_t node = 0);
-extern void     VStreamGet              (      uint16_t *data,       int *stream, const uint32_t node = 0);
-extern void     VStreamGet              (      uint32_t *data,       int *stream, const uint32_t node = 0);
-extern void     VStreamGet              (      uint64_t *data,       int *stream, const uint32_t node = 0);
+extern void     VStreamGet                (      uint8_t  *data,       int *stream, const uint32_t node = 0);
+extern void     VStreamGet                (      uint16_t *data,       int *stream, const uint32_t node = 0);
+extern void     VStreamGet                (      uint32_t *data,       int *stream, const uint32_t node = 0);
+extern void     VStreamGet                (      uint64_t *data,       int *stream, const uint32_t node = 0);
 
-// Stream burst send and get transaction functions 
-extern void     VStreamBurstSend        (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
-extern void     VStreamBurstSendAsync   (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
-extern void     VStreamBurstGet         (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
+// Stream burst send and get transaction functions
+extern void     VStreamBurstSend          (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
+extern void     VStreamBurstSendAsync     (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
+extern void     VStreamBurstGet           (      uint8_t  *data, const int      bytesize, const uint32_t node = 0);
 
 #endif
 

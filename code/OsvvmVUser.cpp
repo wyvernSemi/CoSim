@@ -73,6 +73,8 @@ static std::mutex acc_mx[VP_MAX_NODES];
 static symhdl_t hdlvp;
 #endif
 
+static int unusedstatus;
+
 // -------------------------------------------------------------------------
 // VInitSendBuf()
 //
@@ -89,6 +91,7 @@ static void VInitSendBuf(send_buf_t &sbuf)
     sbuf.ticks           = 0;
     sbuf.done            = 0;
     sbuf.error           = 0;
+    sbuf.param           = 0;
 }
 
 // -------------------------------------------------------------------------
@@ -339,7 +342,7 @@ void VWaitForSim(const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
+static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -355,6 +358,8 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, 
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in & 0xffU;
 }
 
@@ -364,7 +369,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, 
 // Invokes an 16-bit transaction exchange
 //
 // -------------------------------------------------------------------------
-static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint16_t data, int const prot, const uint32_t node)
+static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -380,6 +385,8 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in & 0xffffU;
 }
 
@@ -390,7 +397,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
+static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -406,6 +413,8 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in;
 }
 
@@ -416,7 +425,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
+static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -432,6 +441,8 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, 
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in & 0xffU;
 }
 
@@ -442,7 +453,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, 
 //
 // -------------------------------------------------------------------------
 
-static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
+static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -458,6 +469,8 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in & 0xffffU;
 }
 
@@ -468,7 +481,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
+static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -484,6 +497,8 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return rbuf.data_in;
 }
 
@@ -494,7 +509,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
+static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -510,6 +525,8 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+
     return (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
 }
 
@@ -519,7 +536,7 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 // Invokes a write burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
-static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -530,9 +547,12 @@ static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const uint32_t
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.op              = op;
+    sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    int num_of_wr_bytes = (param == BURST_NORM) ? sbuf.num_burst_bytes : 1;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
         sbuf.databuf[idx] = data[idx];
     }
@@ -548,7 +568,7 @@ static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const uint32_t
 // Invokes a write burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -559,9 +579,12 @@ static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const uint64_t
     sbuf.addr            = addr;
     sbuf.prot            = prot;
     sbuf.op              = op;
+    sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    int num_of_wr_bytes = (param == BURST_NORM) ? sbuf.num_burst_bytes : 1;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
         sbuf.databuf[idx] = data[idx];
     }
@@ -962,258 +985,450 @@ void VSetTestName (const char* data, const int bytesize, const uint32_t node)
 
 void VTransRead (const uint32_t addr, uint8_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint32_t addr, uint16_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint32_t addr, uint32_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint64_t addr, uint8_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint64_t addr, uint16_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint64_t addr, uint32_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, &unusedstatus, prot, node);
 }
 
 void VTransRead (const uint64_t addr, uint64_t *rdata, const int prot, const uint32_t node)
 {
-    *rdata = VTransCommon(READ_OP, addr, (uint64_t)0, prot, node);
+    *rdata = VTransCommon(READ_OP, addr, (uint64_t)0, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWrite (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAsync (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWrite (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAsync (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWrite (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAsync (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWrite (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAsync (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWrite (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAsync (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWrite (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAsync (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint64_t VTransWrite (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_OP, addr, data, prot, node);
+     return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
 }
 
 uint64_t VTransWriteAsync (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAndRead (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAndReadAsync (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAndRead (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAndReadAsync (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAndRead (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAndReadAsync (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAndRead (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint8_t VTransWriteAndReadAsync (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAndRead (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint16_t VTransWriteAndReadAsync (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAndRead (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint32_t VTransWriteAndReadAsync (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint64_t VTransWriteAndRead (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 uint64_t VTransWriteAndReadAsync (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
 {
-     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, prot, node);
+     return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
 }
 
 void VTransWriteAddressAsync (const uint32_t addr, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, 0, node);
+    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
 }
 
 void VTransWriteAddressAsync (const uint64_t addr, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, 0, node);
+    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
 }
 
 void VTransWriteDataAsync (const uint8_t  data, const uint32_t bytelane, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, 0, node);
+    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
 }
 
 void VTransWriteDataAsync (const uint16_t data, const uint32_t bytelane, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, 0, node);
+    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
 }
 
 void VTransWriteDataAsync (const uint32_t data, const uint32_t bytelane, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, 0, node);
+    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
 }
 
 void VTransWriteDataAsync (const uint64_t data, const uint64_t bytelane, const uint32_t node)
 {
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, 0, node);
+    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
 }
 
 void VTransReadAddressAsync  (const uint32_t addr, const uint32_t node)
 {
-    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, 0, node);
+    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
 }
 
 void VTransReadAddressAsync  (const uint64_t addr, const uint32_t node)
 {
-    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, 0, node);
+    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
 }
 
 void VTransReadData (uint8_t  *data, const uint32_t node)
 {
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, 0, node);
+    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &unusedstatus, 0, node);
 }
 
 void VTransReadData (uint16_t *data, const uint32_t node)
 {
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint16_t)0, 0, node);
+    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint16_t)0, &unusedstatus, 0, node);
 }
 
 void VTransReadData (uint32_t *data, const uint32_t node)
 {
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint32_t)0, 0, node);
+    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint32_t)0, &unusedstatus, 0, node);
 }
 
 void VTransReadData (uint64_t  *data, const uint32_t node)
 {
-    *data = VTransCommon(READ_DATA, (uint64_t)0, (uint64_t)0, 0, node);
+    *data = VTransCommon(READ_DATA, (uint64_t)0, (uint64_t)0, &unusedstatus, 0, node);
+}
+
+bool VTransTryReadData (uint8_t *data, const uint32_t node)
+{
+    int status;
+
+    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);
+
+    return status;
+}
+
+bool VTransTryReadData (uint16_t *data, const uint32_t node)
+{
+    int status;
+
+    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint16_t)0, &status, 0, node);
+
+    return status;
+}
+
+bool VTransTryReadData (uint32_t *data, const uint32_t node)
+{
+    int status;
+
+    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint32_t)0, &status, 0, node);
+
+    return status;
+}
+
+bool VTransTryReadData (uint64_t *data, const uint32_t node)
+{
+    int status;
+
+    *data = VTransCommon(ASYNC_READ_DATA, (uint64_t)0, (uint64_t)0, &status, 0, node);
+
+    return status;
+}
+
+void  VTransReadCheck (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheck (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
+{
+    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
+}
+
+void  VTransReadCheckData ( const uint8_t data, const uint32_t node)
+{
+    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
+}
+
+void  VTransReadCheckData (const uint16_t data, const uint32_t node)
+{
+    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
+}
+
+void  VTransReadCheckData (const uint32_t data, const uint32_t node)
+{
+    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
+}
+
+void  VTransReadCheckData (const uint64_t data, const uint32_t node)
+{
+    VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &unusedstatus, (uint32_t)0, node);
+}
+
+
+bool  VTransTryReadCheckData ( const uint8_t data, const uint32_t node)
+{
+    int status;
+
+    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
+
+    return status;
+}
+
+bool  VTransTryReadCheckData (const uint16_t data, const uint32_t node)
+{
+    int status;
+
+    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
+
+    return status;
+}
+
+bool  VTransTryReadCheckData (const uint32_t data, const uint32_t node)
+{
+    int status;
+
+    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
+
+    return status;
+}
+
+bool  VTransTryReadCheckData (const uint64_t data, const uint32_t node)
+{
+    int status;
+
+    VTransCommon(ASYNC_READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);
+
+    return status;
 }
 
 void VTransBurstWrite (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, addr, data, bytesize, prot, node);
+    VTransBurstWriteCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWrite (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, addr, data, bytesize, prot, node);
+    VTransBurstWriteCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, addr, data, bytesize, prot, node);
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, addr, data, bytesize, prot, node);
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
+
+void VTransBurstWriteIncrement (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteIncrement (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteIncrementAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteIncrementAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteRandom (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteRandom (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteRandomAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+void VTransBurstWriteRandomAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+
+void VTransCheckBurstReadIncrement (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
+{
+    VTransBurstWriteCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransCheckBurstReadIncrement (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
+{
+     VTransBurstWriteCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+}
+
+void VTransCheckBurstReadRandom    (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
+{
+     VTransBurstWriteCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+void VTransCheckBurstReadRandom    (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
+{
+     VTransBurstWriteCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+// --------------------------------------------------------------------------------
+// Overloaded stream functions
 
 uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
 {
@@ -1264,5 +1479,4 @@ void VStreamBurstSendAsync (uint8_t* data, const int bytesize, const uint32_t no
 {
     VStreamBurstSendCommon(SEND_BURST_ASYNC, data, bytesize, node);
 }
-
 

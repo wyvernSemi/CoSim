@@ -162,7 +162,9 @@ typedef enum addr_bus_trans_op_e
     READ_BURST,
     MULTIPLE_DRIVER_DETECT,
 
-    SET_TEST_NAME = 1024
+    SET_TEST_NAME = 1024,
+    PUSH_BURST_INCR,
+    PUSH_BURST_RAND
 } addr_bus_trans_op_t;
 
 typedef enum stream_operation_e
@@ -194,12 +196,13 @@ typedef enum stream_operation_e
     //SET_TEST_NAME = 1024
 } stream_operation_t;
 
-typedef enum arch_e
+typedef enum burst_write_type_e
 {
-    arch32,
-    arch64,
-    arch128
-} arch_e;
+    BURST_NORM,
+    BURST_INCR,
+    BURST_RAND
+    
+} burst_write_type_t;
 
 typedef struct
 {
