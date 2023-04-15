@@ -73,6 +73,7 @@ extern "C" void VUserMain0()
     uint32_t addr,   data32,  wdata32, rdata32, i;
     uint16_t data16, wdata16, rdata16;
     uint8_t  data8,  wdata8,  rdata8;
+    uint8_t  wbuf[4096], rbuf[4096];
 
     // -------------------------------
     // Test asynchronous writes with 32 bit data
@@ -138,8 +139,6 @@ extern "C" void VUserMain0()
     // -------------------------------
     // Test asynchronous burst writes
 
-    uint8_t wbuf [128];
-    uint8_t rbuf [128];
     addr = 0x80004964;
 
     for (i = 0; i < 128; i++)
@@ -435,6 +434,46 @@ extern "C" void VUserMain0()
         VPrint("***ERROR: got unexpected data unavailable returned from transTryReadDataCheck\n");
         error = true;
     }
+
+    // -------------------------------
+    // Test Push/pop functions
+
+    addr    = 0x39001500;
+
+    for (int idx = 0; idx < 128; idx++)
+    {
+        wbuf[idx] = 0x75 + (idx*7);
+    }
+
+    cosim.transBurstPushData(wbuf, 128);
+    cosim.transBurstWrite(addr, 128);
+    cosim.transBurstRead(addr, 128);
+    cosim.transBurstPopData(rbuf, 128);
+
+    for (int idx = 0; idx < 128; idx++)
+    {
+        if (rbuf[idx] != wbuf[idx])
+        {
+            VPrint("***ERROR: mismatch in Push/Pop burst data. Got 0x%02x, exp. 0x%02x\n", rbuf[idx], wbuf[idx]);
+            error = true;
+        }
+    }
+    
+    addr   = 0xa0001940;
+    wdata8 = 0xd8;
+    
+    cosim.transBurstPushIncrement(wdata8, 64);
+    cosim.transBurstWrite(addr, 64);
+    cosim.transBurstRead(addr, 64);
+    cosim.transBurstCheckIncrement(wdata8, 64);
+    
+    addr   = 0xe0002834;
+    wdata8 = 0x0a;
+    
+    cosim.transBurstPushRandom(wdata8, 64);
+    cosim.transBurstWrite(addr, 64);
+    cosim.transBurstRead(addr, 64);
+    cosim.transBurstCheckRandom(wdata8, 64);
 
     // -------------------------------
     // Flag to the simulation we're finished, after 10 more iterations

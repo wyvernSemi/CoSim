@@ -204,7 +204,9 @@ typedef enum burst_write_type_e
     BURST_INCR_PUSH,
     BURST_RAND_PUSH,
     BURST_INCR_CHECK,
-    BURST_RAND_CHECK
+    BURST_RAND_CHECK,
+    BURST_TRANS,
+    BURST_DATA,
 } burst_type_t;
 
 typedef struct

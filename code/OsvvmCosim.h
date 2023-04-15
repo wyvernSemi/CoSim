@@ -166,6 +166,8 @@ public:
 
       void     transBurstWrite               (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstWrite(addr, data, bytesize, prot, node);}
       void     transBurstWrite               (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstWrite(addr, data, bytesize, prot, node);}
+      void     transBurstWrite               (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstWrite(addr, bytesize, prot, node);}
+      void     transBurstWrite               (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstWrite(addr, bytesize, prot, node);}
       void     transBurstWriteAsync          (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstWriteAsync(addr, data, bytesize, prot, node);}
       void     transBurstWriteAsync          (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstWriteAsync(addr, data, bytesize, prot, node);}
 
@@ -178,15 +180,19 @@ public:
       void     transBurstWriteRandomAsync    (const uint32_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransBurstWriteRandomAsync(addr, &data, bytesize, prot, node);}
       void     transBurstWriteRandomAsync    (const uint64_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransBurstWriteRandomAsync(addr, &data, bytesize, prot, node);}
 
-      void     transBurstPushIncrement       (       uint8_t data, const int bytesize)                                     {VTransBurstPushIncrement(&data, bytesize, node);}
-      void     transBurstPushRandom          (       uint8_t data, const int bytesize)                                     {VTransBurstPushRandom(&data, bytesize, node);}
+      void     transBurstPushData            (      uint8_t *data, const int bytesize)                                     {VTransBurstPushData(data, bytesize, node);}
+      void     transBurstPushIncrement       (      uint8_t  data, const int bytesize)                                     {VTransBurstPushIncrement(&data, bytesize, node);}
+      void     transBurstPushRandom          (      uint8_t  data, const int bytesize)                                     {VTransBurstPushRandom(&data, bytesize, node);}
 
       void     transBurstRead                (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstRead (addr, data, bytesize, prot, node);}
       void     transBurstRead                (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstRead (addr, data, bytesize, prot, node);}
+      void     transBurstRead                (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstRead (addr, bytesize, prot, node);}
+      void     transBurstRead                (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstRead (addr, bytesize, prot, node);}
       void     transBurstReadCheckIncrement  (const uint32_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransCheckBurstReadIncrement(addr, &data, bytesize, prot, node);}
       void     transBurstReadCheckIncrement  (const uint64_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransCheckBurstReadIncrement(addr, &data, bytesize, prot, node);}
       void     transBurstReadCheckRandom     (const uint32_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransCheckBurstReadRandom(addr, &data, bytesize, prot, node);}
       void     transBurstReadCheckRandom     (const uint64_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransCheckBurstReadRandom(addr, &data, bytesize, prot, node);}
+      void     transBurstPopData             (uint8_t  *data, const int bytesize)                                          {VTransBurstPopData(data, bytesize, node);}
 
       void     transBurstCheckIncrement      (      uint8_t  data, const int bytesize)                                     {VTransCheckBurstIncrement(&data, bytesize, node);}
       void     transBurstCheckRandom         (      uint8_t  data, const int bytesize)                                     {VTransCheckBurstRandom   (&data, bytesize, node);}

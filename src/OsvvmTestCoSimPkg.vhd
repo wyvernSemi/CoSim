@@ -57,7 +57,8 @@ library osvvm_cosim ;
 package OsvvmTestCoSimPkg is
 
   type CoSimOperationType is (SET_TEST_NAME) ;
-  type BurstType          is (BURST_NORM, BURST_INCR, BURST_RAND, BURST_INCR_PUSH, BURST_RAND_PUSH, BURST_INCR_CHECK, BURST_RAND_CHECK);
+  type BurstType          is (BURST_NORM,       BURST_INCR,       BURST_RAND,  BURST_INCR_PUSH, BURST_RAND_PUSH,
+                              BURST_INCR_CHECK, BURST_RAND_CHECK, BURST_TRANS, BURST_DATA,      BURST_DATA_CHECK);
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -319,16 +320,21 @@ package body OsvvmTestCoSimPkg is
 
           case BurstType'val(VPParam) is
 
-            when BURST_NORM =>
-              ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+            when BURST_NORM | BURST_TRANS | BURST_DATA =>
 
-              -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
-              RdData := (others => '0');
-              for bidx in 0 to VPBurstSize-1 loop
-                Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-                RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
-                VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
-              end loop;
+              if BurstType'val(VPParam) /= BURST_DATA then
+                ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+              end if ;
+
+              if BurstType'val(VPParam) = BURST_NORM or BurstType'val(VPParam) = BURST_DATA then
+                -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
+                RdData := (others => '0');
+                for bidx in 0 to VPBurstSize-1 loop
+                  Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
+                  RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
+                  VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
+                end loop;
+              end if ;
 
             when BURST_INCR =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
@@ -359,7 +365,7 @@ package body OsvvmTestCoSimPkg is
 
           case BurstType'val(VPParam) is
 
-            when BURST_NORM =>
+            when BURST_NORM | BURST_DATA =>
               -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
               for bidx in 0 to VPBurstSize-1 loop
                 VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
@@ -377,12 +383,15 @@ package body OsvvmTestCoSimPkg is
               WrByteData := to_signed(WrDataInt, WrByteData'length);
               PushBurstRandom(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize);
 
+            when BURST_TRANS =>
+              null;
+
             when others =>
               Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented burst type") ;
 
           end case ;
 
-          if BurstType'val(VPParam) /= BURST_INCR_PUSH and BurstType'val(VPParam) /= BURST_RAND_PUSH then
+          if BurstType'val(VPParam) /= BURST_INCR_PUSH and BurstType'val(VPParam) /= BURST_RAND_PUSH and BurstType'val(VPParam) /= BURST_DATA then
             if AddressBusOperationType'val(VpOperation) = WRITE_BURST then
               WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
             else
