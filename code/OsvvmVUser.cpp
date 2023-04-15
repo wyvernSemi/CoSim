@@ -531,12 +531,12 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 }
 
 // -------------------------------------------------------------------------
-// VTransBurstWriteCommon()
+// VTransBurstCommon()
 //
 // Invokes a write burst transaction exchange (32-bit address)
 // -------------------------------------------------------------------------
 
-static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -563,12 +563,12 @@ static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const int para
 }
 
 // -------------------------------------------------------------------------
-// VTransBurstWriteCommon()
+// VTransBurstCommon()
 //
 // Invokes a write burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-static void VTransBurstWriteCommon (const addr_bus_trans_op_t op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -1309,7 +1309,6 @@ void  VTransReadCheckData (const uint64_t data, const uint32_t node)
     VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &unusedstatus, (uint32_t)0, node);
 }
 
-
 bool  VTransTryReadCheckData ( const uint8_t data, const uint32_t node)
 {
     int status;
@@ -1348,83 +1347,102 @@ bool  VTransTryReadCheckData (const uint64_t data, const uint32_t node)
 
 void VTransBurstWrite (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWrite (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteIncrement (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteIncrement (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteIncrementAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteIncrementAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteRandom (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteRandom (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+    VTransBurstCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteRandomAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
 }
 
 void VTransBurstWriteRandomAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
 }
 
+void VTransBurstPushIncrement (uint8_t *data, const int count, const uint32_t node)
+{
+    VTransBurstCommon(WRITE_BURST, BURST_INCR_PUSH, (uint32_t)0, data, count, (uint32_t)0, node);
+}
+
+void VTransBurstPushRandom    (uint8_t *data, const int count, const uint32_t node)
+{
+    VTransBurstCommon(WRITE_BURST, BURST_RAND_PUSH, (uint32_t)0, data, count, (uint32_t)0, node);
+}
 
 void VTransCheckBurstReadIncrement (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
 {
-    VTransBurstWriteCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+    VTransBurstCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransCheckBurstReadIncrement (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
 {
-     VTransBurstWriteCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
+     VTransBurstCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
 }
 
 void VTransCheckBurstReadRandom    (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
 {
-     VTransBurstWriteCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+     VTransBurstCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
 }
 
 void VTransCheckBurstReadRandom    (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
 {
-     VTransBurstWriteCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+     VTransBurstCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
+}
+
+void VTransCheckBurstIncrement (uint8_t *data, const int bytesize, const uint32_t node)
+{
+    VTransBurstCommon(READ_BURST, BURST_INCR_CHECK, (uint32_t)0, data, bytesize, (uint32_t)0, node);
+}
+
+void VTransCheckBurstRandom    (uint8_t *data, const int bytesize, const uint32_t node)
+{
+    VTransBurstCommon(READ_BURST, BURST_RAND_CHECK, (uint32_t)0, data, bytesize, (uint32_t)0, node);
 }
 
 // --------------------------------------------------------------------------------

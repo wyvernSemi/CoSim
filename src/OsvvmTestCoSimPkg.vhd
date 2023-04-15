@@ -57,8 +57,7 @@ library osvvm_cosim ;
 package OsvvmTestCoSimPkg is
 
   type CoSimOperationType is (SET_TEST_NAME) ;
-  type BurstWriteType     is (BURST_NORM, BURST_INCR, BURST_RAND) ;
-
+  type BurstType          is (BURST_NORM, BURST_INCR, BURST_RAND, BURST_INCR_PUSH, BURST_RAND_PUSH, BURST_INCR_CHECK, BURST_RAND_CHECK);
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -306,10 +305,10 @@ package body OsvvmTestCoSimPkg is
 
         when READ_DATA =>
           ReadData(ManagerRec, RdData(VPDataWidth-1 downto 0));
-          
+
         when ASYNC_READ_DATA =>
           TryReadData(ManagerRec, RdData(VPDataWidth-1 downto 0), Available);
-          
+
         when ASYNC_READ_DATA_CHECK =>
           TryReadCheckData(ManagerRec, WrData(VPDataWidth-1 downto 0), Available);
 
@@ -318,7 +317,7 @@ package body OsvvmTestCoSimPkg is
 
         when READ_BURST =>
 
-          case BurstWriteType'val(VPParam) is
+          case BurstType'val(VPParam) is
 
             when BURST_NORM =>
               ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
@@ -341,6 +340,16 @@ package body OsvvmTestCoSimPkg is
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
               ReadCheckBurstRandom(ManagerRec, Address(VPAddrWidth-1 downto  0), std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
 
+            when BURST_INCR_CHECK =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              CheckBurstIncrement(ManagerRec.ReadBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_RAND_CHECK =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              CheckBurstRandom(ManagerRec.ReadBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
             when others =>
                 Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented burst type") ;
 
@@ -348,7 +357,7 @@ package body OsvvmTestCoSimPkg is
 
         when WRITE_BURST | ASYNC_WRITE_BURST =>
 
-          case BurstWriteType'val(VPParam) is
+          case BurstType'val(VPParam) is
 
             when BURST_NORM =>
               -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
@@ -358,12 +367,12 @@ package body OsvvmTestCoSimPkg is
                 Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
               end loop ;
 
-            when BURST_INCR =>
+            when BURST_INCR | BURST_INCR_PUSH =>
                VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
                WrByteData := to_signed(WrDataInt, WrByteData'length);
                PushBurstIncrement(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize);
 
-            when BURST_RAND =>
+            when BURST_RAND | BURST_RAND_PUSH =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length);
               PushBurstRandom(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize);
@@ -373,10 +382,12 @@ package body OsvvmTestCoSimPkg is
 
           end case ;
 
-          if AddressBusOperationType'val(VpOperation) = WRITE_BURST then
-            WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
-          else
-            WriteBurstAsync(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+          if BurstType'val(VPParam) /= BURST_INCR_PUSH and BurstType'val(VPParam) /= BURST_RAND_PUSH then
+            if AddressBusOperationType'val(VpOperation) = WRITE_BURST then
+              WriteBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+            else
+              WriteBurstAsync(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+            end if ;
           end if ;
 
         when others =>

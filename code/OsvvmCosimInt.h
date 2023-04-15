@@ -152,6 +152,14 @@ public:
       void     transRead                     (const uint64_t addr, uint32_t *data, const int prot = 0)                        {processInt(); OsvvmCosim::transRead(addr, data, prot);}
       void     transRead                     (const uint64_t addr, uint64_t *data, const int prot = 0)                        {processInt(); OsvvmCosim::transRead(addr, data, prot);}
 
+      void     transReadPoll                 (const uint32_t addr, uint8_t  *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint32_t addr, uint16_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint32_t addr, uint32_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint64_t addr, uint8_t  *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint64_t addr, uint16_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint64_t addr, uint32_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+      void     transReadPoll                 (const uint64_t addr, uint64_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0) {processInt(); OsvvmCosim::transReadPoll(addr, data, idx, bitval, waittime, prot);}
+
       void     transReadCheck                (const uint32_t addr, uint8_t   data, const int prot = 0)                        {processInt(); OsvvmCosim::transReadCheck(addr, data, prot);}
       void     transReadCheck                (const uint32_t addr, uint16_t  data, const int prot = 0)                        {processInt(); OsvvmCosim::transReadCheck(addr, data, prot);}
       void     transReadCheck                (const uint32_t addr, uint32_t  data, const int prot = 0)                        {processInt(); OsvvmCosim::transReadCheck(addr, data, prot);}
