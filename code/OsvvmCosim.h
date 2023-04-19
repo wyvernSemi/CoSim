@@ -48,6 +48,8 @@
 class OsvvmCosim
 {
 public:
+                const int max_data_buf_size = DATABUF_SIZE;
+
                 OsvvmCosim      (int nodeIn = 0, std::string test_name = "") : node(nodeIn) {
                    if (test_name.compare(""))
                    {
@@ -197,6 +199,15 @@ public:
       void     transBurstCheckIncrement      (      uint8_t  data, const int bytesize)                                     {VTransCheckBurstIncrement(&data, bytesize, node);}
       void     transBurstCheckRandom         (      uint8_t  data, const int bytesize)                                     {VTransCheckBurstRandom   (&data, bytesize, node);}
 
+      bool     transBurstCheckData           (      uint8_t *expdata, const int bytesize)
+                                             {uint8_t buf[max_data_buf_size]; transBurstPopData(buf, bytesize); return cmpBuffers(buf, expdata, bytesize);}
+
+      bool     transBurstReadCheckData       (const uint32_t addr, uint8_t *expdata, const int bytesize, const int prot = 0)
+                                             {uint8_t buf[max_data_buf_size]; transBurstRead(addr, buf, bytesize, prot); return cmpBuffers(buf, expdata, bytesize);}
+
+      bool     transBurstReadCheckData       (const uint64_t addr, uint8_t *expdata, const int bytesize, const int prot = 0)
+                                             {uint8_t buf[max_data_buf_size]; transBurstRead(addr, buf, bytesize, prot); return cmpBuffers(buf, expdata, bytesize);}
+
       void     regInterruptCB                (pVUserInt_t func)                                                            {VRegInterrupt(func, node);}
 
       void     waitForSim                    (void)                                                                        {VWaitForSim(node);}
@@ -204,6 +215,8 @@ public:
       int      getNodeNumber                 (void)                                                                        {return node;}
 
 private:
+
+      bool     cmpBuffers                    (const uint8_t *got, const uint8_t *exp, const int bytesize) {for (int i=0; i < bytesize;i++) if (got[i] != exp[i]) return true; return false;}
 
       int      node;
 };

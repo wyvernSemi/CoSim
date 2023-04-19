@@ -16,6 +16,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    03/2024   2023.05    Extended tests to non-blocking methods
 //    03/2023   2023.04    Initial revision
 //
 //  This file is part of OSVVM.
@@ -158,9 +159,9 @@ extern "C" void VUserMain0()
 
     // =============================================================
     // Repeat test with asynchronous writes
-    
+
     VPrint("VUserMain%d: ===== STARTING ASYNC TESTS =====\n", node);
-    
+
     bufidx = 0;
     wdata  = 0x19640825;
     param  = makeAxiStreamParam(TID, TDEST, TUSER, 0);
@@ -175,7 +176,7 @@ extern "C" void VUserMain0()
         }
         axistream.streamSendAsync(wdata + idx, param);
     }
-   
+
 
     // Get received word data and check data and status values
     for (int idx = 0; idx < DATASIZE; idx++)
@@ -217,8 +218,10 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     // Retrieve received data
-    axistream.streamBurstGet(&RxData[bufidx], 16);  bufidx += 16;
-    axistream.streamBurstGet(&RxData[bufidx], 256); bufidx += 256;
+    axistream.streamBurstGet(16);
+    axistream.streamBurstGet(256);
+
+    axistream.streamBurstPopData(RxData, 272);
 
     // Check data validity
     for (int idx = 0; idx < bufidx; idx++)
@@ -228,6 +231,24 @@ extern "C" void VUserMain0()
             VPrint("VuserMain%d: ***ERROR mismatch in received byte. Got0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
         }
     }
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[bufidx++] = random() & 0xff;
+    }
+
+    bufidx = 0;
+
+    // Send a couple of bursts
+    axistream.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
+    axistream.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
+
+    bufidx = 0;
+
+    // Check received data
+    axistream.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
+    axistream.streamBurstCheck(&TestData0[bufidx], 256);  bufidx += 256;
 
     // Flag to the simulation we're finished, after 10 more ticks
     axistream.tick(10, true, error);

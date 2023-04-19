@@ -44,7 +44,7 @@
 #include <vector>
 
 // Import VProc user API
-#include "OsvvmCosim.h"
+#include "OsvvmCosimInt.h"
 
 // I am node 0 context
 static int node  = 0;
@@ -68,7 +68,7 @@ extern "C" void VUserMain0()
 
     bool                  error = false;
     std::string test_name("CoSim_async_trans");
-    OsvvmCosim  cosim(node, test_name);
+    OsvvmCosimInt  cosim(node, test_name);
 
     uint32_t addr,   data32,  wdata32, rdata32, i;
     uint16_t data16, wdata16, rdata16;
@@ -458,22 +458,54 @@ extern "C" void VUserMain0()
             error = true;
         }
     }
-    
+
     addr   = 0xa0001940;
     wdata8 = 0xd8;
-    
+
     cosim.transBurstPushIncrement(wdata8, 64);
     cosim.transBurstWrite(addr, 64);
     cosim.transBurstRead(addr, 64);
     cosim.transBurstCheckIncrement(wdata8, 64);
-    
+
     addr   = 0xe0002834;
     wdata8 = 0x0a;
-    
+
     cosim.transBurstPushRandom(wdata8, 64);
     cosim.transBurstWrite(addr, 64);
     cosim.transBurstRead(addr, 64);
     cosim.transBurstCheckRandom(wdata8, 64);
+
+    // -------------------------------
+    // Test check data methods
+
+    addr = 0x07804720;
+
+    for (i = 0; i < 64; i++)
+    {
+        wbuf[i] = 0x48 + i*3;
+    }
+
+    cosim.transBurstWrite(addr, wbuf, 64);
+    if (cosim.transBurstReadCheckData(addr, wbuf, 64))
+    {
+        VPrint("***ERROR: data mismatch on transBurstReadCheck\n");
+        error = true;
+    }
+
+    addr = 0x17804700;
+
+    for (i = 0; i < 64; i++)
+    {
+        wbuf[i] = 0xd5 + i*3;
+    }
+
+    cosim.transBurstWrite(addr, wbuf, 64);
+    cosim.transBurstRead(addr, 64);
+    if (cosim.transBurstCheckData(wbuf, 64))
+    {
+        VPrint("***ERROR: data mismatch on transBurstReadCheck\n");
+        error = true;
+    }
 
     // -------------------------------
     // Flag to the simulation we're finished, after 10 more iterations

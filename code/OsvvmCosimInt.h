@@ -83,7 +83,7 @@ public:
                    }
                };
 
-      // Override OsvvmCosim transacti       on methods to insert processINt methods before call to the parent class's methods
+      // Override OsvvmCosim transaction methods to insert processInt methods before call to the parent class's methods
       uint8_t  transWrite                    (const uint32_t addr, const uint8_t  data, const int prot = 0)                   {processInt(); return OsvvmCosim::transWrite(addr, data, prot);}
       uint16_t transWrite                    (const uint32_t addr, const uint16_t data, const int prot = 0)                   {processInt(); return OsvvmCosim::transWrite(addr, data, prot);}
       uint32_t transWrite                    (const uint32_t addr, const uint32_t data, const int prot = 0)                   {processInt(); return OsvvmCosim::transWrite(addr, data, prot);}
@@ -190,10 +190,12 @@ public:
       void     transBurstRead                (const uint32_t addr, const int bytesize, const int prot = 0)                    {processInt(); OsvvmCosim::transBurstRead (addr, bytesize, prot);}
       void     transBurstRead                (const uint64_t addr, const int bytesize, const int prot = 0)                    {processInt(); OsvvmCosim::transBurstRead (addr, bytesize, prot);}
 
-      void     transBurstReadCheckIncrement  (const uint32_t addr, uint8_t data, const int bytesize, const int prot = 0)      {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
-      void     transBurstReadCheckIncrement  (const uint64_t addr, uint8_t data, const int bytesize, const int prot = 0)      {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
-      void     transBurstReadCheckRandom     (const uint32_t addr, uint8_t data, const int bytesize, const int prot = 0)      {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
-      void     transBurstReadCheckRandom     (const uint64_t addr, uint8_t data, const int bytesize, const int prot = 0)      {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
+      void     transBurstReadCheckIncrement  (const uint32_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
+      void     transBurstReadCheckIncrement  (const uint64_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
+      void     transBurstReadCheckRandom     (const uint32_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckRandom(addr, data, bytesize, prot);}
+      void     transBurstReadCheckRandom     (const uint64_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckRandom(addr, data, bytesize, prot);}
+      bool     transBurstReadCheckData       (const uint32_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); return OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
+      bool     transBurstReadCheckData       (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); return OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
 
       void     tick                          (const int ticks, const bool done = false, const bool error = false)             {processInt(); OsvvmCosim::tick(ticks, done, error);}
 
@@ -210,7 +212,7 @@ public:
 
       void registerIsr                       (const pVUserInt_t isrFunc, const unsigned level)                                {if (level < max_interrupts) isr[level] = isrFunc;}
 
-private:
+protected:
       // Process any outstanding interrupts. Will process in priority
       // order, with 0 being the highest. The ISRs can be interrupted
       // by higher priority interrupts.
@@ -254,21 +256,22 @@ private:
           }
       }
 
+private:
 
       // Function pointers for ISRs
       pVUserInt_t isr[max_interrupts];
 
       // Interrupt status vector
-      uint32_t   int_active;
+      uint32_t    int_active;
 
       // Interrupt enable vector
-      uint32_t   int_enabled;
+      uint32_t    int_enabled;
 
       // Interrupt master enable
-      bool       int_master_enable;
+      bool        int_master_enable;
 
       // Interrupts request input state
-      uint32_t   int_req;
+      uint32_t    int_req;
 };
 
 #endif

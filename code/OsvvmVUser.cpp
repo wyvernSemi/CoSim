@@ -585,7 +585,7 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 
     VExch(&sbuf, &rbuf, node);
 
-    if (op == READ_BURST && param != BURST_TRANS)
+    if (op == READ_BURST && param != BURST_TRANS && !is_fill)
     {
         for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
         {
@@ -643,13 +643,13 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 }
 
 // -------------------------------------------------------------------------
-// VStreamSendCommon()
+// VStreamCommon()
 //
 // Invokes an 8-bit send transaction exchange
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSendCommon (const stream_operation_t op, const uint8_t data, const int param, const uint32_t node)
+uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -691,13 +691,13 @@ void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamSendCommon()
+// VStreamCommon()
 //
 // Invokes an 16-bit send transaction exchange
 //
 // -------------------------------------------------------------------------
 
-uint16_t VStreamSendCommon (const stream_operation_t op, const uint16_t data, const int param, const uint32_t node)
+uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -739,13 +739,13 @@ void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamSendCommon()
+// VStreamCommon()
 //
 // Invokes an 32-bit send transaction exchange
 //
 // -------------------------------------------------------------------------
 
-uint32_t VStreamSendCommon (const stream_operation_t op, const uint32_t data, const int param, const uint32_t node)
+uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -788,13 +788,13 @@ void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamSendCommon()
+// VStreamCommon()
 //
 // Invokes an 64-bit send transaction exchange
 //
 // -------------------------------------------------------------------------
 
-uint64_t VStreamSendCommon (const stream_operation_t op, const uint64_t data, const int param, const uint32_t node)
+uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -841,16 +841,18 @@ void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
 // Invokes a send burst transaction exchange )
 // -------------------------------------------------------------------------
 
-void VStreamBurstSendCommon (const stream_operation_t op, uint8_t* data, const int bytesize, const uint32_t node)
+static void VStreamBurstSendCommon (const stream_operation_t op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = stream_snd_burst;
-    sbuf.op              = (addr_bus_trans_op_t)op;
-    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+    sbuf.type               = stream_snd_burst;
+    sbuf.op                 = (addr_bus_trans_op_t)op;
+    sbuf.num_burst_bytes    = bytesize % DATABUF_SIZE;
+    sbuf.param              = param;
+    *((uint32_t*)sbuf.data) = burst_type; // Re-use data field of send buffer for burst sub-operation
 
     for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
     {
@@ -868,7 +870,7 @@ void VStreamBurstSendCommon (const stream_operation_t op, uint8_t* data, const i
 // Invokes a read burst transaction exchange (64-bit address)
 // -------------------------------------------------------------------------
 
-void VStreamBurstGet (uint8_t* data, const int bytesize, const uint32_t node)
+static void VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -876,14 +878,20 @@ void VStreamBurstGet (uint8_t* data, const int bytesize, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_burst;
-    sbuf.op              = (addr_bus_trans_op_t)GET_BURST;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+    sbuf.param           = param;
 
     VExch(&sbuf, &rbuf, node);
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    *status = rbuf.status;
+
+    if (param == BURST_NORM || param == BURST_DATA)
     {
-        data[idx] = rbuf.databuf[idx];
+        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+        {
+            data[idx] = rbuf.databuf[idx];
+        }
     }
 
     return;
@@ -1486,51 +1494,104 @@ void VTransBurstPopData (uint8_t *data, const int bytesize, const uint32_t node)
 
 uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND, data, param, node);
+    return VStreamCommon(SEND, data, param, node);
 }
 
 uint16_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND, data, param, node);
+    return VStreamCommon(SEND, data, param, node);
 }
 
 uint32_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND, data, param, node);
+    return VStreamCommon(SEND, data, param, node);
 }
 
 uint64_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND, data, param, node);
+    return VStreamCommon(SEND, data, param, node);
 }
 
 uint8_t VStreamSendAsync (const uint8_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND_ASYNC, data, param, node);
+    return VStreamCommon(SEND_ASYNC, data, param, node);
 }
 
 uint16_t VStreamSendAsync (const uint16_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND_ASYNC, data, param, node);
+    return VStreamCommon(SEND_ASYNC, data, param, node);
 }
 
 uint32_t VStreamSendAsync (const uint32_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND_ASYNC, data, param, node);
+    return VStreamCommon(SEND_ASYNC, data, param, node);
 }
 
 uint64_t VStreamSendAsync (const uint64_t data, const int param, const uint32_t node)
 {
-    return VStreamSendCommon(SEND_ASYNC, data, param, node);
+    return VStreamCommon(SEND_ASYNC, data, param, node);
 }
 
-void VStreamBurstSend (uint8_t* data, const int bytesize, const uint32_t node)
+void VStreamCheck (const uint8_t data, const int param, const uint32_t node)
 {
-    VStreamBurstSendCommon(SEND_BURST, data, bytesize, node);
+    VStreamCommon(CHECK, data, param, node);
 }
 
-void VStreamBurstSendAsync (uint8_t* data, const int bytesize, const uint32_t node)
+void VStreamCheck (const uint16_t data, const int param, const uint32_t node)
 {
-    VStreamBurstSendCommon(SEND_BURST_ASYNC, data, bytesize, node);
+    VStreamCommon(CHECK, data, param, node);
 }
 
+void VStreamCheck (const uint32_t data, const int param, const uint32_t node)
+{
+    VStreamCommon(CHECK, data, param, node);
+}
+
+void VStreamCheck (const uint64_t data, const int param, const uint32_t node)
+{
+    VStreamCommon(CHECK, data, param, node);
+}
+
+// -------------------------------
+
+void VStreamBurstSend (uint8_t* data, const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST, BURST_NORM, data, bytesize, param, node);
+}
+
+void VStreamBurstSendAsync (uint8_t* data, const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_NORM, data, bytesize, param, node);
+}
+
+void VStreamBurstCheck (uint8_t* data, const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_NORM, data, bytesize, param, node);
+}
+
+void VStreamBurstSendIncrement (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR, data, bytesize, param, node);
+}
+
+void VStreamBurstSendRandom (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND, data, bytesize, param, node);
+}
+
+void VStreamBurstGet (uint8_t* data, const int bytesize, int* status, const uint32_t node)
+{
+    VStreamBurstGetCommon(GET_BURST, BURST_NORM, data, bytesize, status, node);
+}
+
+void VStreamBurstGet (const int bytesize, int* status, const uint32_t node)
+{
+    VStreamBurstGetCommon(GET_BURST, BURST_TRANS, null, bytesize, status, node);
+}
+
+void VStreamBurstPopData(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    int status;
+    
+    VStreamBurstGetCommon(GET_BURST, BURST_DATA, data, bytesize, &status, node);
+}

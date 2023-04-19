@@ -279,16 +279,25 @@ extern uint32_t VStreamSendAsync               (const uint32_t  data, const int 
 extern uint64_t VStreamSendAsync               (const uint64_t  data, const int  param = 0, const uint32_t node = 0);
 
 // Overloaded stream get transaction functions for byte, half-word, word and double-word
-extern void     VStreamGet                     (      uint8_t  *data,       int *stream,   const uint32_t node = 0);
-extern void     VStreamGet                     (      uint16_t *data,       int *stream,   const uint32_t node = 0);
-extern void     VStreamGet                     (      uint32_t *data,       int *stream,   const uint32_t node = 0);
-extern void     VStreamGet                     (      uint64_t *data,       int *stream,   const uint32_t node = 0);
+extern void     VStreamGet                     (      uint8_t  *data,       int *status,    const uint32_t node = 0);
+extern void     VStreamGet                     (      uint16_t *data,       int *status,    const uint32_t node = 0);
+extern void     VStreamGet                     (      uint32_t *data,       int *status,    const uint32_t node = 0);
+extern void     VStreamGet                     (      uint64_t *data,       int *status,    const uint32_t node = 0);
+
+extern void     VStreamCheck                   (      uint8_t   data, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamCheck                   (      uint16_t  data, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamCheck                   (      uint32_t  data, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamCheck                   (      uint64_t  data, const int  param = 0, const uint32_t node = 0);
 
 // Stream burst send and get transaction functions
-extern void     VStreamBurstSend               (      uint8_t  *data, const int  bytesize, const uint32_t node = 0);
-extern void     VStreamBurstSendAsync          (      uint8_t  *data, const int  bytesize, const uint32_t node = 0);
-extern void     VStreamBurstGet                (      uint8_t  *data, const int  bytesize, const uint32_t node = 0);
-
+extern void     VStreamBurstSend               (      uint8_t  *data, const int  bytesize, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamBurstSendAsync          (      uint8_t  *data, const int  bytesize, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamBurstCheck              (      uint8_t  *data, const int  bytesize, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamBurstSendIncrement      (      uint8_t  *data, const int  bytesize, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamBurstSendRandom         (      uint8_t  *data, const int  bytesize, const int  param = 0, const uint32_t node = 0);
+extern void     VStreamBurstGet                (      uint8_t  *data, const int  bytesize,       int* status,    const uint32_t node = 0);
+extern void     VStreamBurstGet                (const int      bytesize, int*    status,   const uint32_t node = 0);
+extern void     VStreamBurstPopData            (      uint8_t* data,  const int  bytesize, const uint32_t node = 0);
 #endif
 
 // User function called from VInit to instigate new user thread
