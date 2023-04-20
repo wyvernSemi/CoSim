@@ -622,8 +622,6 @@ package body OsvvmTestCoSimPkg is
           end if ;
 
         when SEND_BURST | SEND_BURST_ASYNC | CHECK_BURST =>
-        
-          Log("=====> " & to_string(VPOperation) & " " & to_string(VPDataOut) & " " & to_string(VPBurstSize));
 
           if StreamOperationType'val(VPOperation) = CHECK_BURST then
             Fifo := RxRec.BurstFifo ;
@@ -634,36 +632,60 @@ package body OsvvmTestCoSimPkg is
           -- Select the burst operations based on the VPParam argument passed from the software
           case BurstType'val(VPDataOut) is
 
-            when BURST_NORM =>
+            when BURST_NORM | BURST_DATA | BURST_TRANS  =>
 
               -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
-              for bidx in 0 to VPBurstSize-1 loop
+              if BurstType'val(VPDataOut) /= BURST_TRANS then
+                for bidx in 0 to VPBurstSize-1 loop
 
-                VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-                WrByteData := to_signed(WrDataInt, WrByteData'length) ;
-                Push(Fifo, std_logic_vector(WrByteData(7 downto 0))) ;
+                  VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+                  WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+                  Push(Fifo, std_logic_vector(WrByteData(7 downto 0))) ;
 
-              end loop ;
-
-              -- Select blocking, non-blocking or check operation depending on VPOperation
-              if StreamOperationType'val(VPOperation) = SEND_BURST then
-                SendBurst(TxRec, VPBurstSize) ;
-              elsif StreamOperationType'val(VPOperation) = SEND_BURST_ASYNC then
-                SendBurstAsync(TxRec, VPBurstSize) ;
-              else
-                Log("=======> " & to_string(VPParam) & " " & to_string(Param));
-                CheckBurst(RxRec, VPBurstSize); -- , Param(RxRec.ParamFromModel'length -1 downto 0)) ;
+                end loop ;
               end if ;
+
+              -- Instigate a transaction if not a PUSH operation
+              if BurstType'val(VPDataOut) /= BURST_DATA then
+                  -- Select blocking, non-blocking or check operation depending on VPOperation
+                  if StreamOperationType'val(VPOperation) = SEND_BURST then
+                    SendBurst(TxRec, VPBurstSize) ;
+                  elsif StreamOperationType'val(VPOperation) = SEND_BURST_ASYNC then
+                    SendBurstAsync(TxRec, VPBurstSize) ;
+                  else
+                    CheckBurst(RxRec, VPBurstSize) ;
+                  end if ;
+              end if ;
+
+            when BURST_INCR_PUSH =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              PushBurstIncrement(Fifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_RAND_PUSH =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              PushBurstRandom(Fifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
 
             when BURST_INCR =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
-              SendBurstIncrement(TxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize, Param(TxRec.ParamFromModel'length -1 downto 0));
+              SendBurstIncrement(TxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
 
             when BURST_RAND =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
-              SendBurstRandom(TxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize, Param(TxRec.ParamFromModel'length -1 downto 0));
+              SendBurstRandom(TxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_INCR_CHECK =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              CheckBurstIncrement(RxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_RAND_CHECK =>
+              VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
+              WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+              CheckBurstRandom(RxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
 
             when others =>
               Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneStream received unimplemented burst type") ;

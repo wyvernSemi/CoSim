@@ -94,6 +94,8 @@ extern "C" void VUserMain0()
     // Use node number, inverted, as the random number generator seed.
     srandom(~node);
 
+    // =============================================================
+
     // Send a series of words over Axi stream interface using TID, TDEST and TUSER,
     // flagging last one by setting TLAST
     for (uint32_t idx = 0; idx < DATASIZE; idx++)
@@ -130,10 +132,33 @@ extern "C" void VUserMain0()
         }
     }
 
+    // =============================================================
+
+    wdata = 0x7650ad34;
+
+    // Send a series of words over Axi stream interface using TID, TDEST and TUSER,
+    // flagging last one by setting TLAST
+    for (uint32_t idx = 0; idx < DATASIZE; idx++)
+    {
+        if (idx == DATASIZE-1)
+        {
+            param = makeAxiStreamParam(TID, TDEST, TUSER, 1);
+        }
+        axistream.streamSend(wdata + idx, param);
+    }
+
+    // Get received word data and check data and status values
+    for (int idx = 0; idx < DATASIZE; idx++)
+    {
+        axistream.streamCheck((uint32_t)(wdata + idx), param);
+    }
+
+    // =============================================================
+
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[bufidx++] = random() & 0xff;
+        TestData0[idx++] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -203,10 +228,12 @@ extern "C" void VUserMain0()
         }
     }
 
+    // =============================================================
+
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[bufidx++] = random() & 0xff;
+        TestData0[idx++] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -228,14 +255,16 @@ extern "C" void VUserMain0()
     {
         if (RxData[idx] != TestData0[idx])
         {
-            VPrint("VuserMain%d: ***ERROR mismatch in received byte. Got0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
+            VPrint("VuserMain%d: ***ERROR mismatch in received byte. Got 0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
         }
     }
+
+    // =============================================================
 
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[bufidx++] = random() & 0xff;
+        TestData0[idx] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -249,6 +278,65 @@ extern "C" void VUserMain0()
     // Check received data
     axistream.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
     axistream.streamBurstCheck(&TestData0[bufidx], 256);  bufidx += 256;
+
+    // =============================================================
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx++] = random() & 0xff;
+    }
+
+    bufidx = 0;
+
+    // Send a couple of bursts
+    axistream.streamBurstPushData(&TestData0[bufidx], 16);
+    axistream.streamBurstSendAsync(16);  bufidx += 16;
+
+    axistream.streamBurstPushData(&TestData0[bufidx], 256);
+    axistream.streamBurstSend(256); bufidx += 256;
+
+    bufidx = 0;
+
+    // Check received data
+    axistream.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
+
+    axistream.streamBurstPushCheckData(&TestData0[bufidx], 256);
+    axistream.streamBurstCheck(256);  bufidx += 256;
+
+    // =============================================================
+
+    bufidx = 0;
+
+    axistream.streamBurstSendIncrementAsync(0x57, 32);
+    axistream.streamBurstSendIncrement(0xe6, 128);
+
+    axistream.streamBurstCheckIncrement(0x57, 32);
+    axistream.streamBurstCheckIncrement(0xe6, 128);
+
+    axistream.streamBurstSendRandomAsync(0x9b, 64);
+    axistream.streamBurstSendRandom(0x0f, 64);
+
+    axistream.streamBurstCheckRandom(0x9b, 64);
+    axistream.streamBurstCheckRandom(0x0f, 64);
+
+    axistream.streamBurstPushIncrement(0xa2, 32);
+    axistream.streamBurstSend(32);
+    axistream.streamBurstCheckIncrement(0xa2, 32);
+
+    axistream.streamBurstPushRandom(0x55, 32);
+    axistream.streamBurstSend(32);
+    axistream.streamBurstCheckRandom(0x55, 32);
+
+    axistream.streamBurstSendIncrement(0x6e, 48);
+    axistream.streamBurstPushCheckIncrement(0x6e, 48);
+    axistream.streamBurstCheck(48);
+
+    axistream.streamBurstSendRandom(0x39, 48);
+    axistream.streamBurstPushCheckRandom(0x39, 48);
+    axistream.streamBurstCheck(48);
+
+    // -----------------------------------------------------------
 
     // Flag to the simulation we're finished, after 10 more ticks
     axistream.tick(10, true, error);

@@ -854,9 +854,12 @@ static void VStreamBurstSendCommon (const stream_operation_t op, const int burst
     sbuf.param              = param;
     *((uint32_t*)sbuf.data) = burst_type; // Re-use data field of send buffer for burst sub-operation
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    if (burst_type != BURST_TRANS)
     {
-        sbuf.databuf[idx] = data[idx];
+        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+        {
+            sbuf.databuf[idx] = data[idx];
+        }
     }
 
     VExch(&sbuf, &rbuf, node);
@@ -1559,9 +1562,19 @@ void VStreamBurstSend (uint8_t* data, const int bytesize, const int param, const
     VStreamBurstSendCommon(SEND_BURST, BURST_NORM, data, bytesize, param, node);
 }
 
+void VStreamBurstSend (const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST, BURST_TRANS, null, bytesize, param, node);
+}
+
 void VStreamBurstSendAsync (uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_NORM, data, bytesize, param, node);
+}
+
+void VStreamBurstSendAsync (const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_TRANS, null, bytesize, param, node);
 }
 
 void VStreamBurstCheck (uint8_t* data, const int bytesize, const int param, const uint32_t node)
@@ -1569,14 +1582,39 @@ void VStreamBurstCheck (uint8_t* data, const int bytesize, const int param, cons
     VStreamBurstSendCommon(CHECK_BURST, BURST_NORM, data, bytesize, param, node);
 }
 
+void VStreamBurstCheck (const int bytesize, const int param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_TRANS, null, bytesize, param, node);
+}
+
 void VStreamBurstSendIncrement (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
 {
-    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR, data, bytesize, param, node);
+    VStreamBurstSendCommon(SEND_BURST, BURST_INCR, data, bytesize, param, node);
+}
+
+void VStreamBurstSendIncrementAsync (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_INCR, data, bytesize, param, node);
+}
+
+void VStreamBurstCheckIncrement (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_CHECK, data, bytesize, param, node);
 }
 
 void VStreamBurstSendRandom (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
 {
     VStreamBurstSendCommon(CHECK_BURST, BURST_RAND, data, bytesize, param, node);
+}
+
+void VStreamBurstSendRandomAsync (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_RAND, data, bytesize, param, node);
+}
+
+void VStreamBurstCheckRandom (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
+{
+    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_CHECK, data, bytesize, param, node);
 }
 
 void VStreamBurstGet (uint8_t* data, const int bytesize, int* status, const uint32_t node)
@@ -1595,3 +1633,40 @@ void VStreamBurstPopData(uint8_t* data, const int bytesize, const uint32_t node)
     
     VStreamBurstGetCommon(GET_BURST, BURST_DATA, data, bytesize, &status, node);
 }
+
+void VStreamBurstPushData(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(SEND_BURST, BURST_DATA, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckData(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(CHECK_BURST, BURST_DATA, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushIncrement(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(SEND_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckIncrement(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushRandom(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(SEND_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckRandom(uint8_t* data, const int bytesize, const uint32_t node)
+{
+    
+    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
+}
+
