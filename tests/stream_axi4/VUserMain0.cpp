@@ -87,7 +87,8 @@ extern "C" void VUserMain0()
 
     uint32_t wdata  = 0x80001000;
     uint32_t rdata;
-    uint8_t  TestData0[BUF_SIZE], RxData[BUF_SIZE];
+    uint8_t  TestData0[BUF_SIZE], RxData[BUF_SIZE], wdata8, rdata8;
+    uint16_t wdata16, rdata16;
     int      bufidx = 0;
     int      param  = makeAxiStreamParam(TID, TDEST, TUSER, 0);
 
@@ -158,7 +159,7 @@ extern "C" void VUserMain0()
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[idx++] = random() & 0xff;
+        TestData0[idx] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -230,10 +231,138 @@ extern "C" void VUserMain0()
 
     // =============================================================
 
+    wdata8  = 0xf2;
+    wdata16 = 0x891d;
+    wdata   = 0xb05de11;
+
+    // ------- 8 bits -------
+
+    if (axistream.streamTryGet(&rdata8))
+    {
+        VPrint("***ERROR: got unexpected available status from TryGet byte access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata8);
+
+    if (!axistream.streamTryGet(&rdata8))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryGet byte access.\n");
+        error = true;
+    }
+
+    if (rdata8 != wdata8)
+    {
+        VPrint("***ERROR: read mismatch from TryGet byte access. Got %02x, exp 0x%02x\n", rdata8, wdata8);
+        error = true;
+    }
+
+    // ------- 16 bits -------
+
+    if (axistream.streamTryGet(&rdata16))
+    {
+        VPrint("***ERROR: got unexpected available status from TryGet hword access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata16);
+
+    if (!axistream.streamTryGet(&rdata16))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryGet hword access.\n");
+        error = true;
+    }
+
+    if (rdata16 != wdata16)
+    {
+        VPrint("***ERROR: read mismatch from TryGet byte access. Got %04x, exp 0x%04x\n", rdata8, wdata8);
+        error = true;
+    }
+
+    // ------- 32 bits -------
+
+    if (axistream.streamTryGet(&rdata))
+    {
+        VPrint("***ERROR: got unexpected available status from TryGet word access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata);
+
+    if (!axistream.streamTryGet(&rdata))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryGet word access.\n");
+        error = true;
+    }
+
+    if (rdata != wdata)
+    {
+        VPrint("***ERROR: read mismatch from TryGet byte access. Got %08x, exp 0x%08x\n", rdata, wdata);
+        error = true;
+    }
+
+    // =============================================================
+
+    wdata8  = 0x9e;
+    wdata16 = 0x3085;
+    wdata   = 0xd0073e11;
+
+    // ------- 8 bits -------
+
+    if (axistream.streamTryCheck(wdata8))
+    {
+        VPrint("***ERROR: got unexpected available status from TryCheck byte access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata8);
+
+    if (!axistream.streamTryCheck(wdata8))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryCheck byte access.\n");
+        error = true;
+    }
+
+    // ------- 16 bits -------
+
+    axistream.streamTryCheck(wdata16);
+
+    if (axistream.streamTryCheck(wdata16))
+    {
+        VPrint("***ERROR: got unexpected available status from TryCheck hword access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata16);
+
+    if (!axistream.streamTryCheck(wdata16))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryCheck hword access.\n");
+        error = true;
+    }
+
+    // ------- 32 bits -------
+
+    if (axistream.streamTryCheck(wdata))
+    {
+        VPrint("***ERROR: got unexpected available status from TryCheck word access.\n");
+        error = true;
+    }
+
+    axistream.streamSend(wdata);
+
+    if (!axistream.streamTryCheck(wdata))
+    {
+        VPrint("***ERROR: got unexpected not available status from TryCheck word access.\n");
+        error = true;
+    }
+
+    // =============================================================
+
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[idx++] = random() & 0xff;
+        TestData0[idx] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -284,7 +413,7 @@ extern "C" void VUserMain0()
     // Fill test buffer with random numbers
     for (int idx = 0; idx < BUF_SIZE; idx ++)
     {
-        TestData0[idx++] = random() & 0xff;
+        TestData0[idx] = random() & 0xff;
     }
 
     bufidx = 0;
@@ -336,7 +465,163 @@ extern "C" void VUserMain0()
     axistream.streamBurstPushCheckRandom(0x39, 48);
     axistream.streamBurstCheck(48);
 
-    // -----------------------------------------------------------
+    // =============================================================
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx] = random() & 0xff;
+    }
+
+    if (axistream.streamBurstTryGet(RxData, 128))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try get access.\n");
+        error = true;
+    }
+
+    axistream.streamBurstSend(TestData0, 128);
+
+    if (!axistream.streamBurstTryGet(RxData, 128))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try get access.\n");
+        error = true;
+    }
+
+    // Check data validity
+    for (int idx = 0; idx < 128; idx++)
+    {
+        if (RxData[idx] != TestData0[idx])
+        {
+            VPrint("VuserMain%d: ***ERROR mismatch in received byte for burst try get. Got 0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
+        }
+    }
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx] = random() & 0xff;
+    }
+
+    if (axistream.streamBurstTryGet(64))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try get access.\n");
+        error = true;
+    }
+
+    axistream.streamBurstSend(TestData0, 64);
+
+    if (!axistream.streamBurstTryGet(64))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try get access.\n");
+        error = true;
+    }
+
+    axistream.streamBurstPopData(RxData, 64);
+
+    // Check data validity
+    for (int idx = 0; idx < 64; idx++)
+    {
+        if (RxData[idx] != TestData0[idx])
+        {
+            VPrint("VuserMain%d: ***ERROR mismatch in received byte for burst try get. Got 0x%02x, expected 0x%02x\n", node, RxData[idx], TestData0[idx]);
+        }
+    }
+
+    // =============================================================
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx] = random() & 0xff;
+    }
+
+    if (axistream.streamBurstTryCheck(TestData0, 78))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try check access.\n");
+        error = true;
+    }
+
+    axistream.streamBurstSend(TestData0, 78);
+
+    if (!axistream.streamBurstTryCheck(78))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
+        error = true;
+    }
+    
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx] = random() & 0xff;
+    }
+
+    axistream.streamBurstSend(TestData0, 78);
+
+    if (!axistream.streamBurstTryCheck(TestData0, 78))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
+        error = true;
+    }
+
+    // Fill test buffer with random numbers
+    for (int idx = 0; idx < BUF_SIZE; idx ++)
+    {
+        TestData0[idx] = idx; //random() & 0xff;
+    }
+
+    if (axistream.streamBurstTryCheck(93))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try check access.\n");
+        error = true;
+    }
+
+    axistream.streamBurstSend(TestData0, 93);
+
+    axistream.streamBurstPushCheckData(TestData0, 93);
+
+    if (!axistream.streamBurstTryCheck(93))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
+        error = true;
+    }
+    
+    // =============================================================
+    
+    wdata8 = 0x12;
+    
+    if (axistream.streamBurstTryCheckIncrement(wdata8, 100))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try check increment access.\n");
+        error = true;
+    }
+    
+    axistream.streamBurstSendIncrement(wdata8, 100);
+    
+    if (!axistream.streamBurstTryCheckIncrement(wdata8, 100))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try check increment access.\n");
+        error = true;
+    }
+    
+        // =============================================================
+    
+    wdata8 = 0xc4;
+    
+    if (axistream.streamBurstTryCheckRandom(wdata8, 100))
+    {
+        VPrint("***ERROR: got unexpected available status from burst try check random access.\n");
+        error = true;
+    }
+    
+    axistream.streamBurstSendRandom(wdata8, 100);
+    
+    if (!axistream.streamBurstTryCheckRandom(wdata8, 100))
+    {
+        VPrint("***ERROR: got unexpected unavailable status from burst try check random access.\n");
+        error = true;
+    }
+
+    // -------------------------------------------------------------
 
     // Flag to the simulation we're finished, after 10 more ticks
     axistream.tick(10, true, error);

@@ -17,7 +17,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    05/2023   2023.05    Adding asynchronous transaction support
+//    05/2023   2023.05    Adding support for Async, Check and Try functionality
 //    04/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
 //
@@ -358,7 +358,7 @@ void VWaitForSim(const uint32_t node)
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 8-bit transaction exchange
+// Common 8-bit byte transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -386,7 +386,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, 
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 16-bit transaction exchange
+// Common 16-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
@@ -413,7 +413,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 32-bit transaction exchange
+// Common 32-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -441,7 +441,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 8-bit transaction exchange (64-bit address)
+// Common 8-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -469,7 +469,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, 
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 16-bit transaction exchange (64-bit address)
+// Common 16-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 32-bit transaction exchange (64-bit address)
+// Common 32-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -525,7 +525,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 // -------------------------------------------------------------------------
 // VTransCommon()
 //
-// Invokes an 64-bit transaction exchange (64-bit address)
+// Common 64-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
@@ -553,7 +553,8 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 // -------------------------------------------------------------------------
 // VTransBurstCommon()
 //
-// Invokes a write burst transaction exchange (32-bit address)
+// Common burst transaction exchange function (32-bit address)
+//
 // -------------------------------------------------------------------------
 
 static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
@@ -599,7 +600,8 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 // -------------------------------------------------------------------------
 // VTransBurstCommon()
 //
-// Invokes a write burst transaction exchange (64-bit address)
+// Common burst transaction exchange function (64-bit address)
+//
 // -------------------------------------------------------------------------
 
 static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
@@ -645,11 +647,11 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 // -------------------------------------------------------------------------
 // VStreamCommon()
 //
-// Invokes an 8-bit send transaction exchange
+// Common 8-bit byte stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, const int param, const uint32_t node)
+static uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -668,13 +670,13 @@ uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, const in
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamGetCommon()
 //
-// Invokes an 8-bit read stream transaction exchange
+// Common 8-bit byte stream get transaction exchange
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
+static bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -682,22 +684,31 @@ void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_byte;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint8_t*)sbuf.data) = wdata & 0xffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
 // VStreamCommon()
 //
-// Invokes an 16-bit send transaction exchange
+// Common 16-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data, const int param, const uint32_t node)
+static uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -716,13 +727,13 @@ uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data, const 
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamGetCommon()
 //
-// Invokes an 16-bit read stream transaction exchange
+// Common 16-bit word stream get transaction get exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
+static bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -730,22 +741,31 @@ void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_hword;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint16_t*)sbuf.data) = wdata & 0xffffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
 // VStreamCommon()
 //
-// Invokes an 32-bit send transaction exchange
+// Common 32-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data, const int param, const uint32_t node)
+static uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -765,13 +785,13 @@ uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data, const 
 
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamGetCommon()
 //
-// Invokes an 32-bit read stream transaction exchange
+// Common 32-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
+static bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -779,22 +799,31 @@ void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_word;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint32_t*)sbuf.data) = wdata & 0xffffffffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffffffffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffffffffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
 // VStreamCommon()
 //
-// Invokes an 64-bit send transaction exchange
+// Common 64-bit word send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data, const int param, const uint32_t node)
+static uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -813,13 +842,13 @@ uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data, const 
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamGetCommon()
 //
-// Invokes an 64-bit read stream transaction exchange
+// Common 64-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
+static bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -827,21 +856,30 @@ void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_dword;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata  = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+    *((uint64_t*)sbuf.data) = wdata;
+
+
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata  = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
 // VStreamBurstSendCommon()
 //
-// Invokes a send burst transaction exchange )
+// Common function for Send/Check related stream transactions
 // -------------------------------------------------------------------------
 
-static void VStreamBurstSendCommon (const stream_operation_t op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
+static bool VStreamBurstSendCommon (const stream_operation_t op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -854,26 +892,31 @@ static void VStreamBurstSendCommon (const stream_operation_t op, const int burst
     sbuf.param              = param;
     *((uint32_t*)sbuf.data) = burst_type; // Re-use data field of send buffer for burst sub-operation
 
-    if (burst_type != BURST_TRANS)
+    // The number of write bytes is either 1, when a fill/check operation (with first bytes),
+    // or none when a pure burst transaction or the same as the bytesize value.
+    int num_of_wr_bytes = (burst_type == BURST_TRANS)                         ? 0 :
+                          (op == TRY_CHECK_BURST && burst_type != BURST_NORM) ? 1 :
+                                                                                sbuf.num_burst_bytes;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
-        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
-        {
-            sbuf.databuf[idx] = data[idx];
-        }
+        sbuf.databuf[idx] = data[idx];
     }
 
     VExch(&sbuf, &rbuf, node);
 
-    return;
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamBurstGet()
+// VStreamBurstGetCommon()
 //
-// Invokes a read burst transaction exchange (64-bit address)
+// Common function for Get related stream transactions
 // -------------------------------------------------------------------------
 
-static void VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
+static bool VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -889,7 +932,8 @@ static void VStreamBurstGetCommon (const int op, const int param, uint8_t* data,
 
     *status = rbuf.status;
 
-    if (param == BURST_NORM || param == BURST_DATA)
+    // Return data for normal/data transactions, but only if not a try with none available
+    if ((param == BURST_NORM || param == BURST_DATA) && !((stream_operation_t)sbuf.op == TRY_GET_BURST && !rbuf.interrupt))
     {
         for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
         {
@@ -897,7 +941,8 @@ static void VStreamBurstGetCommon (const int op, const int param, uint8_t* data,
         }
     }
 
-    return;
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
@@ -1495,6 +1540,72 @@ void VTransBurstPopData (uint8_t *data, const int bytesize, const uint32_t node)
 // Overloaded stream functions
 // --------------------------------------------------------------------------------
 
+void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
+{
+    VStreamGetCommon(GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryGet (uint8_t *rdata, int *status, const uint32_t node)
+{
+    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryCheck (uint8_t data, const int param, const uint32_t node)
+{
+    int status;
+
+    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
+}
+
+void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
+{
+    VStreamGetCommon(GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryGet (uint16_t *rdata, int *status, const uint32_t node)
+{
+    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryCheck (uint16_t data, const int param, const uint32_t node)
+{
+    int status;
+
+    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
+}
+
+void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
+{
+    VStreamGetCommon(GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryGet (uint32_t *rdata, int *status, const uint32_t node)
+{
+    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryCheck (uint32_t data, const int param, const uint32_t node)
+{
+    int status;
+    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
+}
+
+void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
+{
+    VStreamGetCommon(GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryGet (uint64_t *rdata, int *status, const uint32_t node)
+{
+    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
+}
+
+bool VStreamTryCheck (uint64_t data, const int param, const uint32_t node)
+{
+    int status;
+    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
+}
+
 uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
 {
     return VStreamCommon(SEND, data, param, node);
@@ -1554,8 +1665,6 @@ void VStreamCheck (const uint64_t data, const int param, const uint32_t node)
 {
     VStreamCommon(CHECK, data, param, node);
 }
-
-// -------------------------------
 
 void VStreamBurstSend (uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
@@ -1617,6 +1726,62 @@ void VStreamBurstCheckRandom (uint8_t  *data, const int  bytesize, const int  pa
     VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_CHECK, data, bytesize, param, node);
 }
 
+void VStreamBurstPushData(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(SEND_BURST, BURST_DATA, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckData(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(CHECK_BURST, BURST_DATA, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushIncrement(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(SEND_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckIncrement(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushRandom(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(SEND_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
+}
+
+void VStreamBurstPushCheckRandom(uint8_t* data, const int bytesize, const uint32_t node)
+{
+
+    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
+}
+
+bool VStreamBurstTryCheck (uint8_t *data, const int bytesize, const int param, const uint32_t node)
+{
+    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_NORM, data, bytesize, param, node);
+}
+
+bool VStreamBurstTryCheck (const int bytesize, const int param, const uint32_t node)
+{
+    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_TRANS, null, bytesize, param, node);
+}
+
+bool VStreamBurstTryCheckIncrement (uint8_t *data, const int bytesize, const int param, const uint32_t node)
+{
+    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_INCR_CHECK, data, bytesize, param, node);
+}
+
+bool VStreamBurstTryCheckRandom (uint8_t *data, const int bytesize, const int param, const uint32_t node)
+{
+    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_RAND_CHECK, data, bytesize, param, node);
+}
+
 void VStreamBurstGet (uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     VStreamBurstGetCommon(GET_BURST, BURST_NORM, data, bytesize, status, node);
@@ -1630,43 +1795,21 @@ void VStreamBurstGet (const int bytesize, int* status, const uint32_t node)
 void VStreamBurstPopData(uint8_t* data, const int bytesize, const uint32_t node)
 {
     int status;
-    
+
     VStreamBurstGetCommon(GET_BURST, BURST_DATA, data, bytesize, &status, node);
 }
 
-void VStreamBurstPushData(uint8_t* data, const int bytesize, const uint32_t node)
+bool VStreamBurstTryGet   (uint8_t  *data, const int  bytesize, const int param, const uint32_t node)
 {
-    
-    VStreamBurstSendCommon(SEND_BURST, BURST_DATA, data, bytesize, 0, node);
+    int status;
+
+    return VStreamBurstGetCommon(TRY_GET_BURST, BURST_NORM, data, bytesize, &status, node);
 }
 
-void VStreamBurstPushCheckData(uint8_t* data, const int bytesize, const uint32_t node)
+bool VStreamBurstTryGet (const int bytesize, const int param, const uint32_t node)
 {
-    
-    VStreamBurstSendCommon(CHECK_BURST, BURST_DATA, data, bytesize, 0, node);
-}
+    int status;
 
-void VStreamBurstPushIncrement(uint8_t* data, const int bytesize, const uint32_t node)
-{
-    
-    VStreamBurstSendCommon(SEND_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushCheckIncrement(uint8_t* data, const int bytesize, const uint32_t node)
-{
-    
-    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushRandom(uint8_t* data, const int bytesize, const uint32_t node)
-{
-    
-    VStreamBurstSendCommon(SEND_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushCheckRandom(uint8_t* data, const int bytesize, const uint32_t node)
-{
-    
-    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
+    return VStreamBurstGetCommon(TRY_GET_BURST, BURST_TRANS, null, bytesize, &status, node);
 }
 
