@@ -362,7 +362,7 @@ void VWaitForSim(const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransCommon (const int op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -372,7 +372,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, 
     sbuf.type            = trans32_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -389,7 +389,8 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, 
 // Common 16-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
-static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
+
+uint16_t VTransCommon (const int op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -399,7 +400,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
     sbuf.type            = trans32_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -417,7 +418,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
+uint32_t VTransCommon (const int op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -427,7 +428,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
     sbuf.type            = trans32_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -445,7 +446,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint32_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransCommon (const int op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -455,7 +456,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, 
     sbuf.type            = trans64_byte;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
@@ -473,7 +474,7 @@ static uint8_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, 
 //
 // -------------------------------------------------------------------------
 
-static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
+uint16_t VTransCommon (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -483,7 +484,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
     sbuf.type            = trans64_hword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
@@ -501,7 +502,7 @@ static uint16_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
+uint32_t VTransCommon (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -511,7 +512,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
     sbuf.type            = trans64_word;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint32_t*)sbuf.data) = data;
 
@@ -529,7 +530,7 @@ static uint32_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 //
 // -------------------------------------------------------------------------
 
-static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
+uint64_t VTransCommon (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -539,7 +540,7 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
     sbuf.type            = trans64_dword;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint64_t*)sbuf.data) = data;
 
@@ -557,7 +558,7 @@ static uint64_t VTransCommon (const addr_bus_trans_op_t op, const uint64_t addr,
 //
 // -------------------------------------------------------------------------
 
-static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+void VTransBurstCommon (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -567,7 +568,7 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
     sbuf.type            = trans32_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
@@ -604,7 +605,7 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 //
 // -------------------------------------------------------------------------
 
-static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+void VTransBurstCommon (const int op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -614,7 +615,7 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
     sbuf.type            = trans64_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = op;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
@@ -651,7 +652,7 @@ static void VTransBurstCommon (const addr_bus_trans_op_t op, const int param, co
 //
 // -------------------------------------------------------------------------
 
-static uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, const int param, const uint32_t node)
+uint8_t VStreamCommon (const int op, const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -676,7 +677,7 @@ static uint8_t VStreamCommon (const stream_operation_t op, const uint8_t data, c
 //
 // -------------------------------------------------------------------------
 
-static bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
+bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -708,7 +709,7 @@ static bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t
 //
 // -------------------------------------------------------------------------
 
-static uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data, const int param, const uint32_t node)
+uint16_t VStreamCommon (const int op, const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -733,7 +734,7 @@ static uint16_t VStreamCommon (const stream_operation_t op, const uint16_t data,
 //
 // -------------------------------------------------------------------------
 
-static bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
+bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -765,7 +766,7 @@ static bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16
 //
 // -------------------------------------------------------------------------
 
-static uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data, const int param, const uint32_t node)
+uint32_t VStreamCommon (const int op, const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -791,7 +792,7 @@ static uint32_t VStreamCommon (const stream_operation_t op, const uint32_t data,
 //
 // -------------------------------------------------------------------------
 
-static bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
+bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -823,7 +824,7 @@ static bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32
 //
 // -------------------------------------------------------------------------
 
-static uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data, const int param, const uint32_t node)
+uint64_t VStreamCommon (const int op, const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -848,7 +849,7 @@ static uint64_t VStreamCommon (const stream_operation_t op, const uint64_t data,
 //
 // -------------------------------------------------------------------------
 
-static bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
+bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -879,7 +880,7 @@ static bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64
 // Common function for Send/Check related stream transactions
 // -------------------------------------------------------------------------
 
-static bool VStreamBurstSendCommon (const stream_operation_t op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
+bool VStreamBurstSendCommon (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -916,7 +917,7 @@ static bool VStreamBurstSendCommon (const stream_operation_t op, const int burst
 // Common function for Get related stream transactions
 // -------------------------------------------------------------------------
 
-static bool VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
+bool VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -1023,793 +1024,5 @@ void VSetTestName (const char* data, const int bytesize, const uint32_t node)
     return;
 }
 
-// -------------------------------------------------------------------------
-// Wrapper functions for the transaction operations for the various
-// overloaded versions, calling common routines with different operation
-// codes.
-// -------------------------------------------------------------------------
 
-void VTransRead (const uint32_t addr, uint8_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint32_t addr, uint16_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint32_t addr, uint32_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint64_t addr, uint8_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint8_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint64_t addr, uint16_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint16_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint64_t addr, uint32_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint32_t)0, &unusedstatus, prot, node);
-}
-
-void VTransRead (const uint64_t addr, uint64_t *rdata, const int prot, const uint32_t node)
-{
-    *rdata = VTransCommon(READ_OP, addr, (uint64_t)0, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWrite (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAsync (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWrite (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAsync (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWrite (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAsync (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWrite (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAsync (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWrite (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAsync (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWrite (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAsync (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-     return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint64_t VTransWrite (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_OP, addr, data, &unusedstatus, prot, node);
-}
-
-uint64_t VTransWriteAsync (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAndRead (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAndReadAsync (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAndRead (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAndReadAsync (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAndRead (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAndReadAsync (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAndRead (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint8_t VTransWriteAndReadAsync (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAndRead (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint16_t VTransWriteAndReadAsync (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAndRead (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint32_t VTransWriteAndReadAsync (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint64_t VTransWriteAndRead (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-uint64_t VTransWriteAndReadAsync (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    return VTransCommon(ASYNC_WRITE_AND_READ, addr, data, &unusedstatus, prot, node);
-}
-
-void VTransWriteAddressAsync (const uint32_t addr, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
-}
-
-void VTransWriteAddressAsync (const uint64_t addr, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
-}
-
-void VTransWriteDataAsync (const uint8_t  data, const uint32_t bytelane, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
-}
-
-void VTransWriteDataAsync (const uint16_t data, const uint32_t bytelane, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
-}
-
-void VTransWriteDataAsync (const uint32_t data, const uint32_t bytelane, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
-}
-
-void VTransWriteDataAsync (const uint64_t data, const uint64_t bytelane, const uint32_t node)
-{
-    VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &unusedstatus, 0, node);
-}
-
-void VTransReadAddressAsync  (const uint32_t addr, const uint32_t node)
-{
-    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
-}
-
-void VTransReadAddressAsync  (const uint64_t addr, const uint32_t node)
-{
-    VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &unusedstatus, 0, node);
-}
-
-void VTransReadData (uint8_t  *data, const uint32_t node)
-{
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &unusedstatus, 0, node);
-}
-
-void VTransReadData (uint16_t *data, const uint32_t node)
-{
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint16_t)0, &unusedstatus, 0, node);
-}
-
-void VTransReadData (uint32_t *data, const uint32_t node)
-{
-    *data = VTransCommon(READ_DATA, (uint32_t)0, (uint32_t)0, &unusedstatus, 0, node);
-}
-
-void VTransReadData (uint64_t  *data, const uint32_t node)
-{
-    *data = VTransCommon(READ_DATA, (uint64_t)0, (uint64_t)0, &unusedstatus, 0, node);
-}
-
-bool VTransTryReadData (uint8_t *data, const uint32_t node)
-{
-    int status;
-
-    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);
-
-    return status;
-}
-
-bool VTransTryReadData (uint16_t *data, const uint32_t node)
-{
-    int status;
-
-    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint16_t)0, &status, 0, node);
-
-    return status;
-}
-
-bool VTransTryReadData (uint32_t *data, const uint32_t node)
-{
-    int status;
-
-    *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint32_t)0, &status, 0, node);
-
-    return status;
-}
-
-bool VTransTryReadData (uint64_t *data, const uint32_t node)
-{
-    int status;
-
-    *data = VTransCommon(ASYNC_READ_DATA, (uint64_t)0, (uint64_t)0, &status, 0, node);
-
-    return status;
-}
-
-void  VTransReadCheck (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint32_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheck (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    VTransCommon(READ_CHECK, addr, data, &unusedstatus, prot, node);
-}
-
-void  VTransReadCheckData ( const uint8_t data, const uint32_t node)
-{
-    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
-}
-
-void  VTransReadCheckData (const uint16_t data, const uint32_t node)
-{
-    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
-}
-
-void  VTransReadCheckData (const uint32_t data, const uint32_t node)
-{
-    VTransCommon(READ_DATA_CHECK, (uint32_t)0, data, &unusedstatus, (uint32_t)0, node);
-}
-
-void  VTransReadCheckData (const uint64_t data, const uint32_t node)
-{
-    VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &unusedstatus, (uint32_t)0, node);
-}
-
-bool  VTransTryReadCheckData ( const uint8_t data, const uint32_t node)
-{
-    int status;
-
-    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
-
-    return status;
-}
-
-bool  VTransTryReadCheckData (const uint16_t data, const uint32_t node)
-{
-    int status;
-
-    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
-
-    return status;
-}
-
-bool  VTransTryReadCheckData (const uint32_t data, const uint32_t node)
-{
-    int status;
-
-    VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node);
-
-    return status;
-}
-
-bool  VTransTryReadCheckData (const uint64_t data, const uint32_t node)
-{
-    int status;
-
-    VTransCommon(ASYNC_READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);
-
-    return status;
-}
-
-void VTransBurstWrite (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWrite (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWrite (const uint32_t addr, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);
-}
-
-void VTransBurstWrite (const uint64_t addr, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);
-}
-
-void VTransBurstWriteAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteIncrement (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteIncrement (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteIncrementAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteIncrementAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteRandom (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteRandom (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteRandomAsync (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstWriteRandomAsync (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(ASYNC_WRITE_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstPushData (uint8_t *data, const int count, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_DATA, (uint32_t)0, data, count, (uint32_t)0, node);
-}
-
-void VTransBurstPushIncrement (uint8_t *data, const int count, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_INCR_PUSH, (uint32_t)0, data, count, (uint32_t)0, node);
-}
-
-void VTransBurstPushRandom    (uint8_t *data, const int count, const uint32_t node)
-{
-    VTransBurstCommon(WRITE_BURST, BURST_RAND_PUSH, (uint32_t)0, data, count, (uint32_t)0, node);
-}
-
-void VTransCheckBurstReadIncrement (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransCheckBurstReadIncrement (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
-{
-     VTransBurstCommon(READ_BURST, BURST_INCR, addr, data, bytesize, prot, node);
-}
-
-void VTransCheckBurstReadRandom    (const uint32_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
-{
-     VTransBurstCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransCheckBurstReadRandom    (const uint64_t addr, uint8_t *data, const int bytesize, const int prot, const uint32_t node)
-{
-     VTransBurstCommon(READ_BURST, BURST_RAND, addr, data, bytesize, prot, node);
-}
-
-void VTransCheckBurstIncrement (uint8_t *data, const int bytesize, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_INCR_CHECK, (uint32_t)0, data, bytesize, (uint32_t)0, node);
-}
-
-void VTransCheckBurstRandom    (uint8_t *data, const int bytesize, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_RAND_CHECK, (uint32_t)0, data, bytesize, (uint32_t)0, node);
-}
-
-void VTransCheckBurstData    (uint8_t *data, const int bytesize, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_DATA, (uint32_t)0, data, bytesize, (uint32_t)0, node);
-}
-
-void VTransBurstRead  (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_NORM, addr, data, bytesize, prot, node);
-}
-
-void VTransBurstRead  (const uint32_t addr, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_TRANS, addr, 0, bytesize, prot, node);
-}
-
-void VTransBurstRead  (const uint64_t addr, const int bytesize, const int prot, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_TRANS, addr, 0, bytesize, prot, node);
-}
-
-void VTransBurstPopData (uint8_t *data, const int bytesize, const uint32_t node)
-{
-    VTransBurstCommon(READ_BURST, BURST_DATA, (uint32_t)0, data, bytesize, 0, node);
-}
-
-// --------------------------------------------------------------------------------
-// Overloaded stream functions
-// --------------------------------------------------------------------------------
-
-void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
-{
-    VStreamGetCommon(GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryGet (uint8_t *rdata, int *status, const uint32_t node)
-{
-    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryCheck (uint8_t data, const int param, const uint32_t node)
-{
-    int status;
-
-    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
-}
-
-void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
-{
-    VStreamGetCommon(GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryGet (uint16_t *rdata, int *status, const uint32_t node)
-{
-    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryCheck (uint16_t data, const int param, const uint32_t node)
-{
-    int status;
-
-    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
-}
-
-void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
-{
-    VStreamGetCommon(GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryGet (uint32_t *rdata, int *status, const uint32_t node)
-{
-    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryCheck (uint32_t data, const int param, const uint32_t node)
-{
-    int status;
-    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
-}
-
-void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
-{
-    VStreamGetCommon(GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryGet (uint64_t *rdata, int *status, const uint32_t node)
-{
-    return VStreamGetCommon(TRY_GET, rdata, status, 0, 0, node);
-}
-
-bool VStreamTryCheck (uint64_t data, const int param, const uint32_t node)
-{
-    int status;
-    return VStreamGetCommon(TRY_CHECK, null, &status, data, param, node);
-}
-
-uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND, data, param, node);
-}
-
-uint16_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND, data, param, node);
-}
-
-uint32_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND, data, param, node);
-}
-
-uint64_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND, data, param, node);
-}
-
-uint8_t VStreamSendAsync (const uint8_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND_ASYNC, data, param, node);
-}
-
-uint16_t VStreamSendAsync (const uint16_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND_ASYNC, data, param, node);
-}
-
-uint32_t VStreamSendAsync (const uint32_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND_ASYNC, data, param, node);
-}
-
-uint64_t VStreamSendAsync (const uint64_t data, const int param, const uint32_t node)
-{
-    return VStreamCommon(SEND_ASYNC, data, param, node);
-}
-
-void VStreamCheck (const uint8_t data, const int param, const uint32_t node)
-{
-    VStreamCommon(CHECK, data, param, node);
-}
-
-void VStreamCheck (const uint16_t data, const int param, const uint32_t node)
-{
-    VStreamCommon(CHECK, data, param, node);
-}
-
-void VStreamCheck (const uint32_t data, const int param, const uint32_t node)
-{
-    VStreamCommon(CHECK, data, param, node);
-}
-
-void VStreamCheck (const uint64_t data, const int param, const uint32_t node)
-{
-    VStreamCommon(CHECK, data, param, node);
-}
-
-void VStreamBurstSend (uint8_t* data, const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST, BURST_NORM, data, bytesize, param, node);
-}
-
-void VStreamBurstSend (const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST, BURST_TRANS, null, bytesize, param, node);
-}
-
-void VStreamBurstSendAsync (uint8_t* data, const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_NORM, data, bytesize, param, node);
-}
-
-void VStreamBurstSendAsync (const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_TRANS, null, bytesize, param, node);
-}
-
-void VStreamBurstCheck (uint8_t* data, const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(CHECK_BURST, BURST_NORM, data, bytesize, param, node);
-}
-
-void VStreamBurstCheck (const int bytesize, const int param, const uint32_t node)
-{
-    VStreamBurstSendCommon(CHECK_BURST, BURST_TRANS, null, bytesize, param, node);
-}
-
-void VStreamBurstSendIncrement (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST, BURST_INCR, data, bytesize, param, node);
-}
-
-void VStreamBurstSendIncrementAsync (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_INCR, data, bytesize, param, node);
-}
-
-void VStreamBurstCheckIncrement (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_CHECK, data, bytesize, param, node);
-}
-
-void VStreamBurstSendRandom (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND, data, bytesize, param, node);
-}
-
-void VStreamBurstSendRandomAsync (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(SEND_BURST_ASYNC, BURST_RAND, data, bytesize, param, node);
-}
-
-void VStreamBurstCheckRandom (uint8_t  *data, const int  bytesize, const int  param, const uint32_t node)
-{
-    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_CHECK, data, bytesize, param, node);
-}
-
-void VStreamBurstPushData(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(SEND_BURST, BURST_DATA, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushCheckData(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(CHECK_BURST, BURST_DATA, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushIncrement(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(SEND_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushCheckIncrement(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(CHECK_BURST, BURST_INCR_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushRandom(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(SEND_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
-}
-
-void VStreamBurstPushCheckRandom(uint8_t* data, const int bytesize, const uint32_t node)
-{
-
-    VStreamBurstSendCommon(CHECK_BURST, BURST_RAND_PUSH, data, bytesize, 0, node);
-}
-
-bool VStreamBurstTryCheck (uint8_t *data, const int bytesize, const int param, const uint32_t node)
-{
-    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_NORM, data, bytesize, param, node);
-}
-
-bool VStreamBurstTryCheck (const int bytesize, const int param, const uint32_t node)
-{
-    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_TRANS, null, bytesize, param, node);
-}
-
-bool VStreamBurstTryCheckIncrement (uint8_t *data, const int bytesize, const int param, const uint32_t node)
-{
-    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_INCR_CHECK, data, bytesize, param, node);
-}
-
-bool VStreamBurstTryCheckRandom (uint8_t *data, const int bytesize, const int param, const uint32_t node)
-{
-    return VStreamBurstSendCommon(TRY_CHECK_BURST, BURST_RAND_CHECK, data, bytesize, param, node);
-}
-
-void VStreamBurstGet (uint8_t* data, const int bytesize, int* status, const uint32_t node)
-{
-    VStreamBurstGetCommon(GET_BURST, BURST_NORM, data, bytesize, status, node);
-}
-
-void VStreamBurstGet (const int bytesize, int* status, const uint32_t node)
-{
-    VStreamBurstGetCommon(GET_BURST, BURST_TRANS, null, bytesize, status, node);
-}
-
-void VStreamBurstPopData(uint8_t* data, const int bytesize, const uint32_t node)
-{
-    int status;
-
-    VStreamBurstGetCommon(GET_BURST, BURST_DATA, data, bytesize, &status, node);
-}
-
-bool VStreamBurstTryGet   (uint8_t  *data, const int  bytesize, const int param, const uint32_t node)
-{
-    int status;
-
-    return VStreamBurstGetCommon(TRY_GET_BURST, BURST_NORM, data, bytesize, &status, node);
-}
-
-bool VStreamBurstTryGet (const int bytesize, const int param, const uint32_t node)
-{
-    int status;
-
-    return VStreamBurstGetCommon(TRY_GET_BURST, BURST_TRANS, null, bytesize, &status, node);
-}
 
