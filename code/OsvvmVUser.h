@@ -15,7 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    05/2023   2023.05    Adding asynchronous transaction support
+//    05/2023   2023.05    Adding Async, Try and Check transaction support
 //    03/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
 //
@@ -129,52 +129,52 @@ typedef void (*pVUserMain_t)(void);
 // -------------------------------------------------------------------------
 
 // VUser function prototypes
-#ifdef __cplusplus
+# ifdef __cplusplus
 
 // Function to advance simulation by a number of clock ticks
-extern int      VTick                          (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
+extern int       VTick                          (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
 
 // GHDL main support function to wait for simultion to be ready to call
-extern void     VWaitForSim                    (const uint32_t node = 0);
+extern void      VWaitForSim                    (const uint32_t node = 0);
 
 // OSVVM support function to set the test name
-extern void     VSetTestName                   (const char*    data, const int bytesize, const uint32_t node);
+extern void      VSetTestName                   (const char*    data, const int bytesize, const uint32_t node);
 
 // Overloaded transaction functions for 32 and 64 bit architecture for byte, half-word, word and double-word
-extern uint8_t  VTransCommon                   (const int op, const uint32_t addr, const uint8_t data,  int* status, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransCommon                   (const int op, const uint32_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransCommon                   (const int op, const uint32_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint8_t  VTransCommon                   (const int op, const uint64_t addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint16_t VTransCommon                   (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint32_t VTransCommon                   (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint64_t VTransCommon                   (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint8_t   VTransUserCommon               (const int op, const uint32_t addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint16_t  VTransUserCommon               (const int op, const uint32_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint32_t  VTransUserCommon               (const int op, const uint32_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint8_t   VTransUserCommon               (const int op, const uint64_t addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint16_t  VTransUserCommon               (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint32_t  VTransUserCommon               (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint64_t  VTransUserCommon               (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded stream transaction functions for 32 and 64 bit architecture
-extern void     VTransBurstCommon              (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
-extern void     VTransBurstCommon              (const int op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void      VTransBurstCommon              (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
+extern void      VTransBurstCommon              (const int op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded stream send/check common transaction functions for byte, half-word, word and double-word
-extern uint8_t  VStreamCommon                  (const int op, const uint8_t   data,    const int  param = 0,  const uint32_t node = 0);
-extern uint16_t VStreamCommon                  (const int op, const uint16_t  data,    const int  param = 0,  const uint32_t node = 0);
-extern uint32_t VStreamCommon                  (const int op, const uint32_t  data,    const int  param = 0,  const uint32_t node = 0);
-extern uint64_t VStreamCommon                  (const int op, const uint64_t  data,    const int  param = 0,  const uint32_t node = 0);
+extern uint8_t   VStreamUserCommon              (const int op, const uint8_t   data, const int  param = 0,  const uint32_t node = 0);
+extern uint16_t  VStreamUserCommon              (const int op, const uint16_t  data, const int  param = 0,  const uint32_t node = 0);
+extern uint32_t  VStreamUserCommon              (const int op, const uint32_t  data, const int  param = 0,  const uint32_t node = 0);
+extern uint64_t  VStreamUserCommon              (const int op, const uint64_t  data, const int  param = 0,  const uint32_t node = 0);
 
 // Overloaded stream get common transaction functions for byte, half-word, word and double-word
-extern bool     VStreamGetCommon               (const int op, uint8_t  *rdata, int *status, const uint8_t  wdata, const int param = 0,  const uint32_t node = 0);
-extern bool     VStreamGetCommon               (const int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param = 0,  const uint32_t node = 0);
-extern bool     VStreamGetCommon               (const int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param = 0,  const uint32_t node = 0);
-extern bool     VStreamGetCommon               (const int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param = 0,  const uint32_t node = 0);
+extern bool      VStreamUserGetCommon           (const int op, uint8_t  *rdata, int *status, const uint8_t  wdata, const int param = 0,  const uint32_t node = 0);
+extern bool      VStreamUserGetCommon           (const int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param = 0,  const uint32_t node = 0);
+extern bool      VStreamUserGetCommon           (const int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param = 0,  const uint32_t node = 0);
+extern bool      VStreamUserGetCommon           (const int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param = 0,  const uint32_t node = 0);
 
-// Stream burst send and get transaction functions
-extern bool     VStreamBurstSendCommon         (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param = 0, const uint32_t node = 0);
-extern bool     VStreamBurstGetCommon          (const int op, const int param,      uint8_t* data, const int bytesize, int* status,         const uint32_t node = 0);
+// Stream burst send and get common transaction functions
+extern bool      VStreamUserBurstSendCommon     (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param = 0, const uint32_t node = 0);
+extern bool      VStreamUserBurstGetCommon      (const int op, const int param,      uint8_t* data, const int bytesize, int* status,         const uint32_t node = 0);
 
-#endif
+# endif
 
 // User function called from VInit to instigate new user thread
-extern EXTC int  VUser           (const int node);
+extern EXTC int  VUser                          (const int node);
 
 // User interrupt callback registering function
-extern EXTC void VRegInterrupt   (const pVUserInt_t func, const uint32_t node);
+extern EXTC void VRegInterrupt                  (const pVUserInt_t func, const uint32_t node);
 
 #endif

@@ -356,13 +356,13 @@ void VWaitForSim(const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 8-bit byte transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransCommon (const int op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -384,13 +384,13 @@ uint8_t VTransCommon (const int op, const uint32_t addr, const uint8_t data, int
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 16-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint16_t VTransCommon (const int op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -412,13 +412,13 @@ uint16_t VTransCommon (const int op, const uint32_t addr, const uint16_t data,  
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 32-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransCommon (const int op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -440,13 +440,13 @@ uint32_t VTransCommon (const int op, const uint32_t addr, const uint32_t data, i
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 8-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransCommon (const int op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -468,13 +468,13 @@ uint8_t VTransCommon (const int op, const uint64_t addr, const uint8_t data, int
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 16-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint16_t VTransCommon (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -496,13 +496,13 @@ uint16_t VTransCommon (const int op, const uint64_t addr, const uint16_t data, i
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 32-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransCommon (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -524,13 +524,13 @@ uint32_t VTransCommon (const int op, const uint64_t addr, const uint32_t data, i
 }
 
 // -------------------------------------------------------------------------
-// VTransCommon()
+// VTransUserCommon()
 //
 // Common 64-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint64_t VTransCommon (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
+uint64_t VTransUserCommon (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -646,13 +646,13 @@ void VTransBurstCommon (const int op, const int param, const uint64_t addr, uint
 }
 
 // -------------------------------------------------------------------------
-// VStreamCommon()
+// VStreamUserCommon()
 //
 // Common 8-bit byte stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamCommon (const int op, const uint8_t data, const int param, const uint32_t node)
+uint8_t VStreamUserCommon (const int op, const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -671,13 +671,13 @@ uint8_t VStreamCommon (const int op, const uint8_t data, const int param, const 
 }
 
 // -------------------------------------------------------------------------
-// VStreamGetCommon()
+// VStreamUserGetCommon()
 //
 // Common 8-bit byte stream get transaction exchange
 //
 // -------------------------------------------------------------------------
 
-bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -703,13 +703,13 @@ bool VStreamGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata,
 }
 
 // -------------------------------------------------------------------------
-// VStreamCommon()
+// VStreamUserCommon()
 //
 // Common 16-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint16_t VStreamCommon (const int op, const uint16_t data, const int param, const uint32_t node)
+uint16_t VStreamUserCommon (const int op, const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -728,13 +728,13 @@ uint16_t VStreamCommon (const int op, const uint16_t data, const int param, cons
 }
 
 // -------------------------------------------------------------------------
-// VStreamGetCommon()
+// VStreamUserGetCommon()
 //
 // Common 16-bit word stream get transaction get exchange function
 //
 // -------------------------------------------------------------------------
 
-bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -760,13 +760,13 @@ bool VStreamGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdat
 }
 
 // -------------------------------------------------------------------------
-// VStreamCommon()
+// VStreamUserCommon()
 //
 // Common 32-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint32_t VStreamCommon (const int op, const uint32_t data, const int param, const uint32_t node)
+uint32_t VStreamUserCommon (const int op, const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -786,13 +786,13 @@ uint32_t VStreamCommon (const int op, const uint32_t data, const int param, cons
 
 
 // -------------------------------------------------------------------------
-// VStreamGetCommon()
+// VStreamUserGetCommon()
 //
 // Common 32-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -818,13 +818,13 @@ bool VStreamGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdat
 }
 
 // -------------------------------------------------------------------------
-// VStreamCommon()
+// VStreamUserCommon()
 //
 // Common 64-bit word send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint64_t VStreamCommon (const int op, const uint64_t data, const int param, const uint32_t node)
+uint64_t VStreamUserCommon (const int op, const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -843,13 +843,13 @@ uint64_t VStreamCommon (const int op, const uint64_t data, const int param, cons
 }
 
 // -------------------------------------------------------------------------
-// VStreamGetCommon()
+// VStreamUserGetCommon()
 //
 // Common 64-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
+bool VStreamUserGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -875,12 +875,12 @@ bool VStreamGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdat
 }
 
 // -------------------------------------------------------------------------
-// VStreamBurstSendCommon()
+// VStreamUserBurstSendCommon()
 //
 // Common function for Send/Check related stream transactions
 // -------------------------------------------------------------------------
 
-bool VStreamBurstSendCommon (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
+bool VStreamUserBurstSendCommon (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -912,12 +912,12 @@ bool VStreamBurstSendCommon (const int op, const int burst_type, uint8_t* data, 
 }
 
 // -------------------------------------------------------------------------
-// VStreamBurstGetCommon()
+// VStreamUserBurstGetCommon()
 //
 // Common function for Get related stream transactions
 // -------------------------------------------------------------------------
 
-bool VStreamBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
+bool VStreamUserBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;

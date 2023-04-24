@@ -66,76 +66,76 @@ public:
 #endif
       }
 
-      uint8_t  transWrite             (const uint32_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint16_t transWrite             (const uint32_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint32_t transWrite             (const uint32_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint8_t  transWrite             (const uint64_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint16_t transWrite             (const uint64_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint32_t transWrite             (const uint64_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
-      uint64_t transWrite             (const uint64_t addr, const uint64_t data, const int prot = 0)                       {int status; return VTransCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint8_t  transWrite             (const uint32_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint16_t transWrite             (const uint32_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint32_t transWrite             (const uint32_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint8_t  transWrite             (const uint64_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint16_t transWrite             (const uint64_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint32_t transWrite             (const uint64_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
+      uint64_t transWrite             (const uint64_t addr, const uint64_t data, const int prot = 0)                       {int status; return VTransUserCommon(WRITE_OP, addr, data, &status, prot, node);}
 
-      uint8_t  transWriteAsync        (const uint32_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint16_t transWriteAsync        (const uint32_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint32_t transWriteAsync        (const uint32_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint8_t  transWriteAsync        (const uint64_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint16_t transWriteAsync        (const uint64_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint32_t transWriteAsync        (const uint64_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
-      uint64_t transWriteAsync        (const uint64_t addr, const uint64_t data, const int prot = 0)                       {int status; return VTransCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint8_t  transWriteAsync        (const uint32_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint16_t transWriteAsync        (const uint32_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint32_t transWriteAsync        (const uint32_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint8_t  transWriteAsync        (const uint64_t addr, const uint8_t  data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint16_t transWriteAsync        (const uint64_t addr, const uint16_t data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint32_t transWriteAsync        (const uint64_t addr, const uint32_t data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
+      uint64_t transWriteAsync        (const uint64_t addr, const uint64_t data, const int prot = 0)                       {int status; return VTransUserCommon(ASYNC_WRITE, addr, data, &status, prot, node);}
 
-      void     transWriteAndRead      (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndRead      (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndRead      (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(WRITE_AND_READ, addr, wdata, &status, prot, node);}
 
-      void     transWriteAndReadAsync (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
-      void     transWriteAndReadAsync (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0)     {int status; *rdata = VTransCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
+      void     transWriteAndReadAsync (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0)     {int status; *rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, addr, wdata, &status, prot, node);}
 
-      void     transWriteAddressAsync        (const uint32_t addr)                                                         {int status; VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &status, 0, node);}
-      void     transWriteAddressAsync        (const uint64_t addr)                                                         {int status; VTransCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &status, 0, node);}
+      void     transWriteAddressAsync        (const uint32_t addr, const int prot = 0)                                     {int status; VTransUserCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &status, prot, node);}
+      void     transWriteAddressAsync        (const uint64_t addr, const int prot = 0)                                     {int status; VTransUserCommon(ASYNC_WRITE_ADDRESS, addr, (uint32_t)0, &status, prot, node);}
 
-      void     transWriteDataAsync           (const uint8_t  data, uint32_t bytelane = 0)                                  {int status; VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
-      void     transWriteDataAsync           (const uint16_t data, uint32_t bytelane = 0)                                  {int status; VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
-      void     transWriteDataAsync           (const uint32_t data, uint32_t bytelane = 0)                                  {int status; VTransCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
-      void     transWriteDataAsync           (const uint64_t data, uint32_t bytelane = 0)                                  {int status; VTransCommon(ASYNC_WRITE_DATA, (uint64_t)bytelane, data, &status, 0, node);}
+      void     transWriteDataAsync           (const uint8_t  data, uint32_t bytelane = 0)                                  {int status; VTransUserCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
+      void     transWriteDataAsync           (const uint16_t data, uint32_t bytelane = 0)                                  {int status; VTransUserCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
+      void     transWriteDataAsync           (const uint32_t data, uint32_t bytelane = 0)                                  {int status; VTransUserCommon(ASYNC_WRITE_DATA, bytelane, data, &status, 0, node);}
+      void     transWriteDataAsync           (const uint64_t data, uint32_t bytelane = 0)                                  {int status; VTransUserCommon(ASYNC_WRITE_DATA, (uint64_t)bytelane, data, &status, 0, node);}
 
-      void     transReadAddressAsync         (const uint32_t addr)                                                         {int status; VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &status, 0, node);}
-      void     transReadAddressAsync         (const uint64_t addr)                                                         {int status; VTransCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &status, 0, node);}
+      void     transReadAddressAsync         (const uint32_t addr, const int prot = 0)                                     {int status; VTransUserCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &status, prot, node);}
+      void     transReadAddressAsync         (const uint64_t addr, const int prot = 0)                                     {int status; VTransUserCommon(ASYNC_READ_ADDRESS, addr, (uint32_t)0, &status, prot, node);}
 
-      void     transReadData                 (uint8_t       *data)                                                         {int status; *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
-      void     transReadData                 (uint16_t      *data)                                                         {int status; *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
-      void     transReadData                 (uint32_t      *data)                                                         {int status; *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
-      void     transReadData                 (uint64_t      *data)                                                         {int status; *data = VTransCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
+      void     transReadData                 (uint8_t       *data)                                                         {int status; *data = VTransUserCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
+      void     transReadData                 (uint16_t      *data)                                                         {int status; *data = VTransUserCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
+      void     transReadData                 (uint32_t      *data)                                                         {int status; *data = VTransUserCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
+      void     transReadData                 (uint64_t      *data)                                                         {int status; *data = VTransUserCommon(READ_DATA, (uint32_t)0, (uint8_t)0, &status, 0, node);}
 
-      bool     transTryReadData              (uint8_t       *data)                                                         {int status; *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint8_t) 0, &status, 0, node); return status;}
-      bool     transTryReadData              (uint16_t      *data)                                                         {int status; *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint16_t)0, &status, 0, node); return status;}
-      bool     transTryReadData              (uint32_t      *data)                                                         {int status; *data = VTransCommon(ASYNC_READ_DATA, (uint32_t)0, (uint32_t)0, &status, 0, node); return status;}
-      bool     transTryReadData              (uint64_t      *data)                                                         {int status; *data = VTransCommon(ASYNC_READ_DATA, (uint64_t)0, (uint64_t)0, &status, 0, node); return status;}
+      bool     transTryReadData              (uint8_t       *data)                                                         {int status; *data = VTransUserCommon(ASYNC_READ_DATA, (uint32_t)0, (uint8_t) 0, &status, 0, node); return status;}
+      bool     transTryReadData              (uint16_t      *data)                                                         {int status; *data = VTransUserCommon(ASYNC_READ_DATA, (uint32_t)0, (uint16_t)0, &status, 0, node); return status;}
+      bool     transTryReadData              (uint32_t      *data)                                                         {int status; *data = VTransUserCommon(ASYNC_READ_DATA, (uint32_t)0, (uint32_t)0, &status, 0, node); return status;}
+      bool     transTryReadData              (uint64_t      *data)                                                         {int status; *data = VTransUserCommon(ASYNC_READ_DATA, (uint64_t)0, (uint64_t)0, &status, 0, node); return status;}
 
-      void     transReadDataCheck            (uint8_t        data)                                                         {int status; VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
-      void     transReadDataCheck            (uint16_t       data)                                                         {int status; VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
-      void     transReadDataCheck            (uint32_t       data)                                                         {int status; VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
-      void     transReadDataCheck            (uint64_t       data)                                                         {int status; VTransCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
+      void     transReadDataCheck            (uint8_t        data)                                                         {int status; VTransUserCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
+      void     transReadDataCheck            (uint16_t       data)                                                         {int status; VTransUserCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
+      void     transReadDataCheck            (uint32_t       data)                                                         {int status; VTransUserCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
+      void     transReadDataCheck            (uint64_t       data)                                                         {int status; VTransUserCommon(READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node);}
 
-      bool     transTryReadDataCheck         (uint8_t        data)                                                         {int status; VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
-      bool     transTryReadDataCheck         (uint16_t       data)                                                         {int status; VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
-      bool     transTryReadDataCheck         (uint32_t       data)                                                         {int status; VTransCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
-      bool     transTryReadDataCheck         (uint64_t       data)                                                         {int status; VTransCommon(ASYNC_READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node); return status;}
+      bool     transTryReadDataCheck         (uint8_t        data)                                                         {int status; VTransUserCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
+      bool     transTryReadDataCheck         (uint16_t       data)                                                         {int status; VTransUserCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
+      bool     transTryReadDataCheck         (uint32_t       data)                                                         {int status; VTransUserCommon(ASYNC_READ_DATA_CHECK, (uint32_t)0, data, &status, (uint32_t)0, node); return status;}
+      bool     transTryReadDataCheck         (uint64_t       data)                                                         {int status; VTransUserCommon(ASYNC_READ_DATA_CHECK, (uint64_t)0, data, &status, (uint32_t)0, node); return status;}
 
-      void     transRead                     (const uint32_t addr, uint8_t  *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint8_t) 0, &status, prot, node);}
-      void     transRead                     (const uint32_t addr, uint16_t *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint16_t)0, &status, prot, node);}
-      void     transRead                     (const uint32_t addr, uint32_t *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint32_t)0, &status, prot, node);}
-      void     transRead                     (const uint64_t addr, uint8_t  *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint8_t) 0, &status, prot, node);}
-      void     transRead                     (const uint64_t addr, uint16_t *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint16_t)0, &status, prot, node);}
-      void     transRead                     (const uint64_t addr, uint32_t *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint32_t)0, &status, prot, node);}
-      void     transRead                     (const uint64_t addr, uint64_t *data, const int prot = 0)                     {int status; *data = VTransCommon(READ_OP, addr, (uint64_t)0, &status, prot, node);}
+      void     transRead                     (const uint32_t addr, uint8_t  *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint8_t) 0, &status, prot, node);}
+      void     transRead                     (const uint32_t addr, uint16_t *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint16_t)0, &status, prot, node);}
+      void     transRead                     (const uint32_t addr, uint32_t *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint32_t)0, &status, prot, node);}
+      void     transRead                     (const uint64_t addr, uint8_t  *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint8_t) 0, &status, prot, node);}
+      void     transRead                     (const uint64_t addr, uint16_t *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint16_t)0, &status, prot, node);}
+      void     transRead                     (const uint64_t addr, uint32_t *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint32_t)0, &status, prot, node);}
+      void     transRead                     (const uint64_t addr, uint64_t *data, const int prot = 0)                     {int status; *data = VTransUserCommon(READ_OP, addr, (uint64_t)0, &status, prot, node);}
 
       void     transReadPoll                 (const uint32_t addr, uint8_t  *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0)
                                                  {do {tick(waittime); transRead(addr, data, prot);} while((*data & (1 << idx)) != ((bitval & 1) << idx));}
@@ -158,13 +158,13 @@ public:
       void     transReadPoll                 (const uint64_t addr, uint64_t *data, const int idx, const int bitval, const int waittime = 10, const int prot = 0)
                                                  {do {tick(waittime); transRead(addr, data, prot);} while((*data & (1 << idx)) != ((bitval & 1) << idx));}
 
-      void     transReadCheck                (const uint32_t addr, uint8_t   data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint32_t addr, uint16_t  data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint32_t addr, uint32_t  data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint64_t addr, uint8_t   data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint64_t addr, uint16_t  data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint64_t addr, uint32_t  data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
-      void     transReadCheck                (const uint64_t addr, uint64_t  data, const int prot = 0)                     {int status; VTransCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint32_t addr, uint8_t   data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint32_t addr, uint16_t  data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint32_t addr, uint32_t  data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint64_t addr, uint8_t   data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint64_t addr, uint16_t  data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint64_t addr, uint32_t  data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
+      void     transReadCheck                (const uint64_t addr, uint64_t  data, const int prot = 0)                     {int status; VTransUserCommon(READ_CHECK, addr, data, &status, prot, node);}
 
       void     transBurstWrite               (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
       void     transBurstWrite               (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
