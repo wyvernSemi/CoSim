@@ -216,6 +216,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     int  node;
     int  Interrupt;
     int  VPStatus;
+    int  VPCount;
+    int  VPCountSec;
     int  VPDataIn;
     int  VPDataInHi;
     int* VPDataOut;
@@ -237,6 +239,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     node                 = args[argIdx++];
     Interrupt            = args[argIdx++];
     VPStatus             = args[argIdx++];
+    VPCount              = args[argIdx++];
+    VPCountSec           = args[argIdx++];
     VPDataIn             = args[argIdx++]; VPDataInHi     = args[argIdx++];
 
     VPDataOut_int        = 0; VPDataOut_int  = 0;
@@ -264,6 +268,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     }
     ns[node]->rcv_buf.interrupt  = Interrupt;
     ns[node]->rcv_buf.status     = VPStatus;
+    ns[node]->rcv_buf.count      = VPCount;
+    ns[node]->rcv_buf.countsec   = VPCountSec;
 
     // Send message to VUser with VPDataIn value
     DebugVPrint("VTrans(): setting rcv[%d] semaphore\n", node);

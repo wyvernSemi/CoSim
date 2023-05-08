@@ -646,6 +646,47 @@ void VTransBurstCommon (const int op, const int param, const uint64_t addr, uint
 }
 
 // -------------------------------------------------------------------------
+// VTransGetCount
+//
+// Function to return various counts
+// -------------------------------------------------------------------------
+
+int VTransGetCount (const int op, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+    
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    
+    VExch(&sbuf, &rbuf, node);
+    
+    return rbuf.count;
+
+}
+
+// -------------------------------------------------------------------------
+// VTransTransactionWait
+//
+// Function wait on transactions
+// -------------------------------------------------------------------------
+
+void VTransTransactionWait (const int op, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+    
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    
+    VExch(&sbuf, &rbuf, node);
+    
+    return;
+}
+
+// -------------------------------------------------------------------------
 // VStreamUserCommon()
 //
 // Common 8-bit byte stream send/check transaction exchange function
@@ -944,6 +985,24 @@ bool VStreamUserBurstGetCommon (const int op, const int param, uint8_t* data, co
 
     // Return available status (sent back in unused interrupt field)
     return rbuf.interrupt;
+}
+
+// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
+
+int VStreamWaitGetCount (const int op, const bool txnrx, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+    
+    sbuf.op                = (addr_bus_trans_op_t)op;
+    *((uint32_t*)sbuf.data) = txnrx ? 1 : 0;
+    
+    VExch(&sbuf, &rbuf, node);
+    
+    return txnrx ? rbuf.countsec : rbuf.count;
 }
 
 // -------------------------------------------------------------------------

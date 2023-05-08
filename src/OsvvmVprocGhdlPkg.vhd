@@ -44,6 +44,8 @@ package OsvvmVprocPkg is
     node        : in  integer ;
     Interrupt   : in  integer ;
     VPStatus    : in  integer ;
+    VPCount     : in  integer ;
+    VPCountSec  : in  integer ;
     VPDataIn    : in  integer ;
     VPDataInHi  : in  integer ;
     VPDataOut   : out integer ;
@@ -90,6 +92,8 @@ package body OsvvmVprocPkg is
     node        : in  integer ;
     Interrupt   : in  integer ;
     VPStatus    : in  integer ;
+    VPCount     : in  integer ;
+    VPCountSec  : in  integer ;
     VPDataIn    : in  integer ;
     VPDataInHi  : in  integer ;
     VPDataOut   : out integer ;

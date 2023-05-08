@@ -44,7 +44,7 @@
 #ifndef ALDEC
 
 #define VINIT_PARAMS               int  node
-#define VTRANS_PARAMS              int  node,     int  Interrupt,   int  VPStatus,                                        \
+#define VTRANS_PARAMS              int  node,     int  Interrupt,   int  VPStatus,    int  VPCount,     int  VPCountSec,  \
                                    int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
                                    int* VPOp,     int* VPBurstSize, int* VPTicks,     int* VPDone,      int* VPError,     \
@@ -65,11 +65,11 @@
 #define VSETBURSTRDBYTE_PARAMS              const struct vhpiCbDataS* cb
 
 #define VINIT_NUM_ARGS                      1
-#define VTRANS_NUM_ARGS                     17
+#define VTRANS_NUM_ARGS                     19
 #define VGETBURSTWRBYTE_NUM_ARGS            3
 #define VSETBURSTRDBYTE_NUM_ARGS            3
                                             
-#define VTRANS_START_OF_OUTPUTS             5
+#define VTRANS_START_OF_OUTPUTS             7
 #define VGETBURSTWRBYTE_START_OF_OUTPUTS    2
 
 #define VPROC_RTN_TYPE                      PLI_VOID

@@ -153,6 +153,9 @@ extern uint64_t  VTransUserCommon               (const int op, const uint64_t ad
 extern void      VTransBurstCommon              (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 extern void      VTransBurstCommon              (const int op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);
 
+extern int       VTransGetCount                 (const int op, const uint32_t node = 0);
+extern void      VTransTransactionWait          (const int op, const uint32_t node = 0);
+
 // Overloaded stream send/check common transaction functions for byte, half-word, word and double-word
 extern uint8_t   VStreamUserCommon              (const int op, const uint8_t   data, const int  param = 0,  const uint32_t node = 0);
 extern uint16_t  VStreamUserCommon              (const int op, const uint16_t  data, const int  param = 0,  const uint32_t node = 0);
@@ -168,6 +171,8 @@ extern bool      VStreamUserGetCommon           (const int op, uint64_t *rdata, 
 // Stream burst send and get common transaction functions
 extern bool      VStreamUserBurstSendCommon     (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param = 0, const uint32_t node = 0);
 extern bool      VStreamUserBurstGetCommon      (const int op, const int param,      uint8_t* data, const int bytesize, int* status,         const uint32_t node = 0);
+
+extern int       VStreamWaitGetCount            (const int op, const bool txnrx, const uint32_t node = 0);
 
 # endif
 

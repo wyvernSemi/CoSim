@@ -168,8 +168,8 @@ public:
 
       void     transBurstWrite               (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
       void     transBurstWrite               (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
-      void     transBurstWrite               (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, null, bytesize, prot, node);}
-      void     transBurstWrite               (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, null, bytesize, prot, node);}
+      void     transBurstWrite               (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);}
+      void     transBurstWrite               (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(WRITE_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);}
       void     transBurstWriteAsync          (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
       void     transBurstWriteAsync          (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(ASYNC_WRITE_BURST, BURST_NORM, addr, data, bytesize, prot, node);}
 
@@ -188,8 +188,8 @@ public:
 
       void     transBurstRead                (const uint32_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(READ_BURST, BURST_NORM,  addr, data, bytesize, prot, node);}
       void     transBurstRead                (const uint64_t addr, uint8_t  *data, const int bytesize, const int prot = 0) {VTransBurstCommon(READ_BURST, BURST_NORM,  addr, data, bytesize, prot, node);}
-      void     transBurstRead                (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(READ_BURST, BURST_TRANS, addr, null, bytesize, prot, node);}
-      void     transBurstRead                (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(READ_BURST, BURST_TRANS, addr, null, bytesize, prot, node);}
+      void     transBurstRead                (const uint32_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(READ_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);}
+      void     transBurstRead                (const uint64_t addr, const int bytesize, const int prot = 0)                 {VTransBurstCommon(READ_BURST, BURST_TRANS, addr, NULL, bytesize, prot, node);}
 
       void     transBurstReadCheckIncrement  (const uint32_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransBurstCommon(READ_BURST, BURST_INCR, addr, &data, bytesize, prot, node);}
       void     transBurstReadCheckIncrement  (const uint64_t addr, uint8_t   data, const int bytesize, const int prot = 0) {VTransBurstCommon(READ_BURST, BURST_INCR, addr, &data, bytesize, prot, node);}
@@ -209,6 +209,13 @@ public:
 
       bool     transBurstReadCheckData       (const uint64_t addr, uint8_t *expdata, const int bytesize, const int prot = 0)
                                              {uint8_t buf[max_data_buf_size]; transBurstRead(addr, buf, bytesize, prot); return cmpBuffers(buf, expdata, bytesize);}
+                                             
+      void     transWaitForTransaction       (void)                                                                        {VTransTransactionWait(WAIT_FOR_TRANSACTION, node);}
+      void     transWaitWriteForTransaction  (void)                                                                        {VTransTransactionWait(WAIT_FOR_WRITE_TRANSACTION, node);}
+      void     transWaitReadForTransaction   (void)                                                                        {VTransTransactionWait(WAIT_FOR_READ_TRANSACTION, node);}
+      int      transGetTransactionCount      (void)                                                                        {return VTransGetCount(GET_TRANSACTION_COUNT, node);}
+      int      transGetWriteTransactionCount (void)                                                                        {return VTransGetCount(GET_WRITE_TRANSACTION_COUNT, node);}
+      int      transGetReadTransactionCount  (void)                                                                        {return VTransGetCount(GET_READ_TRANSACTION_COUNT, node);}
 
       void     regInterruptCB                (pVUserInt_t func)                                                            {VRegInterrupt(func, node);}
 

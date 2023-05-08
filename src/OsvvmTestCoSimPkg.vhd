@@ -57,12 +57,17 @@ library osvvm_cosim ;
 package OsvvmTestCoSimPkg is
 
   -- CoSim specific enumerations
-  type CoSimOperationType is (SET_TEST_NAME) ;                     -- For non-standard VPOperation values
-  type BurstType          is (BURST_NORM,       BURST_INCR,        -- Buest sub-operation selection in VPParam
+  type CoSimOperationType is (SET_TEST_NAME,         GET_TRANS_COUNT,     -- For non-standard VPOperation values
+                              GET_WRITE_TRANS_COUNT, GET_READ_TRANS_COUNT,
+                              GET_ERROR_COUNT) ;
+
+  type BurstType          is (BURST_NORM,       BURST_INCR,               -- Burst sub-operation selection in VPParam
                               BURST_RAND,       BURST_INCR_PUSH,
                               BURST_RAND_PUSH,  BURST_INCR_CHECK,
                               BURST_RAND_CHECK, BURST_TRANS,
                               BURST_DATA,       BURST_DATA_CHECK);
+                              
+  type DirType            is (RX_REC, TX_REC);
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -134,7 +139,6 @@ procedure CoSimTrans (
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
     constant VPParam         : in     integer ;
-    constant VPCount         : in     integer ;
     constant NodeNum         : in     integer
   ) ;
 
@@ -200,13 +204,16 @@ package body OsvvmTestCoSimPkg is
     variable VPOperation     : integer ;
     variable VPParam         : integer ;
     variable VPStatus        : integer ;
+    variable VPCount         : integer ;
+    variable UnusedCount     : integer ;
 
   begin
 
     -- RdData and Available status won't have persisted from last call, so re-fetch from ManagerRec
     -- which will have persisted (and is not yet updated)
     RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(ManagerRec.DataFromModel, RdData'length)) ;
-    VPstatus     := 1 when ManagerRec.BoolFromModel else 0 ;
+    VPStatus     := 1 when ManagerRec.BoolFromModel else 0 ;
+    VPCount      := ManagerRec.IntFromModel ;
 
     -- Sample the read data from last access, saved in RdData inout port
     if RdData'length > 32 then
@@ -218,7 +225,7 @@ package body OsvvmTestCoSimPkg is
     end if;
 
     -- Call VTrans to generate a new access
-    VTrans(NodeNum,   IntReq,      VPstatus,
+    VTrans(NodeNum,   IntReq,      VPStatus,  VPCount, UnusedCount,
            VPDataIn,  VPDataInHi,
            VPDataOut, VPDataOutHi, VPDataWidth,
            VPAddr,    VPAddrHi,    VPAddrWidth,
@@ -428,6 +435,24 @@ package body OsvvmTestCoSimPkg is
 
           end if ;
 
+        when GET_TRANSACTION_COUNT =>
+          GetTransactionCount(ManagerRec, RdDataInt) ;
+
+        when GET_WRITE_TRANSACTION_COUNT =>
+          GetWriteTransactionCount(ManagerRec, RdDataInt) ;
+
+        when GET_READ_TRANSACTION_COUNT =>
+          GetReadTransactionCount(ManagerRec, RdDataInt) ;
+
+        when WAIT_FOR_TRANSACTION =>
+          WaitForTransaction(ManagerRec) ;
+
+        when WAIT_FOR_WRITE_TRANSACTION =>
+          WaitForWriteTransaction(ManagerRec) ;
+
+        when WAIT_FOR_READ_TRANSACTION =>
+          WaitForReadTransaction(ManagerRec) ;
+
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented transaction") ;
 
@@ -501,8 +526,10 @@ package body OsvvmTestCoSimPkg is
     variable VPParam           : integer ;
     variable VPOperation       : integer ;
     variable VPStatus          : integer ;
-    variable VPCount           : integer ;
+    variable VPCountTx         : integer ;
+    variable VPCountRx         : integer ;
 
+    variable UnusedVPAddrLo    : integer ;
     variable UnusedVPAddrHi    : integer ;
     variable UnusedVPAddrWidth : integer ;
     variable Available         : integer  := 0;
@@ -514,22 +541,29 @@ package body OsvvmTestCoSimPkg is
 
     Status     := osvvm.TbUtilPkg.MetaTo01(SafeResize(RxRec.ParamFromModel, Status'length)) ;
     VPStatus   := to_integer(signed(Status)) ;
+    VPCountTx  := TxRec.IntFromModel;
+    VPCountRx  := RxRec.IntFromModel;
 
     Available  := 1 when RxRec.BoolFromModel else 0 ;
 
     RdData     := osvvm.TbUtilPkg.MetaTo01(SafeResize(RxRec.DataFromModel, RdData'length)) ;
-    VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-    VPDataInHi := 0 ;
+    -- Sample the read data from last access, saved in RdData inout port
+    if RdData'length > 32 then
+      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
+    else
+      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
+      VPDataInHi := 0 ;
+    end if;
 
 
     -- Call VTrans to generate a new TX access
-    -- Note: VPAddr is overloaded (as VPCount) and used as a count for PUSH_BURST_xxxx operations
-    VTrans(NodeNum,      Available,      VPStatus,
-           VPDataIn,     VPDataInHi,
-           VPDataOut,    VPDataOutHi,    VPDataWidth,
-           VPCount,      UnusedVPAddrHi, UnusedVPAddrWidth,
-           VPOp,         VPBurstSize,    VPTicks,
-           VPDone,       VPError,        VPParam) ;
+    VTrans(NodeNum,        Available,      VPStatus, VPCountRx, VPCountTx,
+           VPDataIn,       VPDataInHi,
+           VPDataOut,      VPDataOutHi,    VPDataWidth,
+           UnusedVPAddrLo, UnusedVPAddrHi, UnusedVPAddrWidth,
+           VPOp,           VPBurstSize,    VPTicks,
+           VPDone,         VPError,        VPParam) ;
 
     Done  := VPDone  ;
     Error := VPError ;
@@ -537,7 +571,7 @@ package body OsvvmTestCoSimPkg is
     CoSimDispatchOneStream (TxRec, RxRec,
                             VPOp,
                             VPDataOut,   VPDataOutHi, VPDataWidth,
-                            VPBurstSize, VPTicks,     VPParam,     VPCount,
+                            VPBurstSize, VPTicks,     VPParam,
                             NodeNum) ;
 
 
@@ -557,7 +591,6 @@ package body OsvvmTestCoSimPkg is
     variable VPBurstSize     : inout  integer ;
     constant VPTicks         : in     integer ;
     constant VPParam         : in     integer ;
-    constant VPCount         : in     integer ;
     constant NodeNum         : in     integer
   ) is
 
@@ -650,7 +683,7 @@ package body OsvvmTestCoSimPkg is
         when TRY_CHECK_BURST =>
 
           case BurstType'val(VPDataOut) is
-          
+
             when BURST_NORM =>
 
               for bidx in 0 to VPBurstSize-1 loop
@@ -665,12 +698,12 @@ package body OsvvmTestCoSimPkg is
 
             when BURST_TRANS =>
               TryCheckBurst(RxRec, VPBurstSize, Param(RxRec.ParamToModel'length-1 downto 0), Available);
-              
+
             when BURST_INCR_CHECK =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
               TryCheckBurstIncrement(RxRec, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize, Param(RxRec.ParamToModel'length-1 downto 0), Available);
-              
+
             when BURST_RAND_CHECK =>
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
@@ -751,6 +784,20 @@ package body OsvvmTestCoSimPkg is
               Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneStream received unimplemented burst type") ;
 
           end case ;
+
+        when WAIT_FOR_TRANSACTION =>
+           if DirType'val(VPDataOut) = TX_REC then
+             WaitForTransaction(TxRec) ;
+           else
+             WaitForTransaction(RxRec) ;
+           end if ;
+
+        When GET_TRANSACTION_COUNT =>
+           if DirType'val(VPDataOut) = TX_REC then
+             GetTransactionCount(TxRec, RdDataInt) ;
+           else
+             GetTransactionCount(RxRec, RdDataInt) ;
+           end if ;
 
         when others =>
           Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneStream received unimplemented transaction") ;

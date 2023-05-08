@@ -162,9 +162,7 @@ typedef enum addr_bus_trans_op_e
     READ_BURST,
     MULTIPLE_DRIVER_DETECT,
 
-    SET_TEST_NAME = 1024,
-    PUSH_BURST_INCR,
-    PUSH_BURST_RAND
+    SET_TEST_NAME = 1024
 } addr_bus_trans_op_t;
 
 typedef enum stream_operation_e
@@ -231,6 +229,8 @@ typedef struct
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
     int                 status;
+    int                 count;
+    int                 countsec;
     unsigned int        interrupt;
 } rcv_buf_t, *prcv_buf_t;
 
