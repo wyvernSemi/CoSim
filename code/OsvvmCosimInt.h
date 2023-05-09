@@ -198,8 +198,8 @@ public:
       bool     transBurstReadCheckData       (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); return OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
 
       void     transWaitForTransaction       (void)                                                                           {processInt(); OsvvmCosim::transWaitForTransaction();}
-      void     transWaitWriteForTransaction  (void)                                                                           {processInt(); OsvvmCosim::transWaitWriteForTransaction();}
-      void     transWaitReadForTransaction   (void)                                                                           {processInt(); OsvvmCosim::transWaitReadForTransaction();}
+      void     transWaitForWriteTransaction  (void)                                                                           {processInt(); OsvvmCosim::transWaitForWriteTransaction();}
+      void     transWaitForReadTransaction   (void)                                                                           {processInt(); OsvvmCosim::transWaitForReadTransaction();}
 
       void     tick                          (const int ticks, const bool done = false, const bool error = false)             {processInt(); OsvvmCosim::tick(ticks, done, error);}
 

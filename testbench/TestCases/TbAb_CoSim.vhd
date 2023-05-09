@@ -41,10 +41,10 @@
 
 architecture CoSim of TestCtrl is
 
---  constant BURST_MODE     : AddressBusFifoBurstModeType := ADDRESS_BUS_BURST_WORD_MODE ;   
+--  constant BURST_MODE     : AddressBusFifoBurstModeType := ADDRESS_BUS_BURST_WORD_MODE ;
   constant BURST_MODE     : AddressBusFifoBurstModeType := ADDRESS_BUS_BURST_BYTE_MODE ;
   constant Node           : integer         := 0 ;
-    
+
   signal   TestDone       : integer_barrier := 1 ;
   signal   TestActive     : boolean         := TRUE ;
   signal   OperationCount : integer         := 0 ;
@@ -102,6 +102,8 @@ begin
     variable Error          : integer := 0 ;
     variable IntReq         : integer := 0 ;
     variable NodeNum        : integer := Node ;
+
+    variable Count          : integer ;
   begin
     -- Initialize Randomization Objects
     OpRV.InitSeed(OpRv'instance_name) ;
@@ -127,7 +129,7 @@ begin
 
       -- Call CoSimTrans procedure to generate an access from the running VProc program
       CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
-      
+
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
       -- Finish when counts == 0
@@ -136,7 +138,7 @@ begin
     end loop OperationLoop ;
 
     TestActive <= FALSE ;
-    
+
     -- Allow Subordinate to catch up before signaling OperationCount (needed when WRITE_OP is last)
     -- wait for 0 ns ;  -- this is enough
     WaitForClock(ManagerRec, 2) ;

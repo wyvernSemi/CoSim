@@ -107,6 +107,15 @@ extern "C" void VUserMain0()
         }
         axistream.streamSend(wdata + idx, param);
     }
+    
+    int txcount = axistream.streamGetTxTransactionCount();
+    int rxcount = axistream.streamGetRxTransactionCount();
+    
+    if (txcount != DATASIZE || rxcount != DATASIZE)
+    {
+        VPrint("***ERROR: unexpected transaction counts. Got tx=%d, rx=%d. Exp tx=%d rx=%d\n", txcount, rxcount, DATASIZE, DATASIZE);
+        error = true;
+    }
 
     // Get received word data and check data and status values
     for (int idx = 0; idx < DATASIZE; idx++)
@@ -438,13 +447,17 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     axistream.streamBurstSendIncrementAsync(0x57, 32);
-    axistream.streamBurstSendIncrement(0xe6, 128);
+    axistream.streamBurstSendIncrementAsync(0xe6, 128);
+    
+    axistream.streamWaitForTxTransaction();
 
     axistream.streamBurstCheckIncrement(0x57, 32);
     axistream.streamBurstCheckIncrement(0xe6, 128);
 
     axistream.streamBurstSendRandomAsync(0x9b, 64);
-    axistream.streamBurstSendRandom(0x0f, 64);
+    axistream.streamBurstSendRandomAsync(0x0f, 64);
+    
+    axistream.streamWaitForRxTransaction();
 
     axistream.streamBurstCheckRandom(0x9b, 64);
     axistream.streamBurstCheckRandom(0x0f, 64);

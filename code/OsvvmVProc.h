@@ -170,7 +170,7 @@ typedef enum stream_operation_e
     //NOT_DRIVEN = 0,
     //WAIT_FOR_CLOCK,
     //WAIT_FOR_TRANSACTION,
-    //GET_TRANSACTION_COUNT,
+    STR_GET_TRANSACTION_COUNT = 3,
     //GET_ALERTLOG_ID,
     //SET_BURST_MODE,
     //GET_BURST_MODE,

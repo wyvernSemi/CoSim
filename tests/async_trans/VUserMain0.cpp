@@ -75,23 +75,37 @@ extern "C" void VUserMain0()
     uint8_t  data8,  wdata8,  rdata8;
     uint8_t  wbuf[4096], rbuf[4096];
 
+    int rdcount = 0;
+    int wrcount = 0;
+
+    int tcount0 = cosim.transGetTransactionCount();
+    int tcount1 = cosim.transGetTransactionCount();
+
+    if (tcount1 != (tcount0 + 1))
+    {
+        VPrint("***ERROR: transaction count increment error\n");
+        error = true;
+    }
+
     // -------------------------------
     // Test asynchronous writes with 32 bit data
 
     addr  = 0x80001000;
     wdata32 = 0x12ff34dd;
 
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 4; i++)
     {
         cosim.transWriteAsync(addr + i*4, wdata32+i);
+        wrcount++;
     }
 
-    // Blocking write to ensure all async calls have completed
-    cosim.transWrite(addr + i*4, wdata32+i);
+    // Blocking ensure all async calls have completed
+    cosim.transWaitForTransaction();
 
     for (i = 0; i < 4; i++)
     {
         cosim.transReadCheck(addr + i*4, (uint32_t)(wdata32 + i));
+        rdcount++;
     }
 
     // -------------------------------
@@ -100,19 +114,20 @@ extern "C" void VUserMain0()
     addr  = 0x80002000;
     wdata16 = 0x95b3;
 
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < 4; i++)
     {
         data16 = wdata16+(i*0x1111);
         cosim.transWriteAsync(addr + i*2, data16);
+        wrcount++;
     }
 
-    // Blocking write to ensure all async calls have completed
-    data16 = wdata16+(i*0x1111);
-    cosim.transWrite(addr + i*2, data16);
+    // Blocking ensure all async calls have completed
+    cosim.transWaitForWriteTransaction();
 
     for (i = 0; i < 4; i++)
     {
         cosim.transReadCheck(addr + i*2, (uint16_t)(wdata16+(i*0x1111)));
+        rdcount++;
     }
 
     // -------------------------------
@@ -125,15 +140,17 @@ extern "C" void VUserMain0()
     {
         data8 = wdata8+(i*0x22);
         cosim.transWriteAsync(addr + i, data8);
+        wrcount++;
     }
 
     // Blocking write to ensure all async calls have completed
     data8 = wdata8+(i*0x22);
-    cosim.transWrite(addr + i, data8);
+    cosim.transWrite(addr + i, data8); wrcount++;
 
     for (i = 0; i < 4; i++)
     {
         cosim.transReadCheck(addr + i, (uint8_t)(wdata8+(i*0x22)));
+        rdcount++;
     }
 
     // -------------------------------
@@ -146,14 +163,14 @@ extern "C" void VUserMain0()
         wbuf[i] = 0x23 + i*3;
     }
 
-    cosim.transBurstWriteAsync(addr,    &wbuf[0],  32);
-    cosim.transBurstWriteAsync(addr+32, &wbuf[32], 32);
-    cosim.transBurstWriteAsync(addr+64, &wbuf[64], 16);
+    cosim.transBurstWriteAsync(addr,    &wbuf[0],  32); wrcount++;
+    cosim.transBurstWriteAsync(addr+32, &wbuf[32], 32); wrcount++;
+    cosim.transBurstWriteAsync(addr+64, &wbuf[64], 16); wrcount++;
 
     // Blocking transaction to ensure the others have completed
-    cosim.transBurstWrite     (addr+80, &wbuf[80], 48);
+    cosim.transBurstWrite     (addr+80, &wbuf[80], 48); wrcount++;
 
-    cosim.transBurstRead      (addr, rbuf, 128);
+    cosim.transBurstRead      (addr, rbuf, 128); rdcount++;
 
     for (i = 0; i < 128; i++)
     {
@@ -164,6 +181,7 @@ extern "C" void VUserMain0()
         }
     }
 
+
     // -------------------------------
     // Test asynchronous write address
     // and data
@@ -173,13 +191,13 @@ extern "C" void VUserMain0()
     cosim.transWriteDataAsync((uint32_t) 0xcafef00d);
     cosim.transWriteDataAsync((uint16_t) 0x0bad);
 
-    cosim.transWriteAddressAsync(addr);
-    cosim.transWriteAddressAsync(addr + 4);
-    cosim.transWriteAddressAsync(addr + 6);
-    cosim.transWriteAddressAsync(addr + 8);
-    cosim.transWriteAddressAsync(addr + 9);
-    cosim.transWriteAddressAsync(addr + 10);
-    cosim.transWriteAddressAsync(addr + 11);
+    cosim.transWriteAddressAsync(addr);      wrcount++;
+    cosim.transWriteAddressAsync(addr + 4);  wrcount++;
+    cosim.transWriteAddressAsync(addr + 6);  wrcount++;
+    cosim.transWriteAddressAsync(addr + 8);  wrcount++;
+    cosim.transWriteAddressAsync(addr + 9);  wrcount++;
+    cosim.transWriteAddressAsync(addr + 10); wrcount++;
+    cosim.transWriteAddressAsync(addr + 11); wrcount++;
 
     cosim.transWriteDataAsync((uint16_t) 0x0fab, 2);
     cosim.transWriteDataAsync((uint8_t)  0xaa,   0);
@@ -191,7 +209,7 @@ extern "C" void VUserMain0()
 
     for (i = 0; i < 3; i++)
     {
-        cosim.transRead(addr + i*4, &rdata32);
+        cosim.transRead(addr + i*4, &rdata32); rdcount++;
 
         if (rdata32 != expdata32[i])
         {
@@ -204,24 +222,28 @@ extern "C" void VUserMain0()
     // Test asynchronous read address
     // and data
 
-    cosim.transReadAddressAsync(addr);
-    cosim.transReadAddressAsync(addr + 1);
-    cosim.transReadAddressAsync(addr + 2);
-    cosim.transReadAddressAsync(addr + 3);
+    cosim.transReadAddressAsync(addr);     rdcount++;
+    cosim.transReadAddressAsync(addr + 1); rdcount++;
+    cosim.transReadAddressAsync(addr + 2); rdcount++;
+    cosim.transReadAddressAsync(addr + 3); rdcount++;
+
+    // Wait for first read transaction
+    cosim.transWaitForReadTransaction();
 
     uint8_t expdata8[4] = {0x0d, 0xf0, 0xfe, 0xca};
+
 
     for(i = 0; i < 4; i++)
     {
         cosim.transReadDataCheck(expdata8[i]);
     }
 
-    cosim.transReadAddressAsync(addr + 4);
+    cosim.transReadAddressAsync(addr + 4);  rdcount++;
     cosim.transReadDataCheck(expdata32[1]);
 
 
-    cosim.transReadAddressAsync(addr + 8);
-    cosim.transReadAddressAsync(addr + 10);
+    cosim.transReadAddressAsync(addr + 8);  rdcount++;
+    cosim.transReadAddressAsync(addr + 10); rdcount++;
 
     for (i = 0; i < 2; i++)
     {
@@ -236,18 +258,18 @@ extern "C" void VUserMain0()
     addr   = 0x70091230;
     wdata8 = 0x57;
 
-    cosim.transBurstWriteIncrementAsync(addr, wdata8, 16);
-    cosim.transBurstWriteIncrement(addr+16, wdata8+16, 32);
-    cosim.transBurstReadCheckIncrement(addr, wdata8, 48);
+    cosim.transBurstWriteIncrementAsync(addr, wdata8, 16);  wrcount++;
+    cosim.transBurstWriteIncrement(addr+16, wdata8+16, 32); wrcount++;
+    cosim.transBurstReadCheckIncrement(addr, wdata8, 48);   rdcount++;
 
     addr   = 0x5a9607a8;
     wdata8 = 0xdf;
 
-    cosim.transBurstWriteRandomAsync(addr, wdata8, 64);
-    cosim.transBurstWriteRandom(addr+64, wdata8 ^ 0xff, 48);
+    cosim.transBurstWriteRandomAsync(addr, wdata8, 64);      wrcount++;
+    cosim.transBurstWriteRandom(addr+64, wdata8 ^ 0xff, 48); wrcount++;
 
-    cosim.transBurstReadCheckRandom(addr, wdata8, 64);
-    cosim.transBurstReadCheckRandom(addr+64, wdata8 ^ 0xff, 48);
+    cosim.transBurstReadCheckRandom(addr, wdata8, 64);           rdcount++;
+    cosim.transBurstReadCheckRandom(addr+64, wdata8 ^ 0xff, 48); rdcount++;
 
     // -------------------------------
     // Test "Try" functions for 8 bit data
@@ -255,7 +277,7 @@ extern "C" void VUserMain0()
     addr   = 0x40007000;
     wdata8 = 0x99;
 
-    cosim.transWrite(addr, wdata8);
+    cosim.transWrite(addr, wdata8); wrcount++;
 
     bool avail = cosim.transTryReadData(&rdata8);
 
@@ -265,7 +287,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -283,13 +305,14 @@ extern "C" void VUserMain0()
         error = true;
     }
 
+
     // -------------------------------
     // Test "Try" functions for 16 bit data
 
     addr   = 0x40008000;
     wdata16 = 0x70da;
 
-    cosim.transWrite(addr, wdata16);
+    cosim.transWrite(addr, wdata16); wrcount++;
 
     avail = cosim.transTryReadData(&rdata16);
 
@@ -299,7 +322,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -318,12 +341,12 @@ extern "C" void VUserMain0()
     }
 
     // -------------------------------
-    // Test "Try" functions for 16 bit data
+    // Test "Try" functions for 32 bit data
 
     addr    = 0x40009000;
     wdata32 = 0x196de310;
 
-    cosim.transWrite(addr, wdata32);
+    cosim.transWrite(addr, wdata32); wrcount++;
 
     avail = cosim.transTryReadData(&rdata32);
 
@@ -333,7 +356,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -351,13 +374,14 @@ extern "C" void VUserMain0()
         error = true;
     }
 
+
     // -------------------------------
     // Test "Try and check" functions for 8 bit data
 
     addr   = 0x4000a000;
     wdata8 = 0x3d;
 
-    cosim.transWrite(addr, wdata8);
+    cosim.transWrite(addr, wdata8); wrcount++;
 
     avail = cosim.transTryReadDataCheck(wdata8);
 
@@ -367,7 +391,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -380,12 +404,12 @@ extern "C" void VUserMain0()
     }
 
     // -------------------------------
-    // Test "Try" functions for 16 bit data
+    // Test "Try and check" functions for 16 bit data
 
     addr    = 0x4000b000;
     wdata16 = 0xf31a;
 
-    cosim.transWrite(addr, wdata16);
+    cosim.transWrite(addr, wdata16); wrcount++;
 
     avail = cosim.transTryReadDataCheck(wdata16);
 
@@ -395,7 +419,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -408,12 +432,12 @@ extern "C" void VUserMain0()
     }
 
     // -------------------------------
-    // Test "Try" functions for 16 bit data
+    // Test "Try and check" functions for 32 bit data
 
     addr    = 0x4000c000;
     wdata32 = 0x9e23a007;
 
-    cosim.transWrite(addr, wdata32);
+    cosim.transWrite(addr, wdata32); wrcount++;
 
     avail = cosim.transTryReadDataCheck(wdata32);
 
@@ -423,7 +447,7 @@ extern "C" void VUserMain0()
         error = true;
     }
 
-    cosim.transReadAddressAsync(addr);
+    cosim.transReadAddressAsync(addr); rdcount++;
 
     cosim.tick(20);
 
@@ -446,8 +470,8 @@ extern "C" void VUserMain0()
     }
 
     cosim.transBurstPushData(wbuf, 128);
-    cosim.transBurstWrite(addr, 128);
-    cosim.transBurstRead(addr, 128);
+    cosim.transBurstWrite(addr, 128);  wrcount++;
+    cosim.transBurstRead(addr, 128);   rdcount++;
     cosim.transBurstPopData(rbuf, 128);
 
     for (int idx = 0; idx < 128; idx++)
@@ -463,16 +487,16 @@ extern "C" void VUserMain0()
     wdata8 = 0xd8;
 
     cosim.transBurstPushIncrement(wdata8, 64);
-    cosim.transBurstWrite(addr, 64);
-    cosim.transBurstRead(addr, 64);
+    cosim.transBurstWrite(addr, 64); wrcount++;
+    cosim.transBurstRead(addr, 64);  rdcount++;
     cosim.transBurstCheckIncrement(wdata8, 64);
 
     addr   = 0xe0002834;
     wdata8 = 0x0a;
 
     cosim.transBurstPushRandom(wdata8, 64);
-    cosim.transBurstWrite(addr, 64);
-    cosim.transBurstRead(addr, 64);
+    cosim.transBurstWrite(addr, 64); wrcount++;
+    cosim.transBurstRead(addr, 64);  rdcount++;
     cosim.transBurstCheckRandom(wdata8, 64);
 
     // -------------------------------
@@ -485,12 +509,14 @@ extern "C" void VUserMain0()
         wbuf[i] = 0x48 + i*3;
     }
 
-    cosim.transBurstWrite(addr, wbuf, 64);
+    cosim.transBurstWrite(addr, wbuf, 64); wrcount++;
     if (cosim.transBurstReadCheckData(addr, wbuf, 64))
     {
         VPrint("***ERROR: data mismatch on transBurstReadCheck\n");
         error = true;
     }
+
+    rdcount++;
 
     addr = 0x17804700;
 
@@ -499,11 +525,23 @@ extern "C" void VUserMain0()
         wbuf[i] = 0xd5 + i*3;
     }
 
-    cosim.transBurstWrite(addr, wbuf, 64);
-    cosim.transBurstRead(addr, 64);
+    cosim.transBurstWrite(addr, wbuf, 64); wrcount++;
+    cosim.transBurstRead(addr, 64);        rdcount++;
     if (cosim.transBurstCheckData(wbuf, 64))
     {
         VPrint("***ERROR: data mismatch on transBurstReadCheck\n");
+        error = true;
+    }
+
+    // -------------------------------
+    // Check read and write transaction counts
+
+    int transWrCount = cosim.transGetWriteTransactionCount();
+    int transRdCount = cosim.transGetReadTransactionCount();
+
+    if (transWrCount != wrcount || transRdCount != rdcount)
+    {
+        VPrint("***ERROR: mismatch transactoin counts. Got rd=%d wr=%d, exp. rd=%d wr=%d\n", transRdCount, transWrCount, rdcount, wrcount);
         error = true;
     }
 

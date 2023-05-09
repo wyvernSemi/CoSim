@@ -211,8 +211,8 @@ public:
                                              {uint8_t buf[max_data_buf_size]; transBurstRead(addr, buf, bytesize, prot); return cmpBuffers(buf, expdata, bytesize);}
                                              
       void     transWaitForTransaction       (void)                                                                        {VTransTransactionWait(WAIT_FOR_TRANSACTION, node);}
-      void     transWaitWriteForTransaction  (void)                                                                        {VTransTransactionWait(WAIT_FOR_WRITE_TRANSACTION, node);}
-      void     transWaitReadForTransaction   (void)                                                                        {VTransTransactionWait(WAIT_FOR_READ_TRANSACTION, node);}
+      void     transWaitForWriteTransaction  (void)                                                                        {VTransTransactionWait(WAIT_FOR_WRITE_TRANSACTION, node);}
+      void     transWaitForReadTransaction   (void)                                                                        {VTransTransactionWait(WAIT_FOR_READ_TRANSACTION, node);}
       int      transGetTransactionCount      (void)                                                                        {return VTransGetCount(GET_TRANSACTION_COUNT, node);}
       int      transGetWriteTransactionCount (void)                                                                        {return VTransGetCount(GET_WRITE_TRANSACTION_COUNT, node);}
       int      transGetReadTransactionCount  (void)                                                                        {return VTransGetCount(GET_READ_TRANSACTION_COUNT, node);}

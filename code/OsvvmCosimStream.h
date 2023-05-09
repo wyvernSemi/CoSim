@@ -140,8 +140,8 @@ public:
       bool     streamBurstTryCheckIncrement   (uint8_t   data,      const int bytesize, const int param=1) {return VStreamUserBurstSendCommon           (TRY_CHECK_BURST, BURST_INCR_CHECK, &data, bytesize, param,   node);}
       bool     streamBurstTryCheckRandom      (uint8_t   data,      const int bytesize, const int param=1) {return VStreamUserBurstSendCommon           (TRY_CHECK_BURST, BURST_RAND_CHECK, &data, bytesize, param,   node);}
 
-      int      streamGetRxTransactionCount    (void)                                                       {return VStreamWaitGetCount                  (GET_TRANSACTION_COUNT, RX_REC, node);}
-      int      streamGetTxTransactionCount    (void)                                                       {return VStreamWaitGetCount                  (GET_TRANSACTION_COUNT, TX_REC, node);}
+      int      streamGetRxTransactionCount    (void)                                                       {return VStreamWaitGetCount                  (STR_GET_TRANSACTION_COUNT, RX_REC, node);}
+      int      streamGetTxTransactionCount    (void)                                                       {return VStreamWaitGetCount                  (STR_GET_TRANSACTION_COUNT, TX_REC, node);}
       void     streamWaitForRxTransaction     (void)                                                       {VStreamWaitGetCount                         (WAIT_FOR_TRANSACTION,  RX_REC, node);}
       void     streamWaitForTxTransaction     (void)                                                       {VStreamWaitGetCount                         (WAIT_FOR_TRANSACTION,  TX_REC, node);}
 
