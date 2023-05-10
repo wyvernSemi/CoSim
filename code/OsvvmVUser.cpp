@@ -70,7 +70,7 @@ typedef void*     symhdl_t;
 typedef void*     symhdl_t;
 #endif
 
-#if defined (ACTIVEHDL) || defined(SIEMENS)
+#if defined (ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
 static symhdl_t hdlvp;
 #endif
 
@@ -161,7 +161,7 @@ static void VUserInit (const int node)
         exit(1);
     }
 
-#if defined(ACTIVEHDL) || defined(SIEMENS)
+#if defined(ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Close the VProc.so handle to decrement the count, incremented with the open
     dlclose(hdlvp);
 #endif
@@ -199,7 +199,7 @@ extern "C" int VUser (const int node)
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
-#if defined(ACTIVEHDL) || defined (SIEMENS)
+#if defined(ACTIVEHDL) || defined (SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Load VProc shared object to make symbols global
     hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 

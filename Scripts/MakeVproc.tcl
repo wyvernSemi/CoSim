@@ -80,7 +80,8 @@ proc gen_lib_flags {libname} {
 
 proc mk_vproc_common {testname libname} {
 
-# Get the OS that we are running on
+  # Get the OS that we are running on
+  set osname $::osvvm::OperatingSystemName
 
   # Default of no additional vendor specific flags
   set vendorflags "DUMMY="
@@ -96,7 +97,12 @@ proc mk_vproc_common {testname libname} {
     }
     
     # Ensure the correct path to the ALDEC tools
-    set aldecpath [file normalize [info nameofexecutable]/../..]
+    if {"$osname" eq "linux"} {
+      set aldecpath [file normalize [info nameofexecutable]/../../..]
+    } else {
+      set aldecpath [file normalize [info nameofexecutable]/../..]
+    }
+    
     set vendorflags "ALDECDIR=${aldecpath}"
   }
 
