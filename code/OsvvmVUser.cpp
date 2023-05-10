@@ -50,26 +50,31 @@ extern "C"
 #include "OsvvmVUser.h"
 
 #if defined(ALDEC)
+# if defined (_WIN32)
 
 # include <windows.h>
 
-// Map Linux dynamic laoding calls to Windows equivalents
+// Map Linux dynamic laading calls to Windows equivalents
 # define dlsym GetProcAddress
 # define dlopen(_dll, _args) {LoadLibrary(_dll)}
 # define dlerror() ""
 # define dlclose FreeLibrary
 
-// Aldec seems to doesn't free mutexes unless deleted, so make pointers
 typedef HINSTANCE symhdl_t;
-static std::mutex *acc_mx[VP_MAX_NODES];
+
+# else
+typedef void*     symhdl_t;
+# endif
+
 #else
-typedef void* symhdl_t;
-static std::mutex acc_mx[VP_MAX_NODES];
+typedef void*     symhdl_t;
 #endif
 
 #if defined (ACTIVEHDL) || defined(SIEMENS)
 static symhdl_t hdlvp;
 #endif
+
+static std::mutex *acc_mx[VP_MAX_NODES];
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -132,10 +137,8 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
-#if defined(ALDEC)
-    // Create a new mutex for this node in ALDEC
+    // Create a new mutex for this node
     acc_mx[node] = new std::mutex;
-#endif
 
 #if defined(ACTIVEHDL)
     // No separate user DLL under Active-HDL so simply use the VProc.so handle
@@ -234,11 +237,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
-#if defined(ALDEC)
     acc_mx[node]->lock();
-#else
-    acc_mx[node].lock();
-#endif
 
     int status;
 
@@ -258,11 +257,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     // on subsequent runs.
     if (ns[node]->send_buf.done)
     {
-#if defined(ALDEC)
         delete acc_mx[node];
-#else
-        acc_mx[node].unlock();
-#endif
     }
 
     // Wait for response message from simulator
@@ -281,11 +276,7 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
-#if defined(ALDEC)
     acc_mx[node]->unlock();
-#else
-    acc_mx[node].unlock();
-#endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }

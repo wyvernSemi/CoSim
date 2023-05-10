@@ -96,7 +96,7 @@ proc mk_vproc_common {testname libname} {
     }
     
     # Ensure the correct path to the ALDEC tools
-    set aldecpath [file normalize $::env(_)/../..]
+    set aldecpath [file normalize [info nameofexecutable]/../..]
     set vendorflags "ALDECDIR=${aldecpath}"
   }
 

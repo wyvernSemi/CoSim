@@ -43,7 +43,7 @@
 #include <stdlib.h>
 #include <strings.h>
 
-# if !defined(ALDEC)
+# if !defined(ALDEC) || !defined(_WIN32)
 #  ifndef __USE_GNU
 #  define __USE_GNU
 #  include <dlfcn.h>
