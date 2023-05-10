@@ -90,8 +90,6 @@ else ifeq ("${SIM}", "RivieraPRO")
   endif
 else ifeq ("${SIM}", "ModelSim")
   TOOLFLAGS        = -m32 -DSIEMENS
-else
-  $(error "Unrecognized SIM type in CoSim/makefile")
 endif
 
 RV32EXE            = test.exe
