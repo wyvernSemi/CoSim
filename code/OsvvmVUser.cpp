@@ -74,7 +74,12 @@ typedef void*     symhdl_t;
 static symhdl_t hdlvp;
 #endif
 
+#if defined(GHDL)
+// GHDL, when callable, locks up using mutex pointers/new, so make an array of mutexes for GHDL
+static std::mutex  acc_mx[VP_MAX_NODES];
+#else
 static std::mutex *acc_mx[VP_MAX_NODES];
+#endif
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -137,8 +142,10 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
+#if !defined(GHDL)
     // Create a new mutex for this node
     acc_mx[node] = new std::mutex;
+#endif
 
 #if defined(ACTIVEHDL)
     // No separate user DLL under Active-HDL so simply use the VProc.so handle
@@ -237,7 +244,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
+#if defined (GHDL)
+    acc_mx[node].lock();
+#else
     acc_mx[node]->lock();
+#endif
 
     int status;
 
@@ -255,10 +266,12 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     // unlock/destroy the mutex, as GUI runs seem to
     // hold on to the mutex state which hangs a simulation
     // on subsequent runs.
+#if !defined(GHDL)
     if (ns[node]->send_buf.done)
     {
         delete acc_mx[node];
     }
+#endif
 
     // Wait for response message from simulator
     DebugVPrint("VExch(): waiting for rcv[%d] semaphore\n", node);
@@ -276,7 +289,11 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
+#if defined(GHDL)
+    acc_mx[node].unlock();
+#else
     acc_mx[node]->unlock();
+#endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
 }
