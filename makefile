@@ -38,7 +38,7 @@
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
 #   USRFLAGS    : Additional user defined compile and link flags
-#   SIM         : The target simulator. One of GHDL, NVC, RivieraPRO, 
+#   SIM         : The target simulator. One of GHDL, NVC, RivieraPRO,
 #                 QuestaSim, or ModelSim
 #   ALDECDIR    : Location of RivieraPRO installation, when selected by SIM
 #
@@ -61,7 +61,7 @@ VPROC_CPP_BASE     = $(notdir $(filter %cpp, ${VPROC_C}))
 
 # Test user code
 USER_C             = $(wildcard ${USRCDIR}/*.c*)
-EXCLFILE           = 
+EXCLFILE           =
 USER_CPP_BASE      = $(patsubst ${EXCLFILE},,$(notdir $(filter %cpp, ${USER_C})))
 USER_C_BASE        = $(notdir $(filter %c, ${USER_C}))
 
@@ -73,16 +73,22 @@ VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP
 
 VPROCLIBSUFFIX     = so
 
-ifeq ("${SIM}", "GHDL")
-  TOOLFLAGS        = -m64
-else ifeq ("${SIM}", "NVC")
-  TOOLFLAGS        = -m64
-else ifeq ("${SIM}", "QuestaSim")
-  TOOLFLAGS        = -m64 -DSIEMENS
+# Get OS type
+OSTYPE:=$(shell uname)
+
+TOOLFLAGS          = -m64
+
+ifeq ("${SIM}", "QuestaSim")
+  TOOLFLAGS        += -DSIEMENS
 else ifeq ("${SIM}", "RivieraPRO")
   ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
-  TOOLFLAGS        = -m64 -DALDEC -I${ALDECDIR}/interfaces/include -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
-else
+  TOOLFLAGS        += -DALDEC -I${ALDECDIR}/interfaces/include
+  ifeq (${OSTYPE}, Linux)
+    TOOLFLAGS      += -L${ALDECDIR}/bin -laldecpli
+  else
+    TOOLFLAGS      += -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
+  endif
+else ifeq ("${SIM}", "ModelSim")
   TOOLFLAGS        = -m32 -DSIEMENS
 endif
 
@@ -101,9 +107,6 @@ VLIB               = ${TESTDIR}/libvproc.a
 
 VUSER_PLI          = ${OPDIR}/VUser.so
 VULIB              = ${TESTDIR}/libvuser.a
-
-# Get OS type
-OSTYPE:=$(shell uname)
 
 # Set OS specific variables between Linux and Windows (MinGW)
 ifeq (${OSTYPE}, Linux)

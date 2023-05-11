@@ -56,6 +56,7 @@ extern "C"
 #include "OsvvmVUser.h"
 
 #if defined(ALDEC)
+# if defined (_WIN32)
 
 # include <windows.h>
 
@@ -63,7 +64,8 @@ extern "C"
 // DEFINES AND MACROS
 // -------------------------------------------------------------------------
 
-// Map Linux dynamic laoding calls to Windows equivalents
+// Map Linux dynamic loading calls to Windows equivalents
+
 # define dlsym GetProcAddress
 # define dlopen(_dll, _args) {LoadLibrary(_dll)}
 # define dlerror() ""
@@ -73,16 +75,25 @@ extern "C"
 // TYPEDEFS
 // -------------------------------------------------------------------------
 
-// Aldec seems to doesn't free mutexes unless deleted, so make pointers
 typedef HINSTANCE symhdl_t;
-static std::mutex *acc_mx[VP_MAX_NODES];
+
+# else
+typedef void*     symhdl_t;
+# endif
+
 #else
-typedef void* symhdl_t;
-static std::mutex acc_mx[VP_MAX_NODES];
+typedef void*     symhdl_t;
 #endif
 
-#if defined (ACTIVEHDL) || defined(SIEMENS)
+#if defined (ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
 static symhdl_t hdlvp;
+#endif
+
+#if defined(GHDL)
+// GHDL, when callable, locks up using mutex pointers/new, so make an array of mutexes for GHDL
+static std::mutex  acc_mx[VP_MAX_NODES];
+#else
+static std::mutex *acc_mx[VP_MAX_NODES];
 #endif
 
 // -------------------------------------------------------------------------
@@ -157,8 +168,8 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
-#if defined(ALDEC)
-    // Create a new mutex for this node in ALDEC
+#if !defined(GHDL)
+    // Create a new mutex for this node
     acc_mx[node] = new std::mutex;
 #endif
 
@@ -183,7 +194,7 @@ static void VUserInit (const int node)
         exit(1);
     }
 
-#if defined(ACTIVEHDL) || defined(SIEMENS)
+#if defined(ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Close the VProc.so handle to decrement the count, incremented with the open
     dlclose(hdlvp);
 #endif
@@ -221,7 +232,7 @@ extern "C" int VUser (const int node)
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
-#if defined(ACTIVEHDL) || defined (SIEMENS)
+#if defined(ACTIVEHDL) || defined (SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Load VProc shared object to make symbols global
     hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
@@ -259,10 +270,10 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
-#if defined(ALDEC)
-    acc_mx[node]->lock();
-#else
+#if defined (GHDL)
     acc_mx[node].lock();
+#else
+    acc_mx[node]->lock();
 #endif
 
     int status;
@@ -281,14 +292,12 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     // unlock/destroy the mutex, as GUI runs seem to
     // hold on to the mutex state which hangs a simulation
     // on subsequent runs.
+#if !defined(GHDL)
     if (ns[node]->send_buf.done)
     {
-#if defined(ALDEC)
         delete acc_mx[node];
-#else
-        acc_mx[node].unlock();
-#endif
     }
+#endif
 
     // Wait for response message from simulator
     DebugVPrint("VExch(): waiting for rcv[%d] semaphore\n", node);
@@ -306,10 +315,10 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
-#if defined(ALDEC)
-    acc_mx[node]->unlock();
-#else
+#if defined(GHDL)
     acc_mx[node].unlock();
+#else
+    acc_mx[node]->unlock();
 #endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
