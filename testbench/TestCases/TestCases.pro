@@ -65,3 +65,9 @@ analyze TbAb_InterruptCoSim4.vhd
 MkVproc $::osvvm::OsvvmCoSimDirectory/tests/interruptCB
 simulate TbAb_InterruptCoSim4 [generic INT_EDGE_LEVEL '1'] [CoSim]
 
+#Read polling
+#analyze TbAb_ReadPoll.vhd
+#TestName   CoSim_readpoll
+#MkVproc $::osvvm::OsvvmCoSimDirectory/tests/readpoll
+#simulate TbAb_ReadPoll [CoSim]
+

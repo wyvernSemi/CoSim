@@ -79,6 +79,7 @@ import time
 import socket
 import platform
 import os
+import sys
 
 from tkinter            import *
 from tkinter.ttk        import *

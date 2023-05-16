@@ -45,6 +45,10 @@ include  ./testbench/TestCases
 include ./testbench/TbAxi4_Interrupt
 include ./testbench/TestCases_Interrupt
 
+# Analyze Axi4 testbench and run tests on it
+include  ./testbench/TbAxi4_ReadPoll
+include  ./testbench/TbAxi4_ReadPoll/tests.pro
+
 # Analyze Ethernet testbench and run tests on it
 include ./testbench/TbEthernet
 include ./testbench/TestCases_Ethernet

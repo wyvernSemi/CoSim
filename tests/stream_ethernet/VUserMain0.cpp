@@ -55,7 +55,7 @@ static int node  = 0;
 
        uint8_t TestData0[BUF_SIZE];
 extern uint8_t TestData1[BUF_SIZE];
-static uint8_t RxData[BUF_SIZE] = {{0xcc}};
+static uint8_t RxData[BUF_SIZE];
 
 // ------------------------------------------------------------------------------
 // Checkt two data bytes
