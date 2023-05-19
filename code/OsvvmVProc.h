@@ -226,6 +226,8 @@ typedef struct
 {
     unsigned int        data_in;
     unsigned int        data_in_hi;
+    unsigned int        addr_in;
+    unsigned int        addr_in_hi;
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
     int                 status;

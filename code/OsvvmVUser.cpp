@@ -371,7 +371,7 @@ void VWaitForSim(const uint32_t node)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransUserCommon (const int op, const uint32_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, uint32_t *addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -379,7 +379,7 @@ uint8_t VTransUserCommon (const int op, const uint32_t addr, const uint8_t data,
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans32_byte;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -388,6 +388,7 @@ uint8_t VTransUserCommon (const int op, const uint32_t addr, const uint8_t data,
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = rbuf.addr_in;
 
     return rbuf.data_in & 0xffU;
 }
@@ -399,7 +400,7 @@ uint8_t VTransUserCommon (const int op, const uint32_t addr, const uint8_t data,
 //
 // -------------------------------------------------------------------------
 
-uint16_t VTransUserCommon (const int op, const uint32_t addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, uint32_t *addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -407,7 +408,7 @@ uint16_t VTransUserCommon (const int op, const uint32_t addr, const uint16_t dat
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans32_hword;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -416,6 +417,7 @@ uint16_t VTransUserCommon (const int op, const uint32_t addr, const uint16_t dat
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = rbuf.addr_in;
 
     return rbuf.data_in & 0xffffU;
 }
@@ -427,7 +429,7 @@ uint16_t VTransUserCommon (const int op, const uint32_t addr, const uint16_t dat
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransUserCommon (const int op, const uint32_t addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, uint32_t *addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -435,7 +437,7 @@ uint32_t VTransUserCommon (const int op, const uint32_t addr, const uint32_t dat
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans32_word;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -444,6 +446,7 @@ uint32_t VTransUserCommon (const int op, const uint32_t addr, const uint32_t dat
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = rbuf.addr_in;
 
     return rbuf.data_in;
 }
@@ -455,7 +458,7 @@ uint32_t VTransUserCommon (const int op, const uint32_t addr, const uint32_t dat
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransUserCommon (const int op, const uint64_t addr, const uint8_t data, int* status, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, uint64_t *addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -463,7 +466,7 @@ uint8_t VTransUserCommon (const int op, const uint64_t addr, const uint8_t data,
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans64_byte;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -472,6 +475,7 @@ uint8_t VTransUserCommon (const int op, const uint64_t addr, const uint8_t data,
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
 
     return rbuf.data_in & 0xffU;
 }
@@ -483,7 +487,7 @@ uint8_t VTransUserCommon (const int op, const uint64_t addr, const uint8_t data,
 //
 // -------------------------------------------------------------------------
 
-uint16_t VTransUserCommon (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, uint64_t *addr, const uint16_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -491,7 +495,7 @@ uint16_t VTransUserCommon (const int op, const uint64_t addr, const uint16_t dat
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans64_hword;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -500,6 +504,7 @@ uint16_t VTransUserCommon (const int op, const uint64_t addr, const uint16_t dat
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
 
     return rbuf.data_in & 0xffffU;
 }
@@ -511,7 +516,7 @@ uint16_t VTransUserCommon (const int op, const uint64_t addr, const uint16_t dat
 //
 // -------------------------------------------------------------------------
 
-uint32_t VTransUserCommon (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, uint64_t *addr, const uint32_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -519,7 +524,7 @@ uint32_t VTransUserCommon (const int op, const uint64_t addr, const uint32_t dat
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans64_word;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -528,6 +533,7 @@ uint32_t VTransUserCommon (const int op, const uint64_t addr, const uint32_t dat
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
 
     return rbuf.data_in;
 }
@@ -539,7 +545,7 @@ uint32_t VTransUserCommon (const int op, const uint64_t addr, const uint32_t dat
 //
 // -------------------------------------------------------------------------
 
-uint64_t VTransUserCommon (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot, const uint32_t node)
+uint64_t VTransUserCommon (const int op, uint64_t *addr, const uint64_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -547,7 +553,7 @@ uint64_t VTransUserCommon (const int op, const uint64_t addr, const uint64_t dat
     VInitSendBuf(sbuf);
 
     sbuf.type            = trans64_dword;
-    sbuf.addr            = addr;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
     sbuf.op              = (addr_bus_trans_op_t)op;
 
@@ -556,6 +562,7 @@ uint64_t VTransUserCommon (const int op, const uint64_t addr, const uint64_t dat
     VExch(&sbuf, &rbuf, node);
 
     *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
 
     return (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
 }
@@ -666,11 +673,11 @@ int VTransGetCount (const int op, const uint32_t node)
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
-    
+
     sbuf.op              = (addr_bus_trans_op_t)op;
-    
+
     VExch(&sbuf, &rbuf, node);
-    
+
     return rbuf.count;
 
 }
@@ -687,11 +694,11 @@ void VTransTransactionWait (const int op, const uint32_t node)
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
-    
+
     sbuf.op              = (addr_bus_trans_op_t)op;
-    
+
     VExch(&sbuf, &rbuf, node);
-    
+
     return;
 }
 
@@ -1005,12 +1012,12 @@ int VStreamWaitGetCount (const int op, const bool txnrx, const uint32_t node)
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
-    
+
     sbuf.op                = (addr_bus_trans_op_t)op;
     *((uint32_t*)sbuf.data) = txnrx ? 1 : 0;
-    
+
     VExch(&sbuf, &rbuf, node);
-    
+
     return txnrx ? rbuf.countsec : rbuf.count;
 }
 

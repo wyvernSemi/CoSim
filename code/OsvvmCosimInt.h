@@ -119,7 +119,7 @@ public:
       void     transWriteDataAsync           (const uint8_t  data, uint32_t bytelane = 0)                                     {processInt(); OsvvmCosim::transWriteDataAsync(data, bytelane);}
       void     transWriteDataAsync           (const uint16_t data, uint32_t bytelane = 0)                                     {processInt(); OsvvmCosim::transWriteDataAsync(data, bytelane);}
       void     transWriteDataAsync           (const uint32_t data, uint32_t bytelane = 0)                                     {processInt(); OsvvmCosim::transWriteDataAsync(data, bytelane);}
-      void     transWriteDataAsync           (const uint64_t data, uint32_t bytelane = 0)                                     {processInt(); OsvvmCosim::transWriteDataAsync(data, bytelane);}
+      void     transWriteDataAsync           (const uint64_t data, uint64_t bytelane = 0)                                     {processInt(); OsvvmCosim::transWriteDataAsync(data, bytelane);}
 
       void     transReadAddressAsync         (const uint32_t addr)                                                            {processInt(); OsvvmCosim::transReadAddressAsync(addr);}
       void     transReadAddressAsync         (const uint64_t addr)                                                            {processInt(); OsvvmCosim::transReadAddressAsync(addr);}

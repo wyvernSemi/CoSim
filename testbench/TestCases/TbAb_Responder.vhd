@@ -1,5 +1,5 @@
 --
---  File Name:         TbAb_ReadPoll.vhd
+--  File Name:         TbAb_Responder.vhd
 --  Design Unit Name:  Architecture of TestCtrl
 --  Revision:          OSVVM MODELS STANDARD VERSION
 --
@@ -10,7 +10,7 @@
 --
 --
 --  Description:
---      Test read poll of CoSim interface
+--      Test responder handling done in CoSim interface
 --
 --  Revision History:
 --    Date      Version    Description
@@ -19,7 +19,7 @@
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
+--  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
 --  limitations under the License.
 --
 
-architecture ReadPoll of TestCtrl is
+architecture Responder of TestCtrl is
 
   signal ManagerSync1, MemorySync1, TestDone : integer_barrier := 1 ;
 
@@ -82,7 +82,6 @@ begin
   --   Generate transactions for AxiManager
   ------------------------------------------------------------
   ManagerProc : process
-    variable Data        : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) := (others => '0') ;
     variable Done        : integer := 0 ;
     variable Error       : integer := 0 ;
     variable Node        : integer := 0 ;
@@ -98,15 +97,15 @@ begin
     CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
 
     OperationLoop : loop
-    
+
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
       if WaitForClockRV.DistInt((8, 2)) = 1 then
         WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
-      
+
       -- Inspect interrupt state and and convert to integer
       Int         := to_integer(signed(gIntReq)) ;
-      toggle(gVProcReadInterrupts) ; 
+      toggle(gVProcReadInterrupts) ;
 
       -- Call co-simulation procedure
       CoSimTrans(ManagerRec, Done, Error, Int, Node) ;
@@ -114,11 +113,11 @@ begin
       -- Alter if an error
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
-      -- Finish when counts == 0
+      -- Finish when Done is not zero
       exit when Done /= 0;
 
     end loop OperationLoop ;
- 
+
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(ManagerRec, 2) ;
     WaitForBarrier(TestDone) ;
@@ -130,51 +129,29 @@ begin
   --   Generate transactions for AxiSubordinate
   ------------------------------------------------------------
   SubordinateProc : process
-    variable Addr : std_logic_vector(AXI_ADDR_WIDTH-1 downto 0) ;
-    variable Data : std_logic_vector(AXI_DATA_WIDTH-1 downto 0) ;
+    variable Done        : integer := 0 ;
+    variable Error       : integer := 0 ;
+    variable Node : integer := 1 ;
   begin
-  
+    wait until nReset = '1' ;
     WaitForClock(SubordinateRec, 2) ;
-    
-    -- Get a write to know program has started
-    GetWrite(SubordinateRec, Addr, Data) ;
-    
-    -- First read send non-matching bits
-    SendRead(SubordinateRec, Addr, X"0000_0001") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0002") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0004") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0008") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0010") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0020") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0040") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0080") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0100") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0200") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0400") ; 
-    SendRead(SubordinateRec, Addr, X"0000_0800") ; 
-    SendRead(SubordinateRec, Addr, X"0000_1000") ; 
-    SendRead(SubordinateRec, Addr, X"0000_2000") ; 
-    SendRead(SubordinateRec, Addr, X"0000_8000") ; 
-    
-    SendRead(SubordinateRec, Addr, X"0001_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0002_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0004_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0008_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0010_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0020_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0040_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0080_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0100_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0200_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0400_0000") ; 
-    SendRead(SubordinateRec, Addr, X"0800_0000") ; 
-    SendRead(SubordinateRec, Addr, X"1000_0000") ; 
-    SendRead(SubordinateRec, Addr, X"2000_0000") ; 
-    SendRead(SubordinateRec, Addr, X"4000_0000") ;
-    SendRead(SubordinateRec, Addr, X"8000_0000") ;
-    
-    -- Send matching bit
-    SendRead(SubordinateRec, Addr, X"0000_4000") ;
+
+    -- Initialise VProc code
+    CoSimInit(Node);
+    -- Fetch the SetTestName
+    CoSimResp(SubordinateRec, Done, Error, Node) ;
+
+    OperationLoop : Loop
+
+      CoSimResp(SubordinateRec, Done, Error, Node);
+
+      -- Alter if an error
+      AlertIf(Error /= 0, "CoSimResp flagged an error") ;
+
+      -- Finish when Done is not zero
+      exit when Done /= 0;
+
+    end loop OperationLoop ;
 
     -- Wait for outputs to propagate and signal TestDone
     WaitForClock(SubordinateRec, 2) ;
@@ -183,12 +160,12 @@ begin
   end process SubordinateProc ;
 
 
-end ReadPoll ;
+end Responder ;
 
-Configuration TbAb_ReadPoll of TbAxi4 is
+Configuration TbAb_Responder of TbAxi4 is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(ReadPoll) ;
+      use entity work.TestCtrl(Responder) ;
     end for ;
   end for ;
-end TbAb_ReadPoll ;
+end TbAb_Responder ;

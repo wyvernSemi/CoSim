@@ -141,13 +141,13 @@ extern void      VWaitForSim                    (const uint32_t node = 0);
 extern void      VSetTestName                   (const char*    data, const int bytesize, const uint32_t node);
 
 // Overloaded transaction functions for 32 and 64 bit architecture for byte, half-word, word and double-word
-extern uint8_t   VTransUserCommon               (const int op, const uint32_t addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint16_t  VTransUserCommon               (const int op, const uint32_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint32_t  VTransUserCommon               (const int op, const uint32_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint8_t   VTransUserCommon               (const int op, const uint64_t addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint16_t  VTransUserCommon               (const int op, const uint64_t addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint32_t  VTransUserCommon               (const int op, const uint64_t addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
-extern uint64_t  VTransUserCommon               (const int op, const uint64_t addr, const uint64_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint8_t   VTransUserCommon               (const int op, uint32_t *addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint16_t  VTransUserCommon               (const int op, uint32_t *addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint32_t  VTransUserCommon               (const int op, uint32_t *addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint8_t   VTransUserCommon               (const int op, uint64_t *addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint16_t  VTransUserCommon               (const int op, uint64_t *addr, const uint16_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint32_t  VTransUserCommon               (const int op, uint64_t *addr, const uint32_t data, int* status, const int prot = 0, const uint32_t node = 0);
+extern uint64_t  VTransUserCommon               (const int op, uint64_t *addr, const uint64_t data, int* status, const int prot = 0, const uint32_t node = 0);
 
 // Overloaded stream transaction functions for 32 and 64 bit architecture
 extern void      VTransBurstCommon              (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot = 0, const uint32_t node = 0);

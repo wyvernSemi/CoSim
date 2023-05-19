@@ -66,7 +66,7 @@ package OsvvmTestCoSimPkg is
                               BURST_RAND_PUSH,  BURST_INCR_CHECK,
                               BURST_RAND_CHECK, BURST_TRANS,
                               BURST_DATA,       BURST_DATA_CHECK);
-                              
+
   type DirType            is (RX_REC, TX_REC);
 
   ------------------------------------------------------------
@@ -79,7 +79,7 @@ procedure CoSimInit (
   ) ;
 
   ------------------------------------------------------------
-  -- Co-simulation procedure to generate addreass bus
+  -- Co-simulation procedure to generate address bus
   -- transactions.
   ------------------------------------------------------------
 procedure CoSimTrans (
@@ -87,6 +87,17 @@ procedure CoSimTrans (
   variable Done             : inout  integer ;
   variable Error            : inout  integer ;
   variable IntReq           : in     integer := 0 ;
+  variable NodeNum          : in     integer := 0
+  ) ;
+
+  ------------------------------------------------------------
+  -- Co-simulation procedure to generate address bus
+  -- responses.
+  ------------------------------------------------------------
+procedure CoSimResp (
+  signal   SubordinateRec   : inout  AddressBusRecType ;
+  variable Done             : inout  integer ;
+  variable Error            : inout  integer ;
   variable NodeNum          : in     integer := 0
   ) ;
 
@@ -110,6 +121,27 @@ procedure CoSimTrans (
   procedure CoSimDispatchOneTransaction (
     -- Transaction  interface
     signal   ManagerRec      : inout  AddressBusRecType ;
+    constant VPOperation     : in     integer ;
+    constant VPAddr          : in     integer ;
+    constant VPAddrHi        : in     integer ;
+    constant VPAddrWidth     : in     integer ;
+    constant VPDataOut       : in     integer ;
+    constant VPDataOutHi     : in     integer ;
+    constant VPDataWidth     : in     integer ;
+    constant VPBurstSize     : in     integer ;
+    constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
+    constant NodeNum         : in     integer
+  ) ;
+
+  ------------------------------------------------------------
+  -- Co-simulation procedure to dispatch one address bus
+  -- transaction repsonse
+  ------------------------------------------------------------
+
+  procedure CoSimDispatchOneResponse (
+    -- Transaction  interface
+    signal   SubordinateRec  : inout  AddressBusRecType ;
     constant VPOperation     : in     integer ;
     constant VPAddr          : in     integer ;
     constant VPAddrHi        : in     integer ;
@@ -168,14 +200,6 @@ package body OsvvmTestCoSimPkg is
   ------------------------------------------------------------
   -- Co-simulation wrapper procedure to send read and write
   -- transactions
-  --
-  -- Note: The ticks parameter is to allow the internally set
-  -- state to persist between calls and must be connected to
-  -- an integer variable in the process where CoSimTrans is
-  -- called. It should not be changed in the external process.
-  -- It is used to allow time to advance without instigating
-  -- a transaction.
-  --
   ------------------------------------------------------------
   procedure CoSimTrans (
     -- Transaction  interface
@@ -493,16 +517,195 @@ package body OsvvmTestCoSimPkg is
   end procedure CoSimDispatchOneTransaction ;
 
   ------------------------------------------------------------
+  -- Co-simulation wrapper procedure to receive transactions
+  -- and send responses
+  ------------------------------------------------------------
+
+  procedure CoSimResp (
+    signal   SubordinateRec   : inout  AddressBusRecType ;
+    variable Done             : inout  integer ;
+    variable Error            : inout  integer ;
+    variable NodeNum          : in     integer := 0
+    ) is
+
+    variable RdData            : std_logic_vector (SubordinateRec.DataFromModel'range) ;
+    variable Address           : std_logic_vector (SubordinateRec.Address'range) ;
+
+    variable VPDataIn          : integer ;
+    variable VPDataInHi        : integer ;
+    variable VPDataOut         : integer ;
+    variable VPDataOutHi       : integer ;
+    variable VPDataWidth       : integer ;
+    variable VPAddr            : integer ;
+    variable VPAddrHi          : integer ;
+    variable VPAddrWidth       : integer ;
+    variable VPOp              : integer ;
+    variable VPBurstSize       : integer ;
+    variable VPTicks           : integer ;
+    variable VPDone            : integer ;
+    variable VPError           : integer ;
+    variable VPOperation       : integer ;
+    variable VPParam           : integer ;
+    variable VPStatus          : integer ;
+    variable VPCount           : integer ;
+    variable UnusedCount       : integer ;
+    variable UnusedIntReq      : integer ;
+
+  begin
+
+    -- RdData and Available status won't have persisted from last call, so re-fetch from ManagerRec
+    -- which will have persisted (and is not yet updated)
+    RdData       := osvvm.TbUtilPkg.MetaTo01(SafeResize(SubordinateRec.DataFromModel, RdData'length)) ;
+    Address      := osvvm.TbUtilPkg.MetaTo01(SafeResize(SubordinateRec.Address, Address'length)) ;
+    VPStatus     := 1 when SubordinateRec.BoolFromModel else 0 ;
+    VPCount      := SubordinateRec.IntFromModel ;
+
+    -- Sample the read data from last access, saved in RdData inout port
+    if RdData'length > 32 then
+      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
+    else
+      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
+      VPDataInHi := 0 ;
+    end if;
+
+    if Address'length > 32 then
+      VPAddr     := to_integer(signed(Address(31 downto  0))) ;
+      VPAddrHi   := to_integer(signed(Address(Address'length-1 downto 32))) ;
+    else
+      VPAddr     := to_integer(signed(Address(31 downto  0))) ;
+      VPAddrHi   := 0 ;
+    end if ;
+
+    -- Call VTrans to generate a new access
+    VTrans(NodeNum,      UnusedIntReq,   VPStatus,  VPCount, UnusedCount,
+           VPDataIn,     VPDataInHi,
+           VPDataOut,    VPDataOutHi,    VPDataWidth,
+           VPAddr,       VPAddrHi,       VPAddrWidth,
+           VPOp,         VPBurstSize,    VPTicks,
+           VPDone,       VPError,        VPParam) ;
+
+    Done  := VPDone  ;
+    Error := VPError ;
+
+    CoSimDispatchOneResponse(SubordinateRec,
+                             VPOp,
+                             VPAddr,      VPAddrHi,    VPAddrWidth,
+                             VPDataOut,   VPDataOutHi, VPDataWidth,
+                             VPBurstSize, VPTicks, VPParam,
+                             NodeNum) ;
+
+  end procedure CoSimResp;
+
+  ------------------------------------------------------------
+  -- Co-simulation procedure to dispatch one address bus
+  -- transaction repsonse
+  ------------------------------------------------------------
+
+  procedure CoSimDispatchOneResponse (
+    -- Transaction  interface
+    signal   SubordinateRec  : inout  AddressBusRecType ;
+    constant VPOperation     : in     integer ;
+    constant VPAddr          : in     integer ;
+    constant VPAddrHi        : in     integer ;
+    constant VPAddrWidth     : in     integer ;
+    constant VPDataOut       : in     integer ;
+    constant VPDataOutHi     : in     integer ;
+    constant VPDataWidth     : in     integer ;
+    constant VPBurstSize     : in     integer ;
+    constant VPTicks         : in     integer ;
+    constant VPParam         : in     integer ;
+    constant NodeNum         : in     integer
+  ) is
+
+    variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+    variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
+    variable Address         : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
+    variable WrByteData      : signed (DATA_WIDTH_MAX-1 downto 0) ;
+    variable RdDataInt       : integer ;
+    variable WrDataInt       : integer ;
+    variable TestName        : string(1 to VPBurstSize) ;
+    variable Available       : boolean ;
+
+  begin
+
+    -- Convert address and write data to std_logic_vectors
+    Address(31 downto  0) := std_logic_vector(to_signed(VPAddr,      32)) ;
+    Address(63 downto 32) := std_logic_vector(to_signed(VPAddrHi,    32)) ;
+
+    WrData(31 downto 0 )  := std_logic_vector(to_signed(VPDataOut,   32)) ;
+    WrData(63 downto 32)  := std_logic_vector(to_signed(VPDataOutHi, 32)) ;
+
+    if VPOperation < 1024 then
+      case AddressBusOperationType'val(VPOperation) is
+
+        when WAIT_FOR_CLOCK =>
+          WaitForClock(SubordinateRec, VPTicks) ;
+
+        when WRITE_OP =>
+          GetWrite(SubordinateRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_WRITE =>
+          TryGetWrite(SubordinateRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0), Available) ;
+
+        when WRITE_ADDRESS =>
+          GetWriteAddress(SubordinateRec, Address(VPAddrWidth-1 downto 0));
+
+        when ASYNC_WRITE_ADDRESS =>
+          TryGetWriteAddress(SubordinateRec, Address(VPAddrWidth-1 downto 0), Available) ;
+
+        when WRITE_DATA =>
+          GetWriteData(SubordinateRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_WRITE_DATA =>
+          TryGetWriteData(SubordinateRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0), Available) ;
+
+        when READ_OP =>
+          SendRead(SubordinateRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0)) ;
+
+        when ASYNC_READ =>
+          TrySendRead(SubordinateRec, Address(VPAddrWidth-1 downto 0), WrData(VPDataWidth-1 downto 0), Available) ;
+
+        when READ_ADDRESS =>
+          GetReadAddress(SubordinateRec, Address(VPAddrWidth-1 downto 0)) ;
+
+        when ASYNC_READ_ADDRESS =>
+          TryGetReadAddress(SubordinateRec, Address(VPAddrWidth-1 downto 0), Available) ;
+
+        when READ_DATA =>
+          SendReadData(SubordinateRec, WrData(VPDataWidth-1 downto 0));
+
+        when ASYNC_READ_DATA =>
+          SendReadDataAsync(SubordinateRec, WrData(VPDataWidth-1 downto 0));
+
+        when GET_TRANSACTION_COUNT =>
+          GetTransactionCount(SubordinateRec, RdDataInt) ;
+
+        when GET_WRITE_TRANSACTION_COUNT =>
+          GetWriteTransactionCount(SubordinateRec, RdDataInt) ;
+
+        when GET_READ_TRANSACTION_COUNT =>
+          GetReadTransactionCount(SubordinateRec, RdDataInt) ;
+
+        when WAIT_FOR_TRANSACTION =>
+          WaitForTransaction(SubordinateRec) ;
+
+        when WAIT_FOR_WRITE_TRANSACTION =>
+          WaitForWriteTransaction(SubordinateRec) ;
+
+        when WAIT_FOR_READ_TRANSACTION =>
+          WaitForReadTransaction(SubordinateRec) ;
+
+        when others =>
+          Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneResponse received unimplemented transaction") ;
+
+      end case ;
+    end if ;
+  end procedure CoSimDispatchOneResponse ;
+
+  ------------------------------------------------------------
   -- Co-simulation wrapper procedure to send read and write
   -- stream transactions
-  --
-  -- Note: The ticks parameter is to allow the internally set
-  -- state to persist between calls and must be connected to
-  -- an integer variable in the process where CoSimTrans is
-  -- called. It should not be changed in the external process.
-  -- It is used to allow time to advance without instigating
-  -- a transaction.
-  --
   ------------------------------------------------------------
   procedure CoSimStream (
     -- Transaction  interface
