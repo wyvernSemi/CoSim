@@ -1,6 +1,6 @@
 // =========================================================================
 //
-//  File Name:         OsvvmSched.c
+//  File Name:         OsvvmSched.cpp
 //  Design Unit Name:
 //  Revision:          OSVVM MODELS STANDARD VERSION
 //
@@ -15,7 +15,8 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    05/2023   2023.05    Adding asynchronous transaction support
+//    05/2023   2023.05    Adding support for asynchronous transactions
+//                         and address bus responder transactions
 //    03/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
 //
@@ -47,7 +48,7 @@
 #include "OsvvmVSchedPli.h"
 
 // Pointers to state for each node (up to VP_MAX_NODES)
-pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
+pSchedState_t ns[VP_MAX_NODES] = { NULL };
 
 #if defined(ALDEC)
 
@@ -59,13 +60,13 @@ pSchedState_t ns[VP_MAX_NODES] = { [0 ... VP_MAX_NODES-1] = NULL};
 // and registering with VHPI/
 // -------------------------------------------------------------------------
 
-PLI_VOID reg_foreign_procs() {
+VPROC_RTN_TYPE reg_foreign_procs() {
     int idx;
     vhpiForeignDataT foreignDataArray[] = {
-        {vhpiProcF, "VProc", "VInit",           NULL, VInit},
-        {vhpiProcF, "VProc", "VTrans",          NULL, VTrans},
-        {vhpiProcF, "VProc", "VSetBurstRdByte", NULL, VSetBurstRdByte},
-        {vhpiProcF, "VProc", "VGetBurstWrByte", NULL, VGetBurstWrByte},
+        {vhpiProcF, (char*)"VProc", (char*)"VInit",           NULL, VInit},
+        {vhpiProcF, (char*)"VProc", (char*)"VTrans",          NULL, VTrans},
+        {vhpiProcF, (char*)"VProc", (char*)"VSetBurstRdByte", NULL, VSetBurstRdByte},
+        {vhpiProcF, (char*)"VProc", (char*)"VGetBurstWrByte", NULL, VGetBurstWrByte},
         {(vhpiForeignT) 0}
     };
 
@@ -82,7 +83,7 @@ PLI_VOID reg_foreign_procs() {
 __declspec ( dllexport )
 #endif
 
-PLI_VOID (*vhpi_startup_routines[])() = {
+VPROC_RTN_TYPE (*vhpi_startup_routines[])() = {
     reg_foreign_procs,
     0L
 };
@@ -218,20 +219,6 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     int  VPStatus;
     int  VPCount;
     int  VPCountSec;
-    int  VPDataIn;
-    int  VPDataInHi;
-    int* VPDataOut;
-    int* VPDataOutHi;
-    int* VPDataWidth;
-    int* VPAddr;
-    int* VPAddrHi;
-    int* VPAddrWidth;
-    int* VPOp;
-    int* VPBurstSize;
-    int* VPTicks;
-    int* VPDone;
-    int* VPError;
-    int* VPParam;
 
     getVhpiParams(cb, args, VTRANS_NUM_ARGS);
 
@@ -241,7 +228,6 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     VPStatus             = args[argIdx++];
     VPCount              = args[argIdx++];
     VPCountSec           = args[argIdx++];
-    VPDataIn             = args[argIdx++]; VPDataInHi     = args[argIdx++];
 
     VPDataOut_int        = 0; VPDataOut_int  = 0;
     VPDataWidth_int      = 0;
@@ -253,31 +239,36 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
     VPDone_int           = 0;
     VPError_int          = 0;
     VPParam_int          = 0;
-    
-    // Skip over data outputs
-    argIdx               += 3;
-    
-    // Sample address and update node receive state
-    ns[node]->rcv_buf.addr_in    = args[argIdx++];
-    ns[node]->rcv_buf.addr_in_hi = args[argIdx++];
-    
-#else
-    // Sample Address and update node receive state
-    ns[node]->rcv_buf.addr_in    = *VPAddr;
-    ns[node]->rcv_buf.addr_in_hi = *VPAddrHi;
-#endif
 
+    // Sample data inputs and update node receive state
+    ns[node]->rcv_buf.data_in        = args[argIdx++];
+    ns[node]->rcv_buf.data_in_hi     = args[argIdx++];
+
+    // Skip over data width output
+    argIdx               += 1;
+
+    // Sample address and update node receive state
+    ns[node]->rcv_buf.addr_in        = args[argIdx++];
+    ns[node]->rcv_buf.addr_in_hi     = args[argIdx++];
+
+#else
     // Sample data inputs and update node receive state
     if (ns[node]->send_buf.type != trans32_burst)
     {
-        ns[node]->rcv_buf.data_in    = VPDataIn;
-        ns[node]->rcv_buf.data_in_hi = VPDataInHi;
+        ns[node]->rcv_buf.data_in    = *VPData;
+        ns[node]->rcv_buf.data_in_hi = *VPDataHi;
     }
-    else
+
+    // Sample Address and update node receive state
+    ns[node]->rcv_buf.addr_in        = *VPAddr;
+    ns[node]->rcv_buf.addr_in_hi     = *VPAddrHi;
+#endif
+
+    if (ns[node]->send_buf.type == trans32_burst)
     {
         ns[node]->rcv_buf.num_burst_bytes = ns[node]->send_buf.num_burst_bytes;
     }
-    
+
     // Sample other inputs and update node receive state
     ns[node]->rcv_buf.interrupt  = Interrupt;
     ns[node]->rcv_buf.status     = VPStatus;
@@ -366,8 +357,8 @@ VPROC_RTN_TYPE VTrans (VTRANS_PARAMS)
 
 #if !defined(ALDEC)
     // Export outputs over FLI
-    *VPDataOut        = VPDataOut_int;
-    *VPDataOutHi      = VPDataOutHi_int;
+    *VPData           = VPDataOut_int;
+    *VPDataHi         = VPDataOutHi_int;
     *VPDataWidth      = VPDataWidth_int;
     *VPAddr           = VPAddr_int;
     *VPAddrHi         = VPAddrHi_int;

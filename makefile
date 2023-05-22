@@ -138,9 +138,6 @@ CFLAGS             = -fPIC                                 \
 
 all: ${VPROC_PLI} ${VUSER_PLI}
 
-${VOBJDIR}/%.o: ${SRCDIR}/%.c ${SRC_INCL}
-	@${CC} -c ${CFLAGS} ${USRFLAGS} $< -o $@
-
 ${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
 	@${C++} -c ${CFLAGS} ${USRFLAGS} $< -o $@
 

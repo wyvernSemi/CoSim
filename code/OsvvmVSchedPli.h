@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    05/2023   2023.05    Refactored VTrans arguments
 //    10/2022   2023.01    Initial revision
 //
 //
@@ -41,11 +42,17 @@
 #ifndef _OSVVM_VSCHED_PLI_H_
 #define _OSVVM_VSCHED_PLI_H_
 
+#ifdef __cplusplus
+#define LINKAGE "C"
+#else
+#define LINKAGE
+#endif
+
 #ifndef ALDEC
 
 #define VINIT_PARAMS               int  node
 #define VTRANS_PARAMS              int  node,     int  Interrupt,   int  VPStatus,    int  VPCount,     int  VPCountSec,  \
-                                   int  VPDataIn, int  VPDataInHi,  int* VPDataOut,   int* VPDataOutHi, int* VPDataWidth, \
+                                   int* VPData,   int* VPDataHi,    int* VPDataWidth,                                     \
                                    int* VPAddr,   int* VPAddrHi,    int* VPAddrWidth,                                     \
                                    int* VPOp,     int* VPBurstSize, int* VPTicks,     int* VPDone,      int* VPError,     \
                                    int* VPParam
@@ -65,20 +72,20 @@
 #define VSETBURSTRDBYTE_PARAMS              const struct vhpiCbDataS* cb
 
 #define VINIT_NUM_ARGS                      1
-#define VTRANS_NUM_ARGS                     19
+#define VTRANS_NUM_ARGS                     17
 #define VGETBURSTWRBYTE_NUM_ARGS            3
 #define VSETBURSTRDBYTE_NUM_ARGS            3
                                             
-#define VTRANS_START_OF_OUTPUTS             7
+#define VTRANS_START_OF_OUTPUTS             5
 #define VGETBURSTWRBYTE_START_OF_OUTPUTS    2
 
 #define VPROC_RTN_TYPE                      PLI_VOID
 
 #endif
 
-extern VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
-extern VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
-extern VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);
-extern VPROC_RTN_TYPE VGetBurstWrByte (VGETBURSTWRBYTE_PARAMS);
+extern LINKAGE VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
+extern LINKAGE VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
+extern LINKAGE VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);
+extern LINKAGE VPROC_RTN_TYPE VGetBurstWrByte (VGETBURSTWRBYTE_PARAMS);
 
 #endif

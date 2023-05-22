@@ -49,14 +49,10 @@
 #include <unistd.h>
 #include <mutex>
 
-extern "C"
-{
 #include "OsvvmVProc.h"
-}
 #include "OsvvmVUser.h"
 
-#if defined(ALDEC)
-# if defined (_WIN32)
+#if defined(ALDEC) and defined (_WIN32)
 
 # include <windows.h>
 
@@ -77,10 +73,6 @@ extern "C"
 
 typedef HINSTANCE symhdl_t;
 
-# else
-typedef void*     symhdl_t;
-# endif
-
 #else
 typedef void*     symhdl_t;
 #endif
@@ -95,12 +87,6 @@ static std::mutex  acc_mx[VP_MAX_NODES];
 #else
 static std::mutex *acc_mx[VP_MAX_NODES];
 #endif
-
-// -------------------------------------------------------------------------
-// LOCAL STATICS
-// -------------------------------------------------------------------------
-
-static int unusedstatus;
 
 // -------------------------------------------------------------------------
 // FUNCTION DEFINITIONS
@@ -218,7 +204,7 @@ static void VUserInit (const int node)
 //
 // -------------------------------------------------------------------------
 
-extern "C" int VUser (const int node)
+int VUser (const int node)
 {
     pthread_t thread;
     int status;
@@ -1004,6 +990,10 @@ bool VStreamUserBurstGetCommon (const int op, const int param, uint8_t* data, co
 }
 
 // -------------------------------------------------------------------------
+// VStreamWaitGetCount()
+//
+// Common function for transaction wait and get count operation exchange
+//
 // -------------------------------------------------------------------------
 
 int VStreamWaitGetCount (const int op, const bool txnrx, const uint32_t node)

@@ -13,6 +13,7 @@
 --
 --  Revision History:
 --    Date      Version    Description
+--    05/2023   2023.05    Refactoring to support repsonder and stream functionality
 --    09/2022   2023.01    Initial revision
 --
 --
@@ -46,10 +47,8 @@ package OsvvmVprocPkg is
     VPStatus    : in    integer ;
     VPCount     : in    integer ;
     VPCountSec  : in    integer ;
-    VPDataIn    : in    integer ;
-    VPDataInHi  : in    integer ;
-    VPDataOut   : out   integer ;
-    VPDataOutHi : out   integer ;
+    VPData      : inout integer ;
+    VPDataHi    : inout integer ;
     VPDataWidth : out   integer ;
     VPAddr      : inout integer ;
     VPAddrHi    : inout integer ;
@@ -94,10 +93,8 @@ package body OsvvmVprocPkg is
     VPStatus    : in    integer ;
     VPCount     : in    integer ;
     VPCountSec  : in    integer ;
-    VPDataIn    : in    integer ;
-    VPDataInHi  : in    integer ;
-    VPDataOut   : out   integer ;
-    VPDataOutHi : out   integer ;
+    VPData      : inout integer ;
+    VPDataHi    : inout integer ;
     VPDataWidth : out   integer ;
     VPAddr      : inout integer ;
     VPAddrHi    : inout integer ;

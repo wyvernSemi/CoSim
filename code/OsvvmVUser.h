@@ -15,8 +15,8 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    05/2023   2023.05    Adding Async, Try and Check transaction support
-//    03/2023   2023.04    Adding basic stream support
+//    05/2023   2023.05    Adding support for Async, Try and Check transactions
+//                         and address bus repsonder
 //    01/2023   2023.01    Initial revision
 //
 //
@@ -47,20 +47,9 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-#define EXTC  "C"
-extern "C"
-{
-#else
-#define EXTC
-#endif
-
 #include "OsvvmVProc.h"
 #include "OsvvmVSchedPli.h"
 
-#ifdef __cplusplus
-}
-#endif
 // -------------------------------------------------------------------------
 // DEFINES AND MACROS
 // -------------------------------------------------------------------------
@@ -97,12 +86,7 @@ extern "C"
                               printf (formbuf, ##__VA_ARGS__);                     \
                               }
 #  else
-// If compiled under C++, io_printf() uses PLI_BYTE* which can't have const char* cast,
-// so use buffers for a format string and single string buffer argument, and sprintf to
-// format the string into the msg buffer
-//# define VPrint(...) {char __msg[4096], fmt[10]; strcpy(fmt, "%s");sprintf(__msg, __VA_ARGS__); io_printf(fmt, __msg);}
 #  define VPrint(...) {printf(__VA_ARGS__);}
-
 #  endif
 # else
 #  define VPrint(...) {vhpi_printf(__VA_ARGS__);}
@@ -129,7 +113,6 @@ typedef void (*pVUserMain_t)(void);
 // -------------------------------------------------------------------------
 
 // VUser function prototypes
-# ifdef __cplusplus
 
 // Function to advance simulation by a number of clock ticks
 extern int       VTick                          (const uint32_t ticks, const bool done = false, const bool error = false, const uint32_t  node = 0);
@@ -174,12 +157,10 @@ extern bool      VStreamUserBurstGetCommon      (const int op, const int param, 
 
 extern int       VStreamWaitGetCount            (const int op, const bool txnrx, const uint32_t node = 0);
 
-# endif
-
 // User function called from VInit to instigate new user thread
-extern EXTC int  VUser                          (const int node);
+extern int       VUser                          (const int node);
 
 // User interrupt callback registering function
-extern EXTC void VRegInterrupt                  (const pVUserInt_t func, const uint32_t node);
+extern void      VRegInterrupt                  (const pVUserInt_t func, const uint32_t node);
 
 #endif

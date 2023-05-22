@@ -14,7 +14,8 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    05/2023   2023.05    Adding asynchronous, check and try transaction support
+--    05/2023   2023.05    Adding asynchronous, check and try transaction support,
+--                         and added address bus responder functionality.
 --    04/2023   2023.04    Adding basic stream support
 --    01/2023   2023.01    Initial revision
 --
@@ -57,17 +58,15 @@ library osvvm_cosim ;
 package OsvvmTestCoSimPkg is
 
   -- CoSim specific enumerations
-  type CoSimOperationType is (SET_TEST_NAME,         GET_TRANS_COUNT,     -- For non-standard VPOperation values
-                              GET_WRITE_TRANS_COUNT, GET_READ_TRANS_COUNT,
-                              GET_ERROR_COUNT) ;
+  type CoSimOperationType is (SET_TEST_NAME) ;                            -- For non-standard VPOperation values on VPOp from VTrans
 
-  type BurstType          is (BURST_NORM,       BURST_INCR,               -- Burst sub-operation selection in VPParam
+  type BurstType          is (BURST_NORM,       BURST_INCR,               -- Burst sub-operation selection in VPParam from VTrans
                               BURST_RAND,       BURST_INCR_PUSH,
                               BURST_RAND_PUSH,  BURST_INCR_CHECK,
                               BURST_RAND_CHECK, BURST_TRANS,
                               BURST_DATA,       BURST_DATA_CHECK);
 
-  type DirType            is (RX_REC, TX_REC);
+  type DirType            is (RX_REC, TX_REC);                            -- Stream bus direction in (overloaded) VPData from VTrans
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -75,7 +74,7 @@ package OsvvmTestCoSimPkg is
   ------------------------------------------------------------
 
 procedure CoSimInit (
-  variable NodeNum          : in     integer := 0
+  variable NodeNum           : in     integer := 0
   ) ;
 
   ------------------------------------------------------------
@@ -83,11 +82,11 @@ procedure CoSimInit (
   -- transactions.
   ------------------------------------------------------------
 procedure CoSimTrans (
-  signal   ManagerRec       : inout  AddressBusRecType ;
-  variable Done             : inout  integer ;
-  variable Error            : inout  integer ;
-  variable IntReq           : in     integer := 0 ;
-  variable NodeNum          : in     integer := 0
+  signal   ManagerRec        : inout  AddressBusRecType ;
+  variable Done              : inout  integer ;
+  variable Error             : inout  integer ;
+  variable IntReq            : in     integer := 0 ;
+  variable NodeNum           : in     integer := 0
   ) ;
 
   ------------------------------------------------------------
@@ -95,10 +94,10 @@ procedure CoSimTrans (
   -- responses.
   ------------------------------------------------------------
 procedure CoSimResp (
-  signal   SubordinateRec   : inout  AddressBusRecType ;
-  variable Done             : inout  integer ;
-  variable Error            : inout  integer ;
-  variable NodeNum          : in     integer := 0
+  signal   SubordinateRec    : inout  AddressBusRecType ;
+  variable Done              : inout  integer ;
+  variable Error             : inout  integer ;
+  variable NodeNum           : in     integer := 0
   ) ;
 
   ------------------------------------------------------------
@@ -106,11 +105,11 @@ procedure CoSimResp (
   -- transactions.
   ------------------------------------------------------------
   procedure CoSimStream (
-    signal   TxRec            : inout  StreamRecType ;
-    signal   RxRec            : inout  StreamRecType ;
-    variable Done             : inout  integer ;
-    variable Error            : inout  integer ;
-    variable NodeNum          : in     integer := 0
+    signal   TxRec           : inout  StreamRecType ;
+    signal   RxRec           : inout  StreamRecType ;
+    variable Done            : inout  integer ;
+    variable Error           : inout  integer ;
+    variable NodeNum         : in     integer := 0
   ) ;
 
   ------------------------------------------------------------
@@ -180,8 +179,8 @@ end package OsvvmTestCoSimPkg ;
 -- /////////////////////////////////////////////////////////////////////////////////////////
 
 package body OsvvmTestCoSimPkg is
-  constant ADDR_WIDTH_MAX  : integer := 64 ;
-  constant DATA_WIDTH_MAX  : integer := 64 ;
+  constant ADDR_WIDTH_MAX    : integer := 64 ;
+  constant DATA_WIDTH_MAX    : integer := 64 ;
 
   ------------------------------------------------------------
   -- Co-simulation software initialisation procedure for
@@ -190,7 +189,7 @@ package body OsvvmTestCoSimPkg is
   ------------------------------------------------------------
 
   procedure CoSimInit (
-  variable NodeNum         : in     integer := 0
+  variable NodeNum           : in     integer := 0
   ) is
 
   begin
@@ -212,10 +211,8 @@ package body OsvvmTestCoSimPkg is
 
     variable RdData          : std_logic_vector (ManagerRec.DataFromModel'range) ;
 
-    variable VPDataIn        : integer ;
-    variable VPDataInHi      : integer ;
-    variable VPDataOut       : integer ;
-    variable VPDataOutHi     : integer ;
+    variable VPData          : integer ;
+    variable VPDataHi        : integer ;
     variable VPDataWidth     : integer ;
     variable VPAddr          : integer ;
     variable VPAddrHi        : integer ;
@@ -225,7 +222,6 @@ package body OsvvmTestCoSimPkg is
     variable VPTicks         : integer ;
     variable VPDone          : integer ;
     variable VPError         : integer ;
-    variable VPOperation     : integer ;
     variable VPParam         : integer ;
     variable VPStatus        : integer ;
     variable VPCount         : integer ;
@@ -241,17 +237,16 @@ package body OsvvmTestCoSimPkg is
 
     -- Sample the read data from last access, saved in RdData inout port
     if RdData'length > 32 then
-      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
-      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
+      VPData     := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataHi   := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
-      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-      VPDataInHi := 0 ;
+      VPData     := to_integer(signed(RdData(31 downto 0))) ;
+      VPDataHi   := 0 ;
     end if;
 
     -- Call VTrans to generate a new access
     VTrans(NodeNum,   IntReq,      VPStatus,  VPCount, UnusedCount,
-           VPDataIn,  VPDataInHi,
-           VPDataOut, VPDataOutHi, VPDataWidth,
+           VPData,    VPDataHi,    VPDataWidth,
            VPAddr,    VPAddrHi,    VPAddrWidth,
            VPOp,      VPBurstSize, VPTicks,
            VPDone,    VPError,     VPParam) ;
@@ -262,7 +257,7 @@ package body OsvvmTestCoSimPkg is
     CoSimDispatchOneTransaction(ManagerRec,
                                 VPOp,
                                 VPAddr,      VPAddrHi,    VPAddrWidth,
-                                VPDataOut,   VPDataOutHi, VPDataWidth,
+                                VPData,      VPDataHi,    VPDataWidth,
                                 VPBurstSize, VPTicks,     VPParam,
                                 NodeNum) ;
 
@@ -522,34 +517,31 @@ package body OsvvmTestCoSimPkg is
   ------------------------------------------------------------
 
   procedure CoSimResp (
-    signal   SubordinateRec   : inout  AddressBusRecType ;
-    variable Done             : inout  integer ;
-    variable Error            : inout  integer ;
-    variable NodeNum          : in     integer := 0
+    signal   SubordinateRec  : inout  AddressBusRecType ;
+    variable Done            : inout  integer ;
+    variable Error           : inout  integer ;
+    variable NodeNum         : in     integer := 0
     ) is
 
-    variable RdData            : std_logic_vector (SubordinateRec.DataFromModel'range) ;
-    variable Address           : std_logic_vector (SubordinateRec.Address'range) ;
+    variable RdData          : std_logic_vector (SubordinateRec.DataFromModel'range) ;
+    variable Address         : std_logic_vector (SubordinateRec.Address'range) ;
 
-    variable VPDataIn          : integer ;
-    variable VPDataInHi        : integer ;
-    variable VPDataOut         : integer ;
-    variable VPDataOutHi       : integer ;
-    variable VPDataWidth       : integer ;
-    variable VPAddr            : integer ;
-    variable VPAddrHi          : integer ;
-    variable VPAddrWidth       : integer ;
-    variable VPOp              : integer ;
-    variable VPBurstSize       : integer ;
-    variable VPTicks           : integer ;
-    variable VPDone            : integer ;
-    variable VPError           : integer ;
-    variable VPOperation       : integer ;
-    variable VPParam           : integer ;
-    variable VPStatus          : integer ;
-    variable VPCount           : integer ;
-    variable UnusedCount       : integer ;
-    variable UnusedIntReq      : integer ;
+    variable VPData          : integer ;
+    variable VPDataHi        : integer ;
+    variable VPDataWidth     : integer ;
+    variable VPAddr          : integer ;
+    variable VPAddrHi        : integer ;
+    variable VPAddrWidth     : integer ;
+    variable VPOp            : integer ;
+    variable VPBurstSize     : integer ;
+    variable VPTicks         : integer ;
+    variable VPDone          : integer ;
+    variable VPError         : integer ;
+    variable VPParam         : integer ;
+    variable VPStatus        : integer ;
+    variable VPCount         : integer ;
+    variable UnusedCount     : integer ;
+    variable UnusedIntReq    : integer ;
 
   begin
 
@@ -562,11 +554,11 @@ package body OsvvmTestCoSimPkg is
 
     -- Sample the read data from last access, saved in RdData inout port
     if RdData'length > 32 then
-      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
-      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
+      VPData     := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataHi   := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
-      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-      VPDataInHi := 0 ;
+      VPData     := to_integer(signed(RdData(31 downto 0))) ;
+      VPDataHi   := 0 ;
     end if;
 
     if Address'length > 32 then
@@ -577,10 +569,9 @@ package body OsvvmTestCoSimPkg is
       VPAddrHi   := 0 ;
     end if ;
 
-    -- Call VTrans to generate a new access
+    -- Call VTrans to generate a new response operation
     VTrans(NodeNum,      UnusedIntReq,   VPStatus,  VPCount, UnusedCount,
-           VPDataIn,     VPDataInHi,
-           VPDataOut,    VPDataOutHi,    VPDataWidth,
+           VPData,       VPDataHi,       VPDataWidth,
            VPAddr,       VPAddrHi,       VPAddrWidth,
            VPOp,         VPBurstSize,    VPTicks,
            VPDone,       VPError,        VPParam) ;
@@ -590,9 +581,9 @@ package body OsvvmTestCoSimPkg is
 
     CoSimDispatchOneResponse(SubordinateRec,
                              VPOp,
-                             VPAddr,      VPAddrHi,    VPAddrWidth,
-                             VPDataOut,   VPDataOutHi, VPDataWidth,
-                             VPBurstSize, VPTicks, VPParam,
+                             VPAddr,      VPAddrHi, VPAddrWidth,
+                             VPData,      VPDataHi, VPDataWidth,
+                             VPBurstSize, VPTicks,  VPParam,
                              NodeNum) ;
 
   end procedure CoSimResp;
@@ -621,10 +612,7 @@ package body OsvvmTestCoSimPkg is
     variable RdData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
     variable WrData          : std_logic_vector (DATA_WIDTH_MAX-1 downto 0) ;
     variable Address         : std_logic_vector (ADDR_WIDTH_MAX-1 downto 0) ;
-    variable WrByteData      : signed (DATA_WIDTH_MAX-1 downto 0) ;
     variable RdDataInt       : integer ;
-    variable WrDataInt       : integer ;
-    variable TestName        : string(1 to VPBurstSize) ;
     variable Available       : boolean ;
 
   begin
@@ -716,10 +704,8 @@ package body OsvvmTestCoSimPkg is
     variable NodeNum         : in     integer := 0
     ) is
 
-    variable VPDataIn          : integer ;
-    variable VPDataInHi        : integer ;
-    variable VPDataOut         : integer ;
-    variable VPDataOutHi       : integer ;
+    variable VPData            : integer ;
+    variable VPDataHi          : integer ;
     variable VPDataWidth       : integer ;
     variable VPOp              : integer ;
     variable VPBurstSize       : integer ;
@@ -727,7 +713,6 @@ package body OsvvmTestCoSimPkg is
     variable VPDone            : integer ;
     variable VPError           : integer ;
     variable VPParam           : integer ;
-    variable VPOperation       : integer ;
     variable VPStatus          : integer ;
     variable VPCountTx         : integer ;
     variable VPCountRx         : integer ;
@@ -752,18 +737,17 @@ package body OsvvmTestCoSimPkg is
     RdData     := osvvm.TbUtilPkg.MetaTo01(SafeResize(RxRec.DataFromModel, RdData'length)) ;
     -- Sample the read data from last access, saved in RdData inout port
     if RdData'length > 32 then
-      VPDataIn   := to_integer(signed(RdData(31 downto  0))) ;
-      VPDataInHi := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
+      VPData     := to_integer(signed(RdData(31 downto  0))) ;
+      VPDataHi   := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
-      VPDataIn   := to_integer(signed(RdData(31 downto 0))) ;
-      VPDataInHi := 0 ;
+      VPData     := to_integer(signed(RdData(31 downto 0))) ;
+      VPDataHi   := 0 ;
     end if;
 
 
     -- Call VTrans to generate a new TX access
     VTrans(NodeNum,        Available,      VPStatus, VPCountRx, VPCountTx,
-           VPDataIn,       VPDataInHi,
-           VPDataOut,      VPDataOutHi,    VPDataWidth,
+           VPData,         VPDataHi,       VPDataWidth,
            UnusedVPAddrLo, UnusedVPAddrHi, UnusedVPAddrWidth,
            VPOp,           VPBurstSize,    VPTicks,
            VPDone,         VPError,        VPParam) ;
@@ -773,7 +757,7 @@ package body OsvvmTestCoSimPkg is
 
     CoSimDispatchOneStream (TxRec, RxRec,
                             VPOp,
-                            VPDataOut,   VPDataOutHi, VPDataWidth,
+                            VPData,      VPDataHi,    VPDataWidth,
                             VPBurstSize, VPTicks,     VPParam,
                             NodeNum) ;
 
