@@ -240,7 +240,7 @@ package body OsvvmTestCoSimPkg is
       VPData     := to_integer(signed(RdData(31 downto  0))) ;
       VPDataHi   := to_integer(signed(RdData(RdData'length-1 downto 32))) ;
     else
-      VPData     := to_integer(signed(RdData(31 downto 0))) ;
+      VPData     := to_integer(signed(RdData(RdData'length-1 downto 0))) ;
       VPDataHi   := 0 ;
     end if;
 

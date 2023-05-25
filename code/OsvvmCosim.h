@@ -90,13 +90,13 @@ public:
       void     transWriteAndRead      (uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
       void     transWriteAndRead      (uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
 
-      void     transWriteAndReadAsync (uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
-      void     transWriteAndReadAsync (uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {*rdata = VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint32_t addr, const uint8_t  wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint32_t addr, const uint16_t wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint32_t addr, const uint32_t wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint64_t addr, const uint8_t  wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint64_t addr, const uint16_t wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint64_t addr, const uint32_t wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
+      void     transWriteAndReadAsync (uint64_t addr, const uint64_t wdata, const int prot = 0)                  {VTransUserCommon(ASYNC_WRITE_AND_READ, &addr, wdata, &dummyStatus, prot, node);}
 
       void     transWriteAddressAsync        (uint32_t addr, const int prot = 0)                                 {VTransUserCommon(ASYNC_WRITE_ADDRESS, &addr, (uint32_t)0, &dummyStatus, prot, node);}
       void     transWriteAddressAsync        (uint64_t addr, const int prot = 0)                                 {VTransUserCommon(ASYNC_WRITE_ADDRESS, &addr, (uint32_t)0, &dummyStatus, prot, node);}

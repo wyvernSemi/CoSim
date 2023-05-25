@@ -53,6 +53,10 @@ include  ./testbench/TbAxi4_ReadPoll/tests.pro
 include  ./testbench/TbAxi4_Responder
 include  ./testbench/TbAxi4_Responder/tests.pro
 
+# Analyze DpRam testbench and run tests on it
+include  ./testbench/TbDpRam
+include  ./testbench/TbDpRam/tests.pro
+
 # Analyze Ethernet testbench and run tests on it
 include ./testbench/TbEthernet
 include ./testbench/TestCases_Ethernet

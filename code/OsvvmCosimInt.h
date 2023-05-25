@@ -106,13 +106,13 @@ public:
       void     transWriteAndRead             (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndRead(addr, wdata, rdata, prot);}
       void     transWriteAndRead             (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndRead(addr, wdata, rdata, prot);}
       void     transWriteAndRead             (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndRead(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint32_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint32_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint32_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint64_t addr, const uint8_t  wdata, uint8_t  *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint64_t addr, const uint16_t wdata, uint16_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint64_t addr, const uint32_t wdata, uint32_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
-      void     transWriteAndReadAsync        (const uint64_t addr, const uint64_t wdata, uint64_t *rdata, const int prot = 0) {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, rdata, prot);}
+      void     transWriteAndReadAsync        (const uint32_t addr, const uint8_t  wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint32_t addr, const uint16_t wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint32_t addr, const uint32_t wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint64_t addr, const uint8_t  wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint64_t addr, const uint16_t wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint64_t addr, const uint32_t wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
+      void     transWriteAndReadAsync        (const uint64_t addr, const uint64_t wdata, const int prot = 0)                  {processInt(); OsvvmCosim::transWriteAndReadAsync(addr, wdata, prot);}
 
       void     transWriteAddressAsync        (const uint32_t addr)                                                            {processInt(); OsvvmCosim::transWriteAddressAsync(addr);}
       void     transWriteAddressAsync        (const uint64_t addr)                                                            {processInt(); OsvvmCosim::transWriteAddressAsync(addr);}
