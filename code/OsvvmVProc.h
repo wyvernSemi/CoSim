@@ -15,12 +15,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    10/2022   2023.01    Initial revision
+//    05/2023   2023.05    Adding asynchronous transaction support
+//    03/2023   2023.04    Adding basic stream support
+//    01/2023   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -39,11 +41,15 @@
 #ifndef _OSVVM_VPROC_H_
 #define _OSVVM_VPROC_H_
 
+// -------------------------------------------------------------------------
+// INCLUDES
+// -------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 
-# if !defined(ALDEC)
+# if !defined(ALDEC) || !defined(_WIN32)
 #  ifndef __USE_GNU
 #  define __USE_GNU
 #  include <dlfcn.h>
@@ -64,16 +70,13 @@
 // For inode manipulation
 #include <unistd.h>
 
+// -------------------------------------------------------------------------
+// DEFINES AND MACROS
+// -------------------------------------------------------------------------
+
 #ifndef VP_MAX_NODES
 #define VP_MAX_NODES            64
 #endif
-
-
-#define V_IDLE                  0
-#define V_WRITE                 1
-#define V_READ                  2
-#define V_HALT                  4
-#define V_SWAP                  8
 
 #define VP_EXIT_OK              0
 #define VP_QUEUE_ERR            1
@@ -81,57 +84,43 @@
 #define VP_USER_ERR             3
 #define VP_SYSCALL_ERR          4
 
-#define UNDEF                   -1
 
 #define DEFAULT_STR_BUF_SIZE    32
-
-#define MIN_INTERRUPT_LEVEL     1
-#define MAX_INTERRUPT_LEVEL     255
-
 #define DATABUF_SIZE            4096
 
+// -------------------------------------------------------------------------
+// TYPEDEFS
+// -------------------------------------------------------------------------
 
 typedef enum trans_type_e
 {
-  trans32_wr_byte  = 0,
-  trans32_wr_hword,
-  trans32_wr_word,
-  trans32_wr_dword,
-  trans32_wr_qword,
-  trans32_wr_burst,
-  trans32_rd_byte,
-  trans32_rd_hword,
-  trans32_rd_word ,
-  trans32_rd_dword,
-  trans32_rd_qword,
-  trans32_rd_burst,
-  trans64_wr_byte,
-  trans64_wr_hword,
-  trans64_wr_word,
-  trans64_wr_dword,
-  trans64_wr_qword,
-  trans64_wr_burst,
-  trans64_rd_byte,
-  trans64_rd_hword,
-  trans64_rd_word,
-  trans64_rd_dword,
-  trans64_rd_qword,
-  trans64_rd_burst,
-  
-  stream_snd_byte,
-  stream_snd_hword,
-  stream_snd_word,
-  stream_snd_dword,
-  stream_snd_qword,
-  stream_snd_burst,
-  stream_get_byte,
-  stream_get_hword,
-  stream_get_word,
-  stream_get_dword,
-  stream_get_qword,
-  stream_get_burst,
-  
-  trans_idle
+    trans32_byte  = 0,
+    trans32_hword,
+    trans32_word,
+    trans32_dword,
+    trans32_qword,
+    trans32_burst,
+    trans64_byte,
+    trans64_hword,
+    trans64_word,
+    trans64_dword,
+    trans64_qword,
+    trans64_burst,
+
+    stream_snd_byte,
+    stream_snd_hword,
+    stream_snd_word,
+    stream_snd_dword,
+    stream_snd_qword,
+    stream_snd_burst,
+    stream_get_byte,
+    stream_get_hword,
+    stream_get_word,
+    stream_get_dword,
+    stream_get_qword,
+    stream_get_burst,
+
+    trans_idle
 
 } trans_type_e;
 
@@ -172,45 +161,51 @@ typedef enum addr_bus_trans_op_e
     ASYNC_WRITE_BURST,
     READ_BURST,
     MULTIPLE_DRIVER_DETECT,
-    
+
     SET_TEST_NAME = 1024
 } addr_bus_trans_op_t;
 
 typedef enum stream_operation_e
 {
-    //NOT_DRIVEN = 0,  
-    //WAIT_FOR_CLOCK, 
+    //NOT_DRIVEN = 0,
+    //WAIT_FOR_CLOCK,
     //WAIT_FOR_TRANSACTION,
-    //GET_TRANSACTION_COUNT,
+    STR_GET_TRANSACTION_COUNT = 3,
     //GET_ALERTLOG_ID,
     //SET_BURST_MODE,
     //GET_BURST_MODE,
-    //GOT_BURST, 
+    //GOT_BURST,
     //SET_MODEL_OPTIONS,
     //GET_MODEL_OPTIONS,
-    SEND = 10,                // This first (cf. write)
+    SEND = 10,
     SEND_ASYNC,
-    SEND_BURST,          // This first (cf. write burst)
+    SEND_BURST,
     SEND_BURST_ASYNC,
-    GET,                 // This first (cf. read)    
+    GET,
     TRY_GET,
-    GET_BURST,           // This first (cf. read burst)
+    GET_BURST,
     TRY_GET_BURST,
     CHECK,
     TRY_CHECK,
     CHECK_BURST,
     TRY_CHECK_BURST,
     //MULTIPLE_DRIVER_DETECT,
-    
+
     //SET_TEST_NAME = 1024
 } stream_operation_t;
 
-typedef enum arch_e
+typedef enum burst_write_type_e
 {
-    arch32,
-    arch64,
-    arch128
-} arch_e;
+    BURST_NORM,
+    BURST_INCR,
+    BURST_RAND,
+    BURST_INCR_PUSH,
+    BURST_RAND_PUSH,
+    BURST_INCR_CHECK,
+    BURST_RAND_CHECK,
+    BURST_TRANS,
+    BURST_DATA,
+} burst_type_t;
 
 typedef struct
 {
@@ -231,9 +226,13 @@ typedef struct
 {
     unsigned int        data_in;
     unsigned int        data_in_hi;
+    unsigned int        addr_in;
+    unsigned int        addr_in_hi;
     int                 num_burst_bytes;
     uint8_t             databuf[DATABUF_SIZE];
     int                 status;
+    int                 count;
+    int                 countsec;
     unsigned int        interrupt;
 } rcv_buf_t, *prcv_buf_t;
 

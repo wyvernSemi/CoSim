@@ -44,39 +44,6 @@ library    osvvm_CoSim_TbAxi4
 
 ChangeWorkingDirectory ../../tests
 
-# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_size
-MkVproc    usercode_size
-TestName   CoSim_usercode_size
-simulate   TbAb_CoSim [CoSim]
-
-# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/usercode_burst
-MkVproc    usercode_burst
-TestName   CoSim_usercode_burst
-simulate   TbAb_CoSim [CoSim]
- 
-# MkVproc    $::osvvm::OsvvmCoSimDirectory/tests/iss rv32
-MkVproc    iss rv32
-TestName   CoSim_iss
-simulate   TbAb_CoSim [CoSim]
-
-MkVproc    async_trans
-TestName   CoSim_async_trans
-simulate   TbAb_CoSim [CoSim]
-
-# MkVprocSkt $::osvvm::OsvvmCoSimDirectory/tests/socket
-# simulate   TbAb_CoSim
-# 
-# EndSimulation
-# after 1000
-
-if {$::osvvm::ToolName eq "GHDL"} {
-
-MkVprocGhdlMain  $::osvvm::OsvvmCoSimDirectory/tests/ghdl_main
-#  MkVprocGhdlMain  ../../tests/ghdl_main
-#    MkVprocGhdlMain  ghdl_main
-  TestName CoSim_ghdl_main
-
-  set ::osvvm::GhdlRunCmd "-r"
-  simulate        TbAb_CoSim [CoSim]
-  unset ::osvvm::GhdlRunCmd
-}
+MkVproc    responder
+TestName   CoSim_responder
+simulate   TbAb_Responder [CoSim]

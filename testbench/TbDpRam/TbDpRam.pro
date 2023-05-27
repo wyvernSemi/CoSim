@@ -1,13 +1,13 @@
-#  File Name:         TbAxi4Stream.pro
+#  File Name:         TbAxi4.pro
 #  Revision:          STANDARD VERSION
 #
-#  Maintainer:        Simon Southwell   email:  simon.southwell@gmail.com
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 #  Contributor(s):
-#     Simon Southwell  simon.southwell@gmail.com
+#     Jim Lewis      jim@synthworks.com
 #
 #
 #  Description:
-#        Script to build Axi co-simulation stream test  
+#        Script to analyze Axi4 testbench  
 #
 #  Developed for:
 #        SynthWorks Design Inc.
@@ -17,12 +17,12 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#     3/2023   2023.04    Compile Script for OSVVM
+#    05/2023   2023.05    Compile Script for OSVVM
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)  
+#  Copyright (c) 2023 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -36,10 +36,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  
+TestSuite  CoSim_TbDpRam
+library    osvvm_CoSim_TbDpRam
+analyze    TestCtrl_e.vhd
 
-TestSuite Cosim_Axi4Stream
-library osvvm_cosim_TbAxiStream
+analyze    TbDpRam.vhd 
+analyze    ../TestCases_DpRam/TbDpRam_WriteAndRead.vhd
 
-analyze TestCtrl_e.vhd
-analyze AxiStreamDut.vhd
-analyze TbStream.vhd

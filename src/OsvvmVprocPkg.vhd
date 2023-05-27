@@ -13,12 +13,13 @@
 --
 --  Revision History:
 --    Date      Version    Description
+--    05/2023   2023.05    Refactoring to support repsonder and stream functionality
 --    09/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+--  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -41,23 +42,23 @@ package OsvvmVprocPkg is
   attribute foreign of VInit : procedure is "VInit VProc.so" ;
 
   procedure VTrans (
-    node        : in  integer ;
-    Interrupt   : in  integer ;
-    VPStatus    : in  integer ;
-    VPDataIn    : in  integer ;
-    VPDataInHi  : in  integer ;
-    VPDataOut   : out integer ;
-    VPDataOutHi : out integer ;
-    VPDataWidth : out integer ;
-    VPAddr      : out integer ;
-    VPAddrHi    : out integer ;
-    VPAddrWidth : out integer ;
-    VPOp        : out integer ;
-    VPBurstSize : out integer ;
-    VPTicks     : out integer ;
-    VPDone      : out integer ;
-    VPError     : out integer ;
-    VPParam     : out integer
+    node        : in    integer ;
+    Interrupt   : in    integer ;
+    VPStatus    : in    integer ;
+    VPCount     : in    integer ;
+    VPCountSec  : in    integer ;
+    VPData      : inout integer ;
+    VPDataHi    : inout integer ;
+    VPDataWidth : out   integer ;
+    VPAddr      : inout integer ;
+    VPAddrHi    : inout integer ;
+    VPAddrWidth : out   integer ;
+    VPOp        : out   integer ;
+    VPBurstSize : out   integer ;
+    VPTicks     : out   integer ;
+    VPDone      : out   integer ;
+    VPError     : out   integer ;
+    VPParam     : out   integer
   ) ;
   attribute foreign of VTrans : procedure is "VTrans VProc.so" ;
 
@@ -87,23 +88,23 @@ package body OsvvmVprocPkg is
   end ;
 
   procedure VTrans (
-    node        : in  integer ;
-    Interrupt   : in  integer ;
-    VPStatus    : in  integer ;
-    VPDataIn    : in  integer ;
-    VPDataInHi  : in  integer ;
-    VPDataOut   : out integer ;
-    VPDataOutHi : out integer ;
-    VPDataWidth : out integer ;
-    VPAddr      : out integer ;
-    VPAddrHi    : out integer ;
-    VPAddrWidth : out integer ;
-    VPOp        : out integer ;
-    VPBurstSize : out integer ;
-    VPTicks     : out integer ;
-    VPDone      : out integer ;
-    VPError     : out integer ;
-    VPParam     : out integer
+    node        : in    integer ;
+    Interrupt   : in    integer ;
+    VPStatus    : in    integer ;
+    VPCount     : in    integer ;
+    VPCountSec  : in    integer ;
+    VPData      : inout integer ;
+    VPDataHi    : inout integer ;
+    VPDataWidth : out   integer ;
+    VPAddr      : inout integer ;
+    VPAddrHi    : inout integer ;
+    VPAddrWidth : out   integer ;
+    VPOp        : out   integer ;
+    VPBurstSize : out   integer ;
+    VPTicks     : out   integer ;
+    VPDone      : out   integer ;
+    VPError     : out   integer ;
+    VPParam     : out   integer
   ) is
   begin
     report "ERROR: foreign subprogram out_params not called" ;

@@ -1,11 +1,11 @@
 --
---  File Name:           TbAb_CoSim.vhd
---  Design Unit Name:    Architecture of TestCtrl
---  Revision:            OSVVM MODELS STANDARD VERSION
+--  File Name:         TbDpRam_BasicReadWrite.vhd
+--  Design Unit Name:  Architecture of TestCtrl
+--  Revision:          OSVVM MODELS STANDARD VERSION
 --
---  Maintainer:          Simon Southwell  email: simon.southwell@gmail.com
+--  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 --  Contributor(s):
---     Simon Southwell  simon.southwell@gmail.com
+--     Jim Lewis      jim@synthworks.com
 --
 --
 --  Description:
@@ -19,12 +19,12 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    09/2022   2023.01    Initial revision
+--    05/2023   2023.05    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by [OSVVM Authors](../../AUTHORS.md)
+--  Copyright (c) 2023 by SynthWorks Design Inc.
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -39,15 +39,11 @@
 --  limitations under the License.
 --
 
-architecture CoSim of TestCtrl is
+architecture WriteAndRead of TestCtrl is
 
---  constant BURST_MODE     : AddressBusFifoBurstModeType := ADDRESS_BUS_BURST_WORD_MODE ;
-  constant BURST_MODE     : AddressBusFifoBurstModeType := ADDRESS_BUS_BURST_BYTE_MODE ;
   constant Node           : integer         := 0 ;
 
   signal   TestDone       : integer_barrier := 1 ;
-  signal   TestActive     : boolean         := TRUE ;
-  signal   OperationCount : integer         := 0 ;
 
 begin
 
@@ -58,15 +54,13 @@ begin
   ControlProc : process
   begin
     -- Initialization of test
-    --!! NOTE:  SetTestName called by software
---    SetTestName("TbAb_CoSim") ;
+    --SetTestName("TbDpRam_BasicReadWrite") ;
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
     TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & GetTestName & ".txt") ;
---    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_CoSim.txt") ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -74,13 +68,14 @@ begin
     ClearAlerts ;
 
     -- Wait for test to finish
-    WaitForBarrier(TestDone, 1 ms) ;
-    AlertIf(now >= 1 ms, "Test finished due to timeout") ;
+    WaitForBarrier(TestDone, 35 ms) ;
+    AlertIf(now >= 35 ms, "Test finished due to timeout") ;
     AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
+
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_CoSim.txt", "../sim_shared/validated_results/TbAb_CoSim.txt", "") ;
+    -- AlertIfDiff("./results/TbDpRam_BasicReadWrite.txt", "../AXI4/Axi4/testbench/validated_results/TbDpRam_BasicReadWrite.txt", "") ;
 
     EndOfTestReports ;
     std.env.stop ;
@@ -94,41 +89,35 @@ begin
   ManagerProc : process
     variable OpRV           : RandomPType ;
     variable WaitForClockRV : RandomPType ;
-    variable counts         : integer;
-
+    
     -- CoSim variables
-    variable RnW            : integer ;
     variable Done           : integer := 0 ;
     variable Error          : integer := 0 ;
     variable IntReq         : integer := 0 ;
     variable NodeNum        : integer := Node ;
-
-    variable Count          : integer ;
+    
   begin
+
     -- Initialize Randomization Objects
     OpRV.InitSeed(OpRv'instance_name) ;
     WaitForClockRV.InitSeed(WaitForClockRV'instance_name) ;
 
     -- Initialise VProc code
-    CoSimInit(NodeNum);
-    -- Fetch the SetTestName
-    CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
+    CoSimInit(NodeNum) ;
 
-    SetBurstMode(ManagerRec, BURST_MODE) ;
-
-    -- Find exit of reset
     wait until nReset = '1' ;
-    WaitForClock(ManagerRec, 2) ;
+    -- First Alignment to clock
+    WaitForClock(Manager1Rec, 1) ;
 
     OperationLoop : loop
 
       -- 20 % of the time add a no-op cycle with a delay of 1 to 5 clocks
       if WaitForClockRV.DistInt((8, 2)) = 1 then
-        WaitForClock(ManagerRec, WaitForClockRV.RandInt(1, 5)) ;
+        WaitForClock(Manager1Rec, WaitForClockRV.RandInt(1, 5)) ;
       end if ;
 
       -- Call CoSimTrans procedure to generate an access from the running VProc program
-      CoSimTrans (ManagerRec, Done, Error, IntReq, NodeNum);
+      CoSimTrans (Manager1Rec, Done, Error, IntReq, NodeNum);
 
       AlertIf(Error /= 0, "CoSimTrans flagged an error") ;
 
@@ -137,25 +126,20 @@ begin
 
     end loop OperationLoop ;
 
-    TestActive <= FALSE ;
-
-    -- Allow Subordinate to catch up before signaling OperationCount (needed when WRITE_OP is last)
-    -- wait for 0 ns ;  -- this is enough
-    WaitForClock(ManagerRec, 2) ;
-    Increment(OperationCount) ;
-
-    -- Wait for outputs to propagate and signal TestDone
-    WaitForClock(ManagerRec, 2) ;
     WaitForBarrier(TestDone) ;
     wait ;
+    
   end process ManagerProc ;
 
-end CoSim ;
 
-Configuration TbAb_CoSim of TbAddressBusMemory is
+end WriteAndRead ;
+
+library OSVVM_AXI4 ;
+
+Configuration TbDpRam_WriteAndRead of TbDpRam is
   for TestHarness
     for TestCtrl_1 : TestCtrl
-      use entity work.TestCtrl(CoSim) ;
+      use entity work.TestCtrl(WriteAndRead) ;
     end for ;
   end for ;
-end TbAb_CoSim ;
+end TbDpRam_WriteAndRead ;
