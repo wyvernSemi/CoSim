@@ -194,8 +194,8 @@ public:
       void     transBurstReadCheckIncrement  (const uint64_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckIncrement(addr, data, bytesize, prot);}
       void     transBurstReadCheckRandom     (const uint32_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckRandom(addr, data, bytesize, prot);}
       void     transBurstReadCheckRandom     (const uint64_t addr, uint8_t  data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckRandom(addr, data, bytesize, prot);}
-      bool     transBurstReadCheckData       (const uint32_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); return OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
-      bool     transBurstReadCheckData       (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); return OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
+      void     transBurstReadCheckData       (const uint32_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
+      void     transBurstReadCheckData       (const uint64_t addr, uint8_t *data, const int bytesize, const int prot = 0)     {processInt(); OsvvmCosim::transBurstReadCheckData(addr, data, bytesize, prot);}
 
       void     transWaitForTransaction       (void)                                                                           {processInt(); OsvvmCosim::transWaitForTransaction();}
       void     transWaitForWriteTransaction  (void)                                                                           {processInt(); OsvvmCosim::transWaitForWriteTransaction();}

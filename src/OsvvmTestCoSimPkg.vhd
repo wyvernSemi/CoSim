@@ -64,9 +64,19 @@ package OsvvmTestCoSimPkg is
                               BURST_RAND,       BURST_INCR_PUSH,
                               BURST_RAND_PUSH,  BURST_INCR_CHECK,
                               BURST_RAND_CHECK, BURST_TRANS,
-                              BURST_DATA,       BURST_DATA_CHECK);
+                              BURST_DATA,       BURST_DATA_CHECK,
+                              BURST_FIFO_CHECK);
 
   type DirType            is (RX_REC, TX_REC);                            -- Stream bus direction in (overloaded) VPData from VTrans
+
+  ------------------------------------------------------------
+  -- function to construct slv_vector from CoSim burst data
+  ------------------------------------------------------------
+
+  impure function GetCoSimBurstVector(
+    constant VPBurstSize     : in     integer ;
+    constant NodeNum         : in     integer
+  ) return slv_vector ;
 
   ------------------------------------------------------------
   -- Co-simulation procedure to initialise and start user code
@@ -178,9 +188,35 @@ end package OsvvmTestCoSimPkg ;
 -- /////////////////////////////////////////////////////////////////////////////////////////
 -- /////////////////////////////////////////////////////////////////////////////////////////
 
+  ------------------------------------------------------------
+  -- Function to construct slv_vector from CoSim burst data
+  ------------------------------------------------------------
+
 package body OsvvmTestCoSimPkg is
   constant ADDR_WIDTH_MAX    : integer := 64 ;
   constant DATA_WIDTH_MAX    : integer := 64 ;
+
+
+  impure function GetCoSimBurstVector(
+    constant VPBurstSize     : in     integer ;
+    constant NodeNum         : in     integer
+  ) return slv_vector is
+    variable result     : slv_vector(0 to VPBurstSize-1)(7 downto 0) ;
+    variable WrDataInt  : integer ;
+    variable WrByteData : signed (DATA_WIDTH_MAX-1 downto 0) ;
+  begin
+    for bidx in 0 to VPBurstSize-1 loop
+
+      -- Get Byte from co-sim interface
+      VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+      WrByteData   := to_signed(WrDataInt, WrByteData'length) ;
+      result(bidx) := std_logic_vector(WrByteData(7 downto 0)) ;
+
+    end loop ;
+
+    return result ;
+
+  end function GetCoSimBurstVector ;
 
   ------------------------------------------------------------
   -- Co-simulation software initialisation procedure for
@@ -398,6 +434,12 @@ package body OsvvmTestCoSimPkg is
               VGetBurstWrByte(NodeNum, 0, WrDataInt) ;
               WrByteData := to_signed(WrDataInt, WrByteData'length) ;
               CheckBurstRandom(ManagerRec.ReadBurstFifo, std_logic_vector(WrByteData(7 downto 0)), VPBurstSize) ;
+
+            when BURST_DATA_CHECK =>
+              ReadCheckBurstVector(ManagerRec, Address(VPAddrWidth-1 downto  0), GetCoSimBurstVector(VPBurstSize, NodeNum)) ;
+
+            when BURST_FIFO_CHECK =>
+              CheckBurstVector(ManagerRec.ReadBurstFifo, GetCoSimBurstVector(VPBurstSize, NodeNum)) ;
 
             when others =>
                 Alert("CoSim/src/OsvvmTestCoSimPkg: CoSimDispatchOneTransaction received unimplemented burst type") ;
@@ -789,7 +831,6 @@ package body OsvvmTestCoSimPkg is
     variable WrDataInt       : integer ;
     variable TestName        : string(1 to VPBurstSize) ;
     variable Available       : boolean ;
-    variable PacketLength    : integer ;
 
     variable Fifo            : ScoreboardIdType;
 
@@ -830,9 +871,8 @@ package body OsvvmTestCoSimPkg is
           -- If not a pure pop type operation, do a get burst transaction
           if BurstType'val(VPParam) /= BURST_DATA then
 
-            PacketLength := VPBurstSize ;
-            GetBurst(RxRec, PacketLength, Param(RxRec.ParamToModel'length -1 downto 0)) ;
-            AffirmIfEqual(PacketLength, VPBurstSize, "Get burst packet Length") ;
+            GetBurst(RxRec, VPBurstSize, Param(RxRec.ParamToModel'length -1 downto 0)) ;
+            AffirmIfEqual(0, 0, "Dummy check") ;
 
           end if ;
 
@@ -873,15 +913,21 @@ package body OsvvmTestCoSimPkg is
 
             when BURST_NORM =>
 
-              for bidx in 0 to VPBurstSize-1 loop
+              -- Fetch status of burst availability
+              GotBurst (RxRec, VPBurstSize, Available);
 
-                VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-                WrByteData := to_signed(WrDataInt, WrByteData'length) ;
-                Push(RxRec.BurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
+              -- Push check data if burst available
+              if Available then
+                for bidx in 0 to VPBurstSize-1 loop
 
-              end loop ;
+                  VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+                  WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+                  Push(RxRec.BurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
 
-              TryCheckBurst(RxRec, VPBurstSize, Param(RxRec.ParamToModel'length-1 downto 0), Available);
+                end loop ;
+
+                TryCheckBurst(RxRec, VPBurstSize, Param(RxRec.ParamToModel'length-1 downto 0), Available);
+              end if ;
 
             when BURST_TRANS =>
               TryCheckBurst(RxRec, VPBurstSize, Param(RxRec.ParamToModel'length-1 downto 0), Available);

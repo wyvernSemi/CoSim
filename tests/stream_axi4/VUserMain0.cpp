@@ -556,7 +556,7 @@ extern "C" void VUserMain0()
 
     axistream.streamBurstSend(TestData0, 78);
 
-    if (!axistream.streamBurstTryCheck(78))
+    if (!axistream.streamBurstTryCheck(TestData0, 78))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
         error = true;
@@ -582,7 +582,7 @@ extern "C" void VUserMain0()
         TestData0[idx] = idx; //random() & 0xff;
     }
 
-    if (axistream.streamBurstTryCheck(93))
+    if (axistream.streamBurstTryCheck(TestData0, 93))
     {
         VPrint("***ERROR: got unexpected available status from burst try check access.\n");
         error = true;
