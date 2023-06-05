@@ -42,7 +42,8 @@
 #include <cstdint>
 
 // Import OSVVM user API for streams
-#include "OsvvmCosimStream.h"
+#include "OsvvmCosimStreamTx.h"
+#include "OsvvmCosimStreamRx.h"
 
 #ifdef _WIN32
 #define srandom srand
@@ -83,7 +84,8 @@ extern "C" void VUserMain0()
 
     bool                  error = false;
     std::string           test_name("CoSim_axi4_streams");
-    OsvvmCosimStream      axistream(node, test_name);
+    OsvvmCosimStreamTx    axistreamtx(node, test_name);
+    OsvvmCosimStreamRx    axistreamrx(node);
 
     uint32_t wdata  = 0x80001000;
     uint32_t rdata;
@@ -105,11 +107,11 @@ extern "C" void VUserMain0()
         {
             param = makeAxiStreamParam(TID, TDEST, TUSER, 1);
         }
-        axistream.streamSend(wdata + idx, param);
+        axistreamtx.streamSend(wdata + idx, param);
     }
     
-    int txcount = axistream.streamGetTxTransactionCount();
-    int rxcount = axistream.streamGetRxTransactionCount();
+    int txcount = axistreamtx.streamGetTxTransactionCount();
+    int rxcount = axistreamrx.streamGetRxTransactionCount();
     
     if (txcount != DATASIZE || rxcount != DATASIZE)
     {
@@ -124,7 +126,7 @@ extern "C" void VUserMain0()
 
         expstatus = makeAxiStreamParam(TID, TDEST, TUSER, (idx == DATASIZE-1));
 
-        axistream.streamGet(&rdata, &status);
+        axistreamrx.streamGet(&rdata, &status);
 
         if (rdata != (wdata + idx))
         {
@@ -154,13 +156,13 @@ extern "C" void VUserMain0()
         {
             param = makeAxiStreamParam(TID, TDEST, TUSER, 1);
         }
-        axistream.streamSend(wdata + idx, param);
+        axistreamtx.streamSend(wdata + idx, param);
     }
 
     // Get received word data and check data and status values
     for (int idx = 0; idx < DATASIZE; idx++)
     {
-        axistream.streamCheck((uint32_t)(wdata + idx), param);
+        axistreamrx.streamCheck((uint32_t)(wdata + idx), param);
     }
 
     // =============================================================
@@ -174,14 +176,14 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     // Send a couple of bursts
-    axistream.streamBurstSend(&TestData0[bufidx], 16);  bufidx += 16;
-    axistream.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
+    axistreamtx.streamBurstSend(&TestData0[bufidx], 16);  bufidx += 16;
+    axistreamtx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
 
     bufidx = 0;
 
     // Retrieve received data
-    axistream.streamBurstGet(&RxData[bufidx], 16);  bufidx += 16;
-    axistream.streamBurstGet(&RxData[bufidx], 256); bufidx += 256;
+    axistreamrx.streamBurstGet(&RxData[bufidx], 16);  bufidx += 16;
+    axistreamrx.streamBurstGet(&RxData[bufidx], 256); bufidx += 256;
 
     // Check data validity
     for (int idx = 0; idx < bufidx; idx++)
@@ -209,7 +211,7 @@ extern "C" void VUserMain0()
         {
             param = makeAxiStreamParam(TID, TDEST, TUSER, 1);
         }
-        axistream.streamSendAsync(wdata + idx, param);
+        axistreamtx.streamSendAsync(wdata + idx, param);
     }
 
 
@@ -220,7 +222,7 @@ extern "C" void VUserMain0()
 
         expstatus = makeAxiStreamParam(TID, TDEST, TUSER, (idx == DATASIZE-1));
 
-        axistream.streamGet(&rdata, &status);
+        axistreamrx.streamGet(&rdata, &status);
 
         if (rdata != (wdata + idx))
         {
@@ -246,15 +248,15 @@ extern "C" void VUserMain0()
 
     // ------- 8 bits -------
 
-    if (axistream.streamTryGet(&rdata8))
+    if (axistreamrx.streamTryGet(&rdata8))
     {
         VPrint("***ERROR: got unexpected available status from TryGet byte access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata8);
+    axistreamtx.streamSend(wdata8);
 
-    if (!axistream.streamTryGet(&rdata8))
+    if (!axistreamrx.streamTryGet(&rdata8))
     {
         VPrint("***ERROR: got unexpected not available status from TryGet byte access.\n");
         error = true;
@@ -268,15 +270,15 @@ extern "C" void VUserMain0()
 
     // ------- 16 bits -------
 
-    if (axistream.streamTryGet(&rdata16))
+    if (axistreamrx.streamTryGet(&rdata16))
     {
         VPrint("***ERROR: got unexpected available status from TryGet hword access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata16);
+    axistreamtx.streamSend(wdata16);
 
-    if (!axistream.streamTryGet(&rdata16))
+    if (!axistreamrx.streamTryGet(&rdata16))
     {
         VPrint("***ERROR: got unexpected not available status from TryGet hword access.\n");
         error = true;
@@ -290,15 +292,15 @@ extern "C" void VUserMain0()
 
     // ------- 32 bits -------
 
-    if (axistream.streamTryGet(&rdata))
+    if (axistreamrx.streamTryGet(&rdata))
     {
         VPrint("***ERROR: got unexpected available status from TryGet word access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata);
+    axistreamtx.streamSend(wdata);
 
-    if (!axistream.streamTryGet(&rdata))
+    if (!axistreamrx.streamTryGet(&rdata))
     {
         VPrint("***ERROR: got unexpected not available status from TryGet word access.\n");
         error = true;
@@ -318,15 +320,15 @@ extern "C" void VUserMain0()
 
     // ------- 8 bits -------
 
-    if (axistream.streamTryCheck(wdata8))
+    if (axistreamrx.streamTryCheck(wdata8))
     {
         VPrint("***ERROR: got unexpected available status from TryCheck byte access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata8);
+    axistreamtx.streamSend(wdata8);
 
-    if (!axistream.streamTryCheck(wdata8))
+    if (!axistreamrx.streamTryCheck(wdata8))
     {
         VPrint("***ERROR: got unexpected not available status from TryCheck byte access.\n");
         error = true;
@@ -334,17 +336,17 @@ extern "C" void VUserMain0()
 
     // ------- 16 bits -------
 
-    axistream.streamTryCheck(wdata16);
+    axistreamrx.streamTryCheck(wdata16);
 
-    if (axistream.streamTryCheck(wdata16))
+    if (axistreamrx.streamTryCheck(wdata16))
     {
         VPrint("***ERROR: got unexpected available status from TryCheck hword access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata16);
+    axistreamtx.streamSend(wdata16);
 
-    if (!axistream.streamTryCheck(wdata16))
+    if (!axistreamrx.streamTryCheck(wdata16))
     {
         VPrint("***ERROR: got unexpected not available status from TryCheck hword access.\n");
         error = true;
@@ -352,15 +354,15 @@ extern "C" void VUserMain0()
 
     // ------- 32 bits -------
 
-    if (axistream.streamTryCheck(wdata))
+    if (axistreamrx.streamTryCheck(wdata))
     {
         VPrint("***ERROR: got unexpected available status from TryCheck word access.\n");
         error = true;
     }
 
-    axistream.streamSend(wdata);
+    axistreamtx.streamSend(wdata);
 
-    if (!axistream.streamTryCheck(wdata))
+    if (!axistreamrx.streamTryCheck(wdata))
     {
         VPrint("***ERROR: got unexpected not available status from TryCheck word access.\n");
         error = true;
@@ -377,16 +379,16 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     // Send a couple of bursts
-    axistream.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
-    axistream.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
+    axistreamtx.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
+    axistreamtx.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
 
     bufidx = 0;
 
     // Retrieve received data
-    axistream.streamBurstGet(16);
-    axistream.streamBurstGet(256);
+    axistreamrx.streamBurstGet(16);
+    axistreamrx.streamBurstGet(256);
 
-    axistream.streamBurstPopData(RxData, 272);
+    axistreamrx.streamBurstPopData(RxData, 272);
 
     // Check data validity
     for (int idx = 0; idx < bufidx; idx++)
@@ -408,14 +410,14 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     // Send a couple of bursts
-    axistream.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
-    axistream.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
+    axistreamtx.streamBurstSendAsync(&TestData0[bufidx], 16);  bufidx += 16;
+    axistreamtx.streamBurstSendAsync(&TestData0[bufidx], 256); bufidx += 256;
 
     bufidx = 0;
 
     // Check received data
-    axistream.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
-    axistream.streamBurstCheck(&TestData0[bufidx], 256);  bufidx += 256;
+    axistreamrx.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
+    axistreamrx.streamBurstCheck(&TestData0[bufidx], 256);  bufidx += 256;
 
     // =============================================================
 
@@ -428,55 +430,55 @@ extern "C" void VUserMain0()
     bufidx = 0;
 
     // Send a couple of bursts
-    axistream.streamBurstPushData(&TestData0[bufidx], 16);
-    axistream.streamBurstSendAsync(16);  bufidx += 16;
+    axistreamtx.streamBurstPushData(&TestData0[bufidx], 16);
+    axistreamtx.streamBurstSendAsync(16);  bufidx += 16;
 
-    axistream.streamBurstPushData(&TestData0[bufidx], 256);
-    axistream.streamBurstSend(256); bufidx += 256;
+    axistreamtx.streamBurstPushData(&TestData0[bufidx], 256);
+    axistreamtx.streamBurstSend(256); bufidx += 256;
 
     bufidx = 0;
 
     // Check received data
-    axistream.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
+    axistreamrx.streamBurstCheck(&TestData0[bufidx], 16);   bufidx += 16;
 
-    axistream.streamBurstPushCheckData(&TestData0[bufidx], 256);
-    axistream.streamBurstCheck(256);  bufidx += 256;
+    axistreamrx.streamBurstPushCheckData(&TestData0[bufidx], 256);
+    axistreamrx.streamBurstCheck(256);  bufidx += 256;
 
     // =============================================================
 
     bufidx = 0;
 
-    axistream.streamBurstSendIncrementAsync(0x57, 32);
-    axistream.streamBurstSendIncrementAsync(0xe6, 128);
+    axistreamtx.streamBurstSendIncrementAsync(0x57, 32);
+    axistreamtx.streamBurstSendIncrementAsync(0xe6, 128);
     
-    axistream.streamWaitForTxTransaction();
+    axistreamtx.streamWaitForTxTransaction();
 
-    axistream.streamBurstCheckIncrement(0x57, 32);
-    axistream.streamBurstCheckIncrement(0xe6, 128);
+    axistreamrx.streamBurstCheckIncrement(0x57, 32);
+    axistreamrx.streamBurstCheckIncrement(0xe6, 128);
 
-    axistream.streamBurstSendRandomAsync(0x9b, 64);
-    axistream.streamBurstSendRandomAsync(0x0f, 64);
+    axistreamtx.streamBurstSendRandomAsync(0x9b, 64);
+    axistreamtx.streamBurstSendRandomAsync(0x0f, 64);
     
-    axistream.streamWaitForRxTransaction();
+    axistreamrx.streamWaitForRxTransaction();
 
-    axistream.streamBurstCheckRandom(0x9b, 64);
-    axistream.streamBurstCheckRandom(0x0f, 64);
+    axistreamrx.streamBurstCheckRandom(0x9b, 64);
+    axistreamrx.streamBurstCheckRandom(0x0f, 64);
 
-    axistream.streamBurstPushIncrement(0xa2, 32);
-    axistream.streamBurstSend(32);
-    axistream.streamBurstCheckIncrement(0xa2, 32);
+    axistreamtx.streamBurstPushIncrement(0xa2, 32);
+    axistreamtx.streamBurstSend(32);
+    axistreamrx.streamBurstCheckIncrement(0xa2, 32);
 
-    axistream.streamBurstPushRandom(0x55, 32);
-    axistream.streamBurstSend(32);
-    axistream.streamBurstCheckRandom(0x55, 32);
+    axistreamtx.streamBurstPushRandom(0x55, 32);
+    axistreamtx.streamBurstSend(32);
+    axistreamrx.streamBurstCheckRandom(0x55, 32);
 
-    axistream.streamBurstSendIncrement(0x6e, 48);
-    axistream.streamBurstPushCheckIncrement(0x6e, 48);
-    axistream.streamBurstCheck(48);
+    axistreamtx.streamBurstSendIncrement(0x6e, 48);
+    axistreamrx.streamBurstPushCheckIncrement(0x6e, 48);
+    axistreamrx.streamBurstCheck(48);
 
-    axistream.streamBurstSendRandom(0x39, 48);
-    axistream.streamBurstPushCheckRandom(0x39, 48);
-    axistream.streamBurstCheck(48);
+    axistreamtx.streamBurstSendRandom(0x39, 48);
+    axistreamrx.streamBurstPushCheckRandom(0x39, 48);
+    axistreamrx.streamBurstCheck(48);
 
     // =============================================================
 
@@ -486,15 +488,15 @@ extern "C" void VUserMain0()
         TestData0[idx] = random() & 0xff;
     }
 
-    if (axistream.streamBurstTryGet(RxData, 128))
+    if (axistreamrx.streamBurstTryGet(RxData, 128))
     {
         VPrint("***ERROR: got unexpected available status from burst try get access.\n");
         error = true;
     }
 
-    axistream.streamBurstSend(TestData0, 128);
+    axistreamtx.streamBurstSend(TestData0, 128);
 
-    if (!axistream.streamBurstTryGet(RxData, 128))
+    if (!axistreamrx.streamBurstTryGet(RxData, 128))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try get access.\n");
         error = true;
@@ -515,21 +517,21 @@ extern "C" void VUserMain0()
         TestData0[idx] = random() & 0xff;
     }
 
-    if (axistream.streamBurstTryGet(64))
+    if (axistreamrx.streamBurstTryGet(64))
     {
         VPrint("***ERROR: got unexpected available status from burst try get access.\n");
         error = true;
     }
 
-    axistream.streamBurstSend(TestData0, 64);
+    axistreamtx.streamBurstSend(TestData0, 64);
 
-    if (!axistream.streamBurstTryGet(64))
+    if (!axistreamrx.streamBurstTryGet(64))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try get access.\n");
         error = true;
     }
 
-    axistream.streamBurstPopData(RxData, 64);
+    axistreamrx.streamBurstPopData(RxData, 64);
 
     // Check data validity
     for (int idx = 0; idx < 64; idx++)
@@ -548,15 +550,15 @@ extern "C" void VUserMain0()
         TestData0[idx] = random() & 0xff;
     }
 
-    if (axistream.streamBurstTryCheck(TestData0, 78))
+    if (axistreamrx.streamBurstTryCheck(TestData0, 78))
     {
         VPrint("***ERROR: got unexpected available status from burst try check access.\n");
         error = true;
     }
 
-    axistream.streamBurstSend(TestData0, 78);
+    axistreamtx.streamBurstSend(TestData0, 78);
 
-    if (!axistream.streamBurstTryCheck(TestData0, 78))
+    if (!axistreamrx.streamBurstTryCheck(TestData0, 78))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
         error = true;
@@ -568,9 +570,9 @@ extern "C" void VUserMain0()
         TestData0[idx] = random() & 0xff;
     }
 
-    axistream.streamBurstSend(TestData0, 78);
+    axistreamtx.streamBurstSend(TestData0, 78);
 
-    if (!axistream.streamBurstTryCheck(TestData0, 78))
+    if (!axistreamrx.streamBurstTryCheck(TestData0, 78))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
         error = true;
@@ -582,17 +584,17 @@ extern "C" void VUserMain0()
         TestData0[idx] = idx; //random() & 0xff;
     }
 
-    if (axistream.streamBurstTryCheck(TestData0, 93))
+    if (axistreamrx.streamBurstTryCheck(TestData0, 93))
     {
         VPrint("***ERROR: got unexpected available status from burst try check access.\n");
         error = true;
     }
 
-    axistream.streamBurstSend(TestData0, 93);
+    axistreamtx.streamBurstSend(TestData0, 93);
 
-    axistream.streamBurstPushCheckData(TestData0, 93);
+    axistreamrx.streamBurstPushCheckData(TestData0, 93);
 
-    if (!axistream.streamBurstTryCheck(93))
+    if (!axistreamrx.streamBurstTryCheck(93))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check access.\n");
         error = true;
@@ -602,15 +604,15 @@ extern "C" void VUserMain0()
     
     wdata8 = 0x12;
     
-    if (axistream.streamBurstTryCheckIncrement(wdata8, 100))
+    if (axistreamrx.streamBurstTryCheckIncrement(wdata8, 100))
     {
         VPrint("***ERROR: got unexpected available status from burst try check increment access.\n");
         error = true;
     }
     
-    axistream.streamBurstSendIncrement(wdata8, 100);
+    axistreamtx.streamBurstSendIncrement(wdata8, 100);
     
-    if (!axistream.streamBurstTryCheckIncrement(wdata8, 100))
+    if (!axistreamrx.streamBurstTryCheckIncrement(wdata8, 100))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check increment access.\n");
         error = true;
@@ -620,15 +622,15 @@ extern "C" void VUserMain0()
     
     wdata8 = 0xc4;
     
-    if (axistream.streamBurstTryCheckRandom(wdata8, 100))
+    if (axistreamrx.streamBurstTryCheckRandom(wdata8, 100))
     {
         VPrint("***ERROR: got unexpected available status from burst try check random access.\n");
         error = true;
     }
     
-    axistream.streamBurstSendRandom(wdata8, 100);
+    axistreamtx.streamBurstSendRandom(wdata8, 100);
     
-    if (!axistream.streamBurstTryCheckRandom(wdata8, 100))
+    if (!axistreamrx.streamBurstTryCheckRandom(wdata8, 100))
     {
         VPrint("***ERROR: got unexpected unavailable status from burst try check random access.\n");
         error = true;
@@ -637,7 +639,7 @@ extern "C" void VUserMain0()
     // -------------------------------------------------------------
 
     // Flag to the simulation we're finished, after 10 more ticks
-    axistream.tick(10, true, error);
+    axistreamtx.tick(10, true, error);
 
     // If ever got this far then sleep forever
     SLEEPFOREVER;

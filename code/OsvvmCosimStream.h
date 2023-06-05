@@ -15,7 +15,8 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    11/2022   2023.02    Initial revision
+//    05/2023   2023.05    Adding additional methods mapping to OSVVM procedures
+//    02/2023   2023.02    Initial revision
 //
 //
 //  This file is part of OSVVM.
