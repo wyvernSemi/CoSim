@@ -154,6 +154,7 @@ int OsvvmCosimSkt::init(void)
 
 OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
 {
+    int enable = 1;
 
     // Create an IPv4 socket byte stream
     osvvm_cosim_skt_t svrskt;
@@ -161,6 +162,14 @@ OsvvmCosimSkt::osvvm_cosim_skt_t OsvvmCosimSkt::connect_skt (const int portno)
     if ((svrskt = socket(AF_INET, SOCK_STREAM, IPPROTO_IP)) < 0)
     {
         VPrint("ERROR opening socket\n");
+        cleanup();
+        return OSVVM_COSIM_ERR;
+    }
+    
+    // Allow a waiting socket to be reused
+    if (setsockopt(svrskt, SOL_SOCKET, SO_REUSEADDR, (char*)&enable, sizeof(int)) < 0)
+    {
+        VPrint("ERROR setting socket option\n");
         cleanup();
         return OSVVM_COSIM_ERR;
     }

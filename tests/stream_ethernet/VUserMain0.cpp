@@ -20,7 +20,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md) 
+//  Copyright (c) 2023 by [OSVVM Authors](../../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ static int node  = 0;
 
        uint8_t TestData0[BUF_SIZE];
 extern uint8_t TestData1[BUF_SIZE];
-static uint8_t RxData[BUF_SIZE] = {{0xcc}};
+static uint8_t RxData[BUF_SIZE];
 
 // ------------------------------------------------------------------------------
 // Checkt two data bytes
@@ -101,7 +101,7 @@ extern "C" void VUserMain0()
     {
         TestData0[bufidx++] = random() & 0xff;
     }
-    
+
     // reset the buffer index
     bufidx = 0;
 
@@ -125,11 +125,11 @@ extern "C" void VUserMain0()
     // Get some burst data from RX stream
     txrx.streamBurstGet(&RxData[ridx], 64);        ridx += 64;
     txrx.streamBurstGet(&RxData[ridx], 128);       ridx += 128;
-    
+
     // Send some burst of data over TX stream
     txrx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
     txrx.streamBurstSend(&TestData0[bufidx], 256); bufidx += 256;
-    
+
     // Get some burst data from RX stream
     txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;
     txrx.streamBurstGet(&RxData[ridx], 256);       ridx += 256;

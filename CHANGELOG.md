@@ -2,14 +2,22 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
+| 2023.05   | Support for split transactions, responder, streaming and checking
 | 2023.01   | Initial release
+
+## 2023.05 May 2023
+- Added split transaction methods for address bus model independent manager
+- Added support address bus model independent subordinate/responder
+- Added support for streaming bus model independent transactions
+- Added test data pattren generatoin methods
+- Added data check methods
 
 ## 2023.01 January 2023
 - New repository with ability to run C code in the testbench in a CoSim environment.  See README.md
 
  
 ## Copyright and License
-Copyright (C) 2022 by [OSVVM Authors](AUTHORS.md)   
+Copyright (C) 2023 by [OSVVM Authors](AUTHORS.md)   
 
 This file is part of OSVVM.
 

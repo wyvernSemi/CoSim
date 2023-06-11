@@ -17,12 +17,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    10/2022   2023.01    Initial revision
+//    05/2023   2023.05    Adding support for Async, Check and Try functionality
+//    04/2023   2023.04    Adding basic stream support
+//    01/2023   2023.01    Initial revision
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -38,38 +40,57 @@
 //
 // =========================================================================
 
+// -------------------------------------------------------------------------
+// INCLUDES
+// -------------------------------------------------------------------------
+
 #include <stdint.h>
 #include <errno.h>
 #include <unistd.h>
 #include <mutex>
 
-extern "C"
-{
 #include "OsvvmVProc.h"
-}
 #include "OsvvmVUser.h"
 
-#if defined(ALDEC)
+#if defined(ALDEC) and defined (_WIN32)
 
 # include <windows.h>
 
-// Map Linux dynamic laoding calls to Windows equivalents
+// -------------------------------------------------------------------------
+// DEFINES AND MACROS
+// -------------------------------------------------------------------------
+
+// Map Linux dynamic loading calls to Windows equivalents
+
 # define dlsym GetProcAddress
 # define dlopen(_dll, _args) {LoadLibrary(_dll)}
 # define dlerror() ""
 # define dlclose FreeLibrary
 
-// Aldec seems to doesn't free mutexes unless deleted, so make pointers
+// -------------------------------------------------------------------------
+// TYPEDEFS
+// -------------------------------------------------------------------------
+
 typedef HINSTANCE symhdl_t;
-static std::mutex *acc_mx[VP_MAX_NODES];
+
 #else
-typedef void* symhdl_t;
-static std::mutex acc_mx[VP_MAX_NODES];
+typedef void*     symhdl_t;
 #endif
 
-#if defined (ACTIVEHDL) || defined(SIEMENS)
+#if defined (ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
 static symhdl_t hdlvp;
 #endif
+
+#if defined(GHDL)
+// GHDL, when callable, locks up using mutex pointers/new, so make an array of mutexes for GHDL
+static std::mutex  acc_mx[VP_MAX_NODES];
+#else
+static std::mutex *acc_mx[VP_MAX_NODES];
+#endif
+
+// -------------------------------------------------------------------------
+// FUNCTION DEFINITIONS
+// -------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------
 // VInitSendBuf()
@@ -87,6 +108,7 @@ static void VInitSendBuf(send_buf_t &sbuf)
     sbuf.ticks           = 0;
     sbuf.done            = 0;
     sbuf.error           = 0;
+    sbuf.param           = 0;
 }
 
 // -------------------------------------------------------------------------
@@ -132,8 +154,8 @@ static void VUserInit (const int node)
     // Get function name of user entry routine
     sprintf(funcname, "%s%d",    "VUserMain", node);
 
-#if defined(ALDEC)
-    // Create a new mutex for this node in ALDEC
+#if !defined(GHDL)
+    // Create a new mutex for this node
     acc_mx[node] = new std::mutex;
 #endif
 
@@ -158,7 +180,7 @@ static void VUserInit (const int node)
         exit(1);
     }
 
-#if defined(ACTIVEHDL) || defined(SIEMENS)
+#if defined(ACTIVEHDL) || defined(SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Close the VProc.so handle to decrement the count, incremented with the open
     dlclose(hdlvp);
 #endif
@@ -182,7 +204,7 @@ static void VUserInit (const int node)
 //
 // -------------------------------------------------------------------------
 
-extern "C" int VUser (const int node)
+int VUser (const int node)
 {
     pthread_t thread;
     int status;
@@ -196,7 +218,7 @@ extern "C" int VUser (const int node)
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
-#if defined(ACTIVEHDL) || defined (SIEMENS)
+#if defined(ACTIVEHDL) || defined (SIEMENS) || (defined(ALDEC) && !defined(_WIN32))
     // Load VProc shared object to make symbols global
     hdlvp = dlopen("./VProc.so", RTLD_LAZY | RTLD_GLOBAL);
 
@@ -234,10 +256,10 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
 {
     // Lock mutex as code is critical if accessed from multiple threads
     // for the same node.
-#if defined(ALDEC)
-    acc_mx[node]->lock();
-#else
+#if defined (GHDL)
     acc_mx[node].lock();
+#else
+    acc_mx[node]->lock();
 #endif
 
     int status;
@@ -256,14 +278,12 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     // unlock/destroy the mutex, as GUI runs seem to
     // hold on to the mutex state which hangs a simulation
     // on subsequent runs.
+#if !defined(GHDL)
     if (ns[node]->send_buf.done)
     {
-#if defined(ALDEC)
         delete acc_mx[node];
-#else
-        acc_mx[node].unlock();
-#endif
     }
+#endif
 
     // Wait for response message from simulator
     DebugVPrint("VExch(): waiting for rcv[%d] semaphore\n", node);
@@ -281,10 +301,10 @@ static void VExch (psend_buf_t psbuf, prcv_buf_t prbuf, const uint32_t node)
     ns[node]->last_int = prbuf->interrupt;
 
     // Unlock mutex
-#if defined(ALDEC)
-    acc_mx[node]->unlock();
-#else
+#if defined(GHDL)
     acc_mx[node].unlock();
+#else
+    acc_mx[node]->unlock();
 #endif
 
     DebugVPrint("VExch(): returning to user code from node %d\n", node);
@@ -331,478 +351,351 @@ void VWaitForSim(const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VTransWrite()
+// VTransUserCommon()
 //
-// Invokes an 8-bit write transaction exchange
+// Common 8-bit byte transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-uint8_t VTransWrite (const uint32_t addr, const uint8_t data, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, uint32_t *addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans32_wr_byte;
-    sbuf.addr            = addr;
+    sbuf.type            = trans32_byte;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = rbuf.addr_in;
+
     return rbuf.data_in & 0xffU;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 8-bit read transaction exchange
+// Common 16-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint32_t addr, uint8_t *rdata, const int prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, uint32_t *addr, const uint16_t data,  int* status, int const prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans32_rd_byte;
-    sbuf.addr            = addr;
+    sbuf.type            = trans32_hword;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in & 0xffU;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 16-bit write transaction exchange
-//
-// -------------------------------------------------------------------------
-uint16_t VTransWrite (const uint32_t addr, const uint16_t data, int const prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans32_wr_hword;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = rbuf.addr_in;
+
     return rbuf.data_in & 0xffffU;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 16-bit write transaction exchange
+// Common 32-bit word transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint32_t addr, uint16_t *rdata, const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, uint32_t *addr, const uint32_t data, int* status,  const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans32_rd_hword;
-    sbuf.addr            = addr;
+    sbuf.type            = trans32_word;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in & 0xffffU;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 32-bit write transaction exchange
-//
-// -------------------------------------------------------------------------
-
-uint32_t VTransWrite (const uint32_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans32_wr_word;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint32_t*)sbuf.data) = data;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = rbuf.addr_in;
+
     return rbuf.data_in;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 32-bit write transaction exchange
+// Common 8-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint32_t addr, uint32_t *rdata, const int prot, const uint32_t node)
+uint8_t VTransUserCommon (const int op, uint64_t *addr, const uint8_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans32_rd_word;
-    sbuf.addr            = addr;
+    sbuf.type            = trans64_byte;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 8-bit write transaction exchange (64-bit address)
-//
-// -------------------------------------------------------------------------
-
-uint8_t VTransWrite (const uint64_t addr, const uint8_t data, const int prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans64_wr_byte;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
+
     return rbuf.data_in & 0xffU;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 8-bit read transaction exchange (64-bit address)
+// Common 16-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint64_t addr, uint8_t *rdata, const int prot, const uint32_t node)
+uint16_t VTransUserCommon (const int op, uint64_t *addr, const uint16_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans64_rd_byte;
-    sbuf.addr            = addr;
+    sbuf.type            = trans64_hword;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in & 0xffU;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 16-bit write transaction exchange (64-bit address)
-//
-// -------------------------------------------------------------------------
-
-uint16_t VTransWrite (const uint64_t addr, const uint16_t data, const int prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans64_wr_hword;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
+
     return rbuf.data_in & 0xffffU;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 16-bit read transaction exchange (64-bit address)
+// Common 32-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint64_t addr, uint16_t *rdata, const int prot, const uint32_t node)
+uint32_t VTransUserCommon (const int op, uint64_t *addr, const uint32_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans64_rd_hword;
-    sbuf.addr            = addr;
+    sbuf.type            = trans64_word;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in & 0xffffU;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 32-bit write transaction exchange (64-bit address)
-//
-// -------------------------------------------------------------------------
-
-uint32_t VTransWrite (const uint64_t addr, const uint32_t data, const int prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans64_wr_word;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint32_t*)sbuf.data) = data;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
+
     return rbuf.data_in;
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransUserCommon()
 //
-// Invokes an 32-bit read transaction exchange (64-bit address)
+// Common 64-bit word transaction exchange function (64-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint64_t addr, uint32_t *rdata, const int prot, const uint32_t node)
+uint64_t VTransUserCommon (const int op, uint64_t *addr, const uint64_t data, int* status, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans64_rd_word;
-    sbuf.addr            = addr;
+    sbuf.type            = trans64_dword;
+    sbuf.addr            = *addr;
     sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = rbuf.data_in;
-}
-
-// -------------------------------------------------------------------------
-// VTransWrite()
-//
-// Invokes an 64-bit write transaction exchange (64-bit address)
-//
-// -------------------------------------------------------------------------
-
-uint64_t VTransWrite (const uint64_t addr, const uint64_t data, const int prot, const uint32_t node)
-{
-    rcv_buf_t  rbuf;
-    send_buf_t sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans64_wr_dword;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = WRITE_OP;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     *((uint64_t*)sbuf.data) = data;
 
     VExch(&sbuf, &rbuf, node);
 
+    *status = rbuf.status;
+    *addr   = ((uint64_t)rbuf.addr_in_hi << 32) | ((uint64_t)rbuf.addr_in);
+
     return (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
 }
 
 // -------------------------------------------------------------------------
-// VTransRead()
+// VTransBurstCommon()
 //
-// Invokes an 64-bit read transaction exchange (64-bit address)
+// Common burst transaction exchange function (32-bit address)
 //
 // -------------------------------------------------------------------------
 
-void VTransRead (const uint64_t addr, uint64_t *rdata, const int prot, const uint32_t node)
-{
-    rcv_buf_t    rbuf;
-    send_buf_t   sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans64_rd_dword;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = READ_OP;
-
-    VExch(&sbuf, &rbuf, node);
-
-    *rdata = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
-}
-
-// -------------------------------------------------------------------------
-// VTransBurstWrite()
-//
-// Invokes a write burst transaction exchange (32-bit address)
-// -------------------------------------------------------------------------
-
-void VTransBurstWrite (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+void VTransBurstCommon (const int op, const int param, const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans32_wr_burst;
+    sbuf.type            = trans32_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = WRITE_BURST;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    // Flag when a FIFO fill (or check) operation
+    bool is_fill = param == BURST_INCR || param == BURST_INCR_PUSH || param == BURST_INCR_CHECK ||
+                   param == BURST_RAND || param == BURST_RAND_PUSH || param == BURST_RAND_CHECK;
+
+    // The number of write bytes is either 1, when a fill/check operation (with first bytes),
+    // or none when a pure burst transaction or the same as the bytesize value.
+    int num_of_wr_bytes = is_fill ? 1 : (param == BURST_TRANS) ? 0 : sbuf.num_burst_bytes;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
         sbuf.databuf[idx] = data[idx];
     }
 
     VExch(&sbuf, &rbuf, node);
 
+    if (op == READ_BURST && param != BURST_TRANS && !is_fill)
+    {
+        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+        {
+            data[idx] = rbuf.databuf[idx];
+        }
+    }
+
     return;
 }
 
 // -------------------------------------------------------------------------
-// VTransBurstWrite()
+// VTransBurstCommon()
 //
-// Invokes a write burst transaction exchange (64-bit address)
+// Common burst transaction exchange function (64-bit address)
+//
 // -------------------------------------------------------------------------
 
-void VTransBurstWrite (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+void VTransBurstCommon (const int op, const int param, const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans64_wr_burst;
+    sbuf.type            = trans64_burst;
     sbuf.addr            = addr;
     sbuf.prot            = prot;
-    sbuf.op              = WRITE_BURST;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    // Flag when a FIFO fill (or check) operation
+    bool is_fill = param == BURST_INCR || param == BURST_INCR_PUSH || param == BURST_INCR_CHECK ||
+                   param == BURST_RAND || param == BURST_RAND_PUSH || param == BURST_RAND_CHECK;
+
+    // The number of write bytes is either 1, when a fill/check operation (with first bytes),
+    // or none when a pure burst transaction or the same as the bytesize value.
+    int num_of_wr_bytes = is_fill ? 1  : (param == BURST_TRANS) ? 0 : sbuf.num_burst_bytes;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
         sbuf.databuf[idx] = data[idx];
     }
 
     VExch(&sbuf, &rbuf, node);
 
-    return;
-}
-
-// -------------------------------------------------------------------------
-// VTransBurstRead()
-//
-// Invokes a read burst transaction exchange (32-bit address)
-// -------------------------------------------------------------------------
-
-void VTransBurstRead  (const uint32_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
-{
-    rcv_buf_t    rbuf;
-    send_buf_t   sbuf;
-
-    VInitSendBuf(sbuf);
-
-    sbuf.type            = trans32_rd_burst;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = READ_BURST;
-    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
-
-    VExch(&sbuf, &rbuf, node);
-
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    if (op == READ_BURST && param != BURST_TRANS)
     {
-        data[idx] = rbuf.databuf[idx];
+        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+        {
+            data[idx] = rbuf.databuf[idx];
+        }
     }
 
     return;
 }
 
 // -------------------------------------------------------------------------
-// VTransBurstRead()
+// VTransGetCount
 //
-// Invokes a read burst transaction exchange (64-bit address)
+// Function to return various counts
 // -------------------------------------------------------------------------
 
-void VTransBurstRead  (const uint64_t addr, uint8_t* data, const int bytesize, const int prot, const uint32_t node)
+int VTransGetCount (const int op, const uint32_t node)
 {
-    rcv_buf_t    rbuf;
-    send_buf_t   sbuf;
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = trans64_rd_burst;
-    sbuf.addr            = addr;
-    sbuf.prot            = prot;
-    sbuf.op              = READ_BURST;
-    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     VExch(&sbuf, &rbuf, node);
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
-    {
-        data[idx] = rbuf.databuf[idx];
-    }
+    return rbuf.count;
+
+}
+
+// -------------------------------------------------------------------------
+// VTransTransactionWait
+//
+// Function wait on transactions
+// -------------------------------------------------------------------------
+
+void VTransTransactionWait (const int op, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.op              = (addr_bus_trans_op_t)op;
+
+    VExch(&sbuf, &rbuf, node);
 
     return;
 }
 
 // -------------------------------------------------------------------------
-// VStreamSend()
+// VStreamUserCommon()
 //
-// Invokes an 8-bit send transaction exchange
+// Common 8-bit byte stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
+uint8_t VStreamUserCommon (const int op, const uint8_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -810,7 +703,7 @@ uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_snd_byte;
-    sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
 
     *((uint8_t*)sbuf.data) = data & 0xffU;
@@ -821,13 +714,13 @@ uint8_t VStreamSend (const uint8_t data, const int param, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamUserGetCommon()
 //
-// Invokes an 8-bit read stream transaction exchange
+// Common 8-bit byte stream get transaction exchange
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint8_t *rdata, int *status, const uint8_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -835,22 +728,31 @@ void VStreamGet (uint8_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_byte;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint8_t*)sbuf.data) = wdata & 0xffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamSend()
+// VStreamUserCommon()
 //
-// Invokes an 16-bit send transaction exchange
+// Common 16-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
+uint16_t VStreamUserCommon (const int op, const uint16_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -858,7 +760,7 @@ uint8_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_snd_hword;
-    sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
 
     *((uint16_t*)sbuf.data) = data & 0xffffU;
@@ -869,13 +771,13 @@ uint8_t VStreamSend (const uint16_t data, const int param, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamUserGetCommon()
 //
-// Invokes an 16-bit read stream transaction exchange
+// Common 16-bit word stream get transaction get exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint16_t *rdata, int *status, const uint16_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -883,22 +785,31 @@ void VStreamGet (uint16_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_hword;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint16_t*)sbuf.data) = wdata & 0xffffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamSend()
+// VStreamUserCommon()
 //
-// Invokes an 32-bit send transaction exchange
+// Common 32-bit word stream send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
+uint32_t VStreamUserCommon (const int op, const uint32_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -906,7 +817,7 @@ uint8_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_snd_word;
-    sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
 
     *((uint32_t*)sbuf.data) = data & 0xffffffffU;
@@ -918,13 +829,13 @@ uint8_t VStreamSend (const uint32_t data, const int param, const uint32_t node)
 
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamUserGetCommon()
 //
-// Invokes an 32-bit read stream transaction exchange
+// Common 32-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint32_t *rdata, int *status, const uint32_t wdata, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -932,22 +843,31 @@ void VStreamGet (uint32_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_word;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
+    sbuf.param           = param;
+
+    *((uint32_t*)sbuf.data) = wdata & 0xffffffffU;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata = rbuf.data_in & 0xffffffffU;
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata = rbuf.data_in & 0xffffffffU;
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamSend()
+// VStreamUserCommon()
 //
-// Invokes an 64-bit send transaction exchange
+// Common 64-bit word send/check transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-uint8_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
+uint64_t VStreamUserCommon (const int op, const uint64_t data, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -955,7 +875,7 @@ uint8_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_snd_dword;
-    sbuf.op              = (addr_bus_trans_op_t)SEND;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.param           = param;
 
     *((uint64_t*)sbuf.data) = data;
@@ -966,13 +886,13 @@ uint8_t VStreamSend (const uint64_t data, const int param, const uint32_t node)
 }
 
 // -------------------------------------------------------------------------
-// VStreamGet()
+// VStreamUserGetCommon()
 //
-// Invokes an 64-bit read stream transaction exchange
+// Common 64-bit word stream get transaction exchange function
 //
 // -------------------------------------------------------------------------
 
-void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
+bool VStreamUserGetCommon (int op, uint64_t *rdata, int *status, const uint64_t wdata, const int param,  const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
@@ -980,48 +900,67 @@ void VStreamGet (uint64_t *rdata, int *status, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_dword;
-    sbuf.op              = (addr_bus_trans_op_t)GET;
+    sbuf.op              = (addr_bus_trans_op_t)op;
 
     VExch(&sbuf, &rbuf, node);
 
-    *status = rbuf.status;
-    *rdata  = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+    *((uint64_t*)sbuf.data) = wdata;
+
+
+    if (op != TRY_CHECK)
+    {
+        *status = rbuf.status;
+        *rdata  = (uint64_t)rbuf.data_in | ((uint64_t)rbuf.data_in_hi << 32);
+    }
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamBurstSend()
+// VStreamUserBurstSendCommon()
 //
-// Invokes a send burst transaction exchange )
+// Common function for Send/Check related stream transactions
 // -------------------------------------------------------------------------
 
-void VStreamBurstSend (uint8_t* data, const int bytesize, const uint32_t node)
+bool VStreamUserBurstSendCommon (const int op, const int burst_type, uint8_t* data, const int bytesize, const int param, const uint32_t node)
 {
     rcv_buf_t  rbuf;
     send_buf_t sbuf;
 
     VInitSendBuf(sbuf);
 
-    sbuf.type            = stream_snd_burst;
-    sbuf.op              = (addr_bus_trans_op_t)SEND_BURST;
-    sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+    sbuf.type               = stream_snd_burst;
+    sbuf.op                 = (addr_bus_trans_op_t)op;
+    sbuf.num_burst_bytes    = bytesize % DATABUF_SIZE;
+    sbuf.param              = param;
+    *((uint32_t*)sbuf.data) = burst_type; // Re-use data field of send buffer for burst sub-operation
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    // The number of write bytes is either 1, when a fill/check operation (with first bytes),
+    // or none when a pure burst transaction or the same as the bytesize value.
+    int num_of_wr_bytes = (burst_type == BURST_TRANS)                         ? 0 :
+                          (op == TRY_CHECK_BURST && burst_type != BURST_NORM) ? 1 :
+                                                                                sbuf.num_burst_bytes;
+
+    for (int idx = 0; idx < num_of_wr_bytes; idx++)
     {
         sbuf.databuf[idx] = data[idx];
     }
 
     VExch(&sbuf, &rbuf, node);
 
-    return;
+
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
 }
 
 // -------------------------------------------------------------------------
-// VStreamBurstGet()
+// VStreamUserBurstGetCommon()
 //
-// Invokes a read burst transaction exchange (64-bit address)
+// Common function for Get related stream transactions
 // -------------------------------------------------------------------------
 
-void VStreamBurstGet (uint8_t* data, const int bytesize, const uint32_t node)
+bool VStreamUserBurstGetCommon (const int op, const int param, uint8_t* data, const int bytesize, int* status, const uint32_t node)
 {
     rcv_buf_t    rbuf;
     send_buf_t   sbuf;
@@ -1029,17 +968,47 @@ void VStreamBurstGet (uint8_t* data, const int bytesize, const uint32_t node)
     VInitSendBuf(sbuf);
 
     sbuf.type            = stream_get_burst;
-    sbuf.op              = (addr_bus_trans_op_t)GET_BURST;
+    sbuf.op              = (addr_bus_trans_op_t)op;
     sbuf.num_burst_bytes = bytesize % DATABUF_SIZE;
+    sbuf.param           = param;
 
     VExch(&sbuf, &rbuf, node);
 
-    for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+    *status = rbuf.status;
+
+    // Return data for normal/data transactions, but only if not a try with none available
+    if ((param == BURST_NORM || param == BURST_DATA) && !((stream_operation_t)sbuf.op == TRY_GET_BURST && !rbuf.interrupt))
     {
-        data[idx] = rbuf.databuf[idx];
+        for (int idx = 0; idx < sbuf.num_burst_bytes; idx++)
+        {
+            data[idx] = rbuf.databuf[idx];
+        }
     }
 
-    return;
+    // Return available status (sent back in unused interrupt field)
+    return rbuf.interrupt;
+}
+
+// -------------------------------------------------------------------------
+// VStreamWaitGetCount()
+//
+// Common function for transaction wait and get count operation exchange
+//
+// -------------------------------------------------------------------------
+
+int VStreamWaitGetCount (const int op, const bool txnrx, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.op                = (addr_bus_trans_op_t)op;
+    *((uint32_t*)sbuf.data) = txnrx ? 1 : 0;
+
+    VExch(&sbuf, &rbuf, node);
+
+    return txnrx ? rbuf.countsec : rbuf.count;
 }
 
 // -------------------------------------------------------------------------
@@ -1119,4 +1088,6 @@ void VSetTestName (const char* data, const int bytesize, const uint32_t node)
 
     return;
 }
+
+
 

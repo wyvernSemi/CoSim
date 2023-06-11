@@ -142,7 +142,7 @@ ${USRCODE} ${COSIMCODE}:
                 USRCDIR=${CTESTDIR}                                       \
                 OPDIR=${OPDIR}                                            \
                 EXCLFILE=${MAINSRC}                                       \
-                USRFLAGS="-I./include -L./lib -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
+                USRFLAGS="-I./include -L./lib -DGHDL -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
 
 #
 # Collect all the user objects in VHDL_LIBS and all the relevant objects
