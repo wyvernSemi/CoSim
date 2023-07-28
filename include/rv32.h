@@ -16,6 +16,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    12th July 2021       Earlier version
 //
@@ -49,6 +50,10 @@
 class rv32 : public RV32_TARGET_INHERITANCE_CLASS
 {
 public:
+
+    static const int major_ver = 0;
+    static const int minor_ver = 28;
+
     LIBRISCV32_API rv32(FILE* dbg_fp = stdout) : RV32_TARGET_INHERITANCE_CLASS(dbg_fp)
     {
     };

@@ -16,6 +16,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    12th July 2021       Earlier version
 //
@@ -52,6 +53,19 @@ public:
 
     LIBRISCV32_API void          register_int_callback          (p_rv32i_intcallback_t callback_func) { p_int_callback = callback_func; };
 
+    // Overload run method
+    LIBRISCV32_API int           run(rv32i_cfg_s& cfg)
+    {
+        // Call base run method
+        int rstatus =  rv32i_cpu::run(cfg);
+
+        // Ensure cycle and instruction retired CSR counts are up to date
+        // before returning in case the CSR registers are dumped.
+        update_csr_counts();
+
+        return rstatus;
+    }
+
 private:
     // ------------------------------------------------
     // Private member variables
@@ -62,14 +76,13 @@ private:
 
     rv32i_time_t          interrupt_wakeup_time;
 
-    // Strings for instruiction disassembly
-    static const char mret_str    [DISASSEM_STR_SIZE] ;
-    static const char csrrw_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrs_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrc_str   [DISASSEM_STR_SIZE] ;
-    static const char csrrwi_str  [DISASSEM_STR_SIZE] ;
-    static const char csrrsi_str  [DISASSEM_STR_SIZE] ;
-    static const char csrrci_str  [DISASSEM_STR_SIZE] ;
+    const char mret_str    [DISASSEM_STR_SIZE] = "mret     ";
+    const char csrrw_str   [DISASSEM_STR_SIZE] = "csrrw    ";
+    const char csrrs_str   [DISASSEM_STR_SIZE] = "csrrs    ";
+    const char csrrc_str   [DISASSEM_STR_SIZE] = "csrrc    ";
+    const char csrrwi_str  [DISASSEM_STR_SIZE] = "csrrwi   ";
+    const char csrrsi_str  [DISASSEM_STR_SIZE] = "csrrsi   ";
+    const char csrrci_str  [DISASSEM_STR_SIZE] = "csrrci   ";
 
     // ------------------------------------------------
     // Private member functions
@@ -101,6 +114,9 @@ protected:
 
     // Return write mask (bit set equals writable) for given CSR, with unimplemented status flag
     virtual uint32_t csr_wr_mask         (const uint32_t addr, bool& unimp);
+
+    // Update cycle and instrunction retired CSR register counts
+    void update_csr_counts(void);
 
 };
 

@@ -1,4 +1,4 @@
-// =========================================================================
+/ =========================================================================
 //
 //  File Name:         rv32m_cpu.h
 //  Design Unit Name:
@@ -16,6 +16,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    24th July 2021       Earlier version
 //
@@ -56,14 +57,14 @@ private:
     // Private member variables
     // ------------------------------------------------
 
-    static const char mul_str     [DISASSEM_STR_SIZE];
-    static const char mulh_str    [DISASSEM_STR_SIZE];
-    static const char mulhsu_str  [DISASSEM_STR_SIZE];
-    static const char mulhu_str   [DISASSEM_STR_SIZE];
-    static const char div_str     [DISASSEM_STR_SIZE];
-    static const char divu_str    [DISASSEM_STR_SIZE];
-    static const char rem_str     [DISASSEM_STR_SIZE];
-    static const char remu_str    [DISASSEM_STR_SIZE];
+    const char mul_str     [DISASSEM_STR_SIZE] = "mul      ";
+    const char mulh_str    [DISASSEM_STR_SIZE] = "mulh     ";
+    const char mulhsu_str  [DISASSEM_STR_SIZE] = "mulhsu   ";
+    const char mulhu_str   [DISASSEM_STR_SIZE] = "mulhu    ";
+    const char div_str     [DISASSEM_STR_SIZE] = "div      ";
+    const char divu_str    [DISASSEM_STR_SIZE] = "divu     ";
+    const char rem_str     [DISASSEM_STR_SIZE] = "rem      ";
+    const char remu_str    [DISASSEM_STR_SIZE] = "remu     ";
 
     // ------------------------------------------------
     // Private member functions
