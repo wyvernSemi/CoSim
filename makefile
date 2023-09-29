@@ -139,7 +139,7 @@ CFLAGS             = -fPIC                                 \
 all: ${VPROC_PLI} ${VUSER_PLI}
 
 ${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
-	@${C++} -c ${CFLAGS} ${USRFLAGS} $< -o $@
+	@${C++} ${CPPSTD} -c ${CFLAGS} ${USRFLAGS} $< -o $@
 
 ${VOBJDIR}/%.o: ${USRCDIR}/%.c ${USER_INCL}
 	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
