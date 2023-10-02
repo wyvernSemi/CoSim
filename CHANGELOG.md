@@ -2,8 +2,12 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
+| 2023.??   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
 | 2023.05   | Support for split transactions, responder, streaming and checking
 | 2023.01   | Initial release
+
+## 2023.?? July 2023
+- Updates RISC-V ISS rv32 libraries and include headers for new features and fixes to support running FreeRTOS real-time operating system
 
 ## 2023.05 May 2023
 - Added split transaction methods for address bus model independent manager
