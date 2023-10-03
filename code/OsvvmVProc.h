@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    10/2023   2023.09    Fixes for sync'ing operation enumerated types
 //    05/2023   2023.05    Adding asynchronous transaction support
 //    03/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
@@ -146,6 +147,9 @@ typedef enum addr_bus_trans_op_e
     SET_MODEL_OPTIONS,
     GET_MODEL_OPTIONS,
     
+    EXTEND_DIRECTIVE_OP,
+    EXTEND_OP,
+    
     INTERRUPT_RETURN,
     
     WRITE_OP,
@@ -154,6 +158,8 @@ typedef enum addr_bus_trans_op_e
     ASYNC_WRITE,
     ASYNC_WRITE_ADDRESS,
     ASYNC_WRITE_DATA,
+    
+    EXTEND_WRITE_OP,
     
     READ_OP,
     READ_ADDRESS,
@@ -164,6 +170,8 @@ typedef enum addr_bus_trans_op_e
     ASYNC_READ_ADDRESS,
     ASYNC_READ_DATA,
     ASYNC_READ_DATA_CHECK,
+    
+    EXTEND_READ_OP,
     
     WRITE_AND_READ,
     ASYNC_WRITE_AND_READ,
@@ -190,10 +198,12 @@ typedef enum stream_operation_e
     //GOT_BURST,
     //SET_MODEL_OPTIONS,
     //GET_MODEL_OPTIONS,
-    SEND = 14,
+    SEND = 17,
     SEND_ASYNC,
     SEND_BURST,
     SEND_BURST_ASYNC,
+    EXTEND_TX_OP,
+    START_OF_RX_OPS,
     GET,
     TRY_GET,
     GET_BURST,
@@ -202,9 +212,7 @@ typedef enum stream_operation_e
     TRY_CHECK,
     CHECK_BURST,
     TRY_CHECK_BURST,
-    //MULTIPLE_DRIVER_DETECT,
 
-    //SET_TEST_NAME = 1024
 } stream_operation_t;
 
 typedef enum burst_write_type_e
