@@ -65,8 +65,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & GetTestName & ".txt") ;
---    TranscriptOpen(OSVVM_OUTPUT_DIRECTORY & "TbAb_CoSim.txt") ;
+    TranscriptOpen ;
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
