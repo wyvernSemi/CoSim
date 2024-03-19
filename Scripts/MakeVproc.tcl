@@ -12,12 +12,13 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    03/2024   2024.??    Adding support for python
 #    10/2022   2023.01    Initial version
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+#  Copyright (c) 2022, 2024 by [OSVVM Authors](../AUTHORS.md)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -78,7 +79,7 @@ proc gen_lib_flags {libname} {
 #
 # -------------------------------------------------------------------------
 
-proc mk_vproc_common {testname libname} {
+proc mk_vproc_common {testname libname pythontest} {
 
   # Get the OS that we are running on
   set osname $::osvvm::OperatingSystemName
@@ -106,7 +107,12 @@ proc mk_vproc_common {testname libname} {
     set vendorflags "ALDECDIR=${aldecpath}"
   }
 
-  set flags [ gen_lib_flags ${libname} ]
+  if {"$libname" ne "python"} {
+    set flags [ gen_lib_flags ${libname} ]
+  } else {
+    set flags [exec sh -c "python3-config --includes && echo -n ' ' && python3-config --libs | cut -d' ' -f1" ]
+    set ::env(PYTHONPATH) "$pythontest;$::osvvm::OsvvmCoSimDirectory/PythonApi/modules"
+  }
 
   exec make --no-print-directory -C $::osvvm::OsvvmCoSimDirectory \
             -f $mkfilearg                                         \
@@ -138,19 +144,19 @@ proc mk_vproc_clean {testname} {
 #
 # -------------------------------------------------------------------------
 
-proc MkVproc {testname {libname ""} } {
+proc MkVproc {testname {libname ""} {pythontest ""}} {
 
-  puts "MkVproc $testname $libname"
+  puts "MkVproc $testname $libname $pythontest"
 
-  LocalMkVproc $testname $libname
+  LocalMkVproc $testname $libname $pythontest
 }
 
-proc LocalMkVproc {testname {libname ""} } {
+proc LocalMkVproc {testname libname pythontest} {
 
   set NormTestPathName  [file normalize [file join ${::osvvm::CurrentWorkingDirectory} ${testname}]]
 
   mk_vproc_clean  $NormTestPathName
-  mk_vproc_common $NormTestPathName $libname
+  mk_vproc_common $NormTestPathName $libname $pythontest
 }
 
 # -------------------------------------------------------------------------
