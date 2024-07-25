@@ -2,9 +2,13 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
+| 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg
 | 2023.??   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
 | 2023.05   | Support for split transactions, responder, streaming and checking
 | 2023.01   | Initial release
+
+## 2024.07 July 2024
+- Updated calls to CreateClock for it being moved to ClockResetPkg
 
 ## 2023.?? July 2023
 - Updates RISC-V ISS rv32 libraries and include headers for new features and fixes to support running FreeRTOS real-time operating system
