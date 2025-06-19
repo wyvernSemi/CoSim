@@ -61,7 +61,7 @@ begin
 
     -- Wait for simulation elaboration/initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen("CoSim_axi4_streams.txt") ;
+    TranscriptOpen ; -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset

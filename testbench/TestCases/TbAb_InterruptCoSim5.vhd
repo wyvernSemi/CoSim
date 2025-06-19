@@ -56,7 +56,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen ;
+    TranscriptOpen ; -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -71,7 +71,7 @@ begin
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_InterruptCoSim5.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim5.txt", "") ;
+    -- AffirmIfTranscriptsMatch(PATH_TO_VALIDATED_RESULTS) ;
 
     EndOfTestReports ;
     std.env.stop ;
