@@ -70,11 +70,10 @@ begin
 
     -- Wait for test to finish
     WaitForBarrier(TestDone, 35 ms) ;
-    AlertIf(now >= 35 ms, "Test finished due to timeout") ;
 
     TranscriptClose ;
 
-    EndOfTestReports(ExternalErrors => (0, 0, 0)) ;
+    EndOfTestReports(ExternalErrors => (0, 0, 0), TimeOut => (now >= 35 ms)) ;
     std.env.stop ;
     wait ;
   end process ControlProc ;
