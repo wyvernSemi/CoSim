@@ -57,7 +57,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen("Tb_xMii1.txt") ;
+    TranscriptOpen ;  -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -66,12 +66,10 @@ begin
 
     -- Wait for test to finish
     WaitForBarrier(TestDone, 5 ms) ;
-    AlertIf(now >= 5 ms, "Test finished due to timeout") ;
-    AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     TranscriptClose ;
 
-    EndOfTestReports ;
+    EndOfTestReports(TimeOut => (now >= 5 ms)) ;
     std.env.stop ;
     wait ;
   end process ControlProc ;

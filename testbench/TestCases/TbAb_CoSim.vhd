@@ -65,7 +65,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen ;
+    TranscriptOpen ;  -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -74,14 +74,12 @@ begin
 
     -- Wait for test to finish
     WaitForBarrier(TestDone, 1 ms) ;
-    AlertIf(now >= 1 ms, "Test finished due to timeout") ;
-    AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_CoSim.txt", "../sim_shared/validated_results/TbAb_CoSim.txt", "") ;
+    -- AffirmIfTranscriptsMatch(PATH_TO_VALIDATED_RESULTS) ;
 
-    EndOfTestReports ;
+    EndOfTestReports(TimeOut => (now >= 1 ms)) ;
     std.env.stop ;
     wait ;
   end process ControlProc ;

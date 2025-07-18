@@ -70,7 +70,7 @@ begin
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen(OSVVM_RESULTS_DIR & "TbUart_SendGet1.txt") ;
+    TranscriptOpen ;  -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -79,11 +79,10 @@ begin
 
     -- Wait for test to finish
     WaitForBarrier(TestDone, 10 ms) ;
-    AlertIf(now >= 10 ms, "Test finished due to timeout") ;
 
     TranscriptClose ;
 
-    EndOfTestReports(ReportAll => FALSE) ;
+    EndOfTestReports(TimeOut => (now >= 10 ms)) ;
     std.env.stop ;
     wait ;
   end process ControlProc ;

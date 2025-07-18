@@ -52,14 +52,14 @@ begin
   begin
 
     -- Initialization of test
---    SetTestName("TbAb_InterruptCoSim3") ;
+--    SetTestName("TbAb_InterruptCoSim3") ; -- Done in SW
     SetLogEnable(PASSED, TRUE) ;    -- Enable PASSED logs
     SetLogEnable(INFO, TRUE) ;    -- Enable INFO logs
     SetLogEnable(GetAlertLogID("Memory_1"), INFO, FALSE) ;
 
     -- Wait for testbench initialization
     wait for 0 ns ;  wait for 0 ns ;
-    TranscriptOpen ;
+    TranscriptOpen ;  -- SetTestName done in SW
     SetTranscriptMirror(TRUE) ;
 
     -- Wait for Design Reset
@@ -68,15 +68,12 @@ begin
 
     -- Wait for test to finish
     WaitForBarrier(TestDone, 35 ms) ;
-    AlertIf(now >= 35 ms, "Test finished due to timeout") ;
-    AlertIf(GetAffirmCount < 1, "Test is not Self-Checking");
-
 
     TranscriptClose ;
     -- Printing differs in different simulators due to differences in process order execution
-    -- AlertIfDiff("./results/TbAb_InterruptCoSim3.txt", "../AXI4/Axi4/testbench/validated_results/TbAb_InterruptCoSim3.txt", "") ;
+    -- AffirmIfTranscriptsMatch(PATH_TO_VALIDATED_RESULTS) ;
 
-    EndOfTestReports ;
+    EndOfTestReports(TimeOut => (now >= 35 ms)) ;
     std.env.stop ;
     wait ;
   end process ControlProc ;

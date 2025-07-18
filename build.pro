@@ -1,4 +1,4 @@
-#  File Name:               cosim.pro
+#  File Name:               build.pro
 #  Revision:                OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:              Simon Southwell      simon.southwell@gmail.com
@@ -33,4 +33,4 @@
 #
 
 library    osvvm_cosim
-include    src/CoSim.pro
+include    src
