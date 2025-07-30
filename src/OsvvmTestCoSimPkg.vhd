@@ -14,6 +14,7 @@
 --
 --  Revision History:
 --    Date      Version    Description
+--    07/2025   2025.??    Changes in support of Python interface
 --    05/2023   2023.05    Adding asynchronous, check and try transaction support,
 --                         and added address bus responder functionality.
 --    04/2023   2023.04    Adding basic stream support
@@ -22,7 +23,7 @@
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
+--  Copyright (c) 2023 - 2025 by [OSVVM Authors](../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -315,30 +316,10 @@ package body OsvvmTestCoSimPkg is
     variable IntReq          : in integer := 0 ;
     variable NodeNum         : in integer := 0
   ) is
-    variable UnusedVPData          : integer := 0 ;
-    variable UnusedVPDataHi        : integer := 0 ;
-    variable UnusedVPDataWidth     : integer := 0 ;
-    variable UnusedVPAddr          : integer := 0 ;
-    variable UnusedVPAddrHi        : integer := 0 ;
-    variable UnusedVPAddrWidth     : integer := 0 ;
-    variable UnusedVPOp            : integer := 0 ;
-    variable UnusedVPBurstSize     : integer := 0 ;
-    variable UnusedVPTicks         : integer := 0 ;
-    variable UnusedVPDone          : integer := 0 ;
-    variable UnusedVPError         : integer := 0 ;
-    variable UnusedVPParam         : integer := 0 ;
-    variable UnusedVPStatus        : integer := 0 ;
-    variable UnusedVPCount         : integer := 0 ;
-    variable UnusedVPCountSec      : integer := 0 ;
   begin
 
     -- Call VTrans to generate a new access
-    VTrans(NodeNum,         IntReq,
-           UnusedVPStatus,  UnusedVPCount,     UnusedVPCountSec,
-           UnusedVPData,    UnusedVPDataHi,    UnusedVPDataWidth,
-           UnusedVPAddr,    UnusedVPAddrHi,    UnusedVPAddrWidth,
-           UnusedVPOp,      UnusedVPBurstSize, UnusedVPTicks,
-           UnusedVPDone,    UnusedVPError,     UnusedVPParam) ;
+    VIrqVec(NodeNum, IntReq) ;
 
   end procedure CoSimIrq ;
 

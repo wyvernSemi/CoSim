@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    07/2025   2025.??    Changes in support of Python interface
 //    05/2023   2023.05    Adding support for asynchronous transactions
 //                         and address bus responder transactions
 //    03/2023   2023.04    Adding basic stream support
@@ -23,7 +24,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 - 2025 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -64,6 +65,7 @@ VPROC_RTN_TYPE reg_foreign_procs() {
     int idx;
     vhpiForeignDataT foreignDataArray[] = {
         {vhpiProcF, (char*)"VProc", (char*)"VInit",           NULL, VInit},
+        {vhpiProcF, (char*)"VProc", (char*)"VIrqVec",         NULL, VIrqVec},
         {vhpiProcF, (char*)"VProc", (char*)"VTrans",          NULL, VTrans},
         {vhpiProcF, (char*)"VProc", (char*)"VSetBurstRdByte", NULL, VSetBurstRdByte},
         {vhpiProcF, (char*)"VProc", (char*)"VGetBurstWrByte", NULL, VGetBurstWrByte},
@@ -199,6 +201,7 @@ VPROC_RTN_TYPE VInit (VINIT_PARAMS)
 
 // -------------------------------------------------------------------------
 // VTrans
+//
 // Main routine called whenever VTrans procedure invoked on
 // clock edge of scheduled cycle.
 //
@@ -431,5 +434,32 @@ VPROC_RTN_TYPE VGetBurstWrByte(VGETBURSTWRBYTE_PARAMS)
 #else
     *data = ns[node]->send_buf.databuf[idx % DATABUF_SIZE];
 #endif
+}
+
+// -------------------------------------------------------------------------
+// VIrqVec()
+///
+// Main routine called whenever VIrqVec procedure invoked on
+// clock edge of scheduled cycle.
+//
+// -------------------------------------------------------------------------
+
+VPROC_RTN_TYPE VIrqVec (VIRQVEC_PARAMS)
+{
+#if defined(ALDEC)
+    int node, irq;
+    int args[VIRQVEC_NUM_ARGS];
+
+    getVhpiParams(cb, args, VIRQVEC_NUM_ARGS);
+    
+    int argIdx = 0;
+    node = args[argIdx++];
+    irq  = args[argIdx++];
+#endif
+
+    if (ns[node]->VIntVecCB != NULL)
+    {
+        (*(ns[node]->VIntVecCB))(irq);
+    }
 }
 
