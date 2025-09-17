@@ -13,13 +13,14 @@
 --
 --  Revision History:
 --    Date      Version    Description
+--    07/2025   2025.??    Changes in support of Python interface
 --    05/2023   2023.05    Refactoring to support repsonder and stream functionality
 --    09/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2023 by [OSVVM Authors](../AUTHORS.md)
+--  Copyright (c) 2023 - 2025 by [OSVVM Authors](../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -76,6 +77,12 @@ package OsvvmVprocPkg is
   ) ;
   attribute foreign of VSetBurstRdByte : procedure is "VSetBurstRdByte VProc.so" ;
 
+  procedure VIrqVec (
+    node : in integer ;
+    irq  : in integer
+  ) ;
+  attribute foreign of VIrqVec : procedure is "VIrqVec VProc.so" ;
+
 end ;
 
 package body OsvvmVprocPkg is
@@ -123,6 +130,14 @@ package body OsvvmVprocPkg is
     node      : in  integer ;
     idx       : in  integer ;
     data      : in  integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram out_params not called" ;
+  end ;
+  
+  procedure VIrqVec (
+    node      : in integer ;
+    irq       : in integer
   ) is
   begin
     report "ERROR: foreign subprogram out_params not called" ;
