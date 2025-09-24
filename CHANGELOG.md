@@ -2,10 +2,28 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
+| ????.??   | Added VIrq CoSim procedure
+|           | Updated rv32 RISC-V ISS to v1.2.9
+|           | Added the inclusion of the PCIe C model to CoSim library compilation
 | 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg
 | 2023.??   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
 | 2023.05   | Support for split transactions, responder, streaming and checking
 | 2023.01   | Initial release
+
+## ????.?? September 2025
+- Added a `VIrq` co-simulation procedure, wrapped in a new `CoSimIrq` VHDL procedure,
+  to raise interrupt independent of `CoSimTrans`
+- The rv32 RISC-V instruction set simulator library is updated to verion 1.2.9. New features include:
+  - API access to internal cycle count
+  - Registering of callback functoin on unimplemneted instruction
+  - Internal timing model configurable over API
+  - Generation of software interrupt over external IRQ callback
+  - Support for RV32B standard extensions (Zba, Zbb and Zbs)
+  - Support for RV32_Zbc standard extension
+  - Reading of binary program in addition to ELF support
+- Added the inclusion of the PCIe C model to CoSim library compilation.
+  These new libraries exits in `PCIe/lib`
+
 
 ## 2024.07 July 2024
 - Updated calls to CreateClock for it being moved to ClockResetPkg
@@ -17,7 +35,7 @@
 - Added split transaction methods for address bus model independent manager
 - Added support address bus model independent subordinate/responder
 - Added support for streaming bus model independent transactions
-- Added test data pattren generatoin methods
+- Added test data pattren generation methods
 - Added data check methods
 
 ## 2023.01 January 2023
