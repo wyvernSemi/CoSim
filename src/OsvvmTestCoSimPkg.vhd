@@ -14,7 +14,7 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    07/2025   2025.??    Changes in support of Python interface
+--    07/2025   ????.??    Updated CoSimIrq to use VIrqVec
 --    05/2023   2023.05    Adding asynchronous, check and try transaction support,
 --                         and added address bus responder functionality.
 --    04/2023   2023.04    Adding basic stream support

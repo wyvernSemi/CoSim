@@ -15,7 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    07/2025   2025.??    Changes in support of Python interface
+//    07/2025   ????.??    Adding VIrqVec CoSim procedure
 //    05/2023   2023.05    Refactored VTrans arguments
 //    10/2022   2023.01    Initial revision
 //
