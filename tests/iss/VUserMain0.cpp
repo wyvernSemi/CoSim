@@ -41,7 +41,7 @@ static void reg_dump(rv32* pCpu, FILE* dfp, bool abi_en)
     fprintf(dfp, "\nRegister state:\n\n  ");
 
     // Loop through all the registers
-    for (int idx = 0; idx < RV32I_NUM_OF_REGISTERS; idx++)
+    for (int idx = 0; idx < rv32i_cpu::RV32I_NUM_OF_REGISTERS; idx++)
     {
         // Get the appropriate mapped register name (ABI or x)
         const char* map_str = abi_en ? pCpu->rmap_str[idx] : pCpu->xmap_str[idx];

@@ -16,13 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    12th July 2021       Earlier version
+//    12th Jul  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -45,7 +46,7 @@
 #include "rv32csr_cpu_hdr.h"
 #include RV32CSR_INCLUDE
 
-class rv32csr_cpu : public RV32_ZICSR_INHERITANCE_CLASS
+class rv32csr_cpu : public rv32csr_consts, public RV32_ZICSR_INHERITANCE_CLASS
 {
 public:
              LIBRISCV32_API      rv32csr_cpu      (FILE* dbgfp = stdout);
@@ -57,7 +58,7 @@ public:
     LIBRISCV32_API int           run(rv32i_cfg_s& cfg)
     {
         // Call base run method
-        int rstatus =  rv32i_cpu::run(cfg);
+        int rstatus =  RV32_ZICSR_INHERITANCE_CLASS::run(cfg);
 
         // Ensure cycle and instruction retired CSR counts are up to date
         // before returning in case the CSR registers are dumped.

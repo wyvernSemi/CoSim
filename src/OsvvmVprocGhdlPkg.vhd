@@ -13,13 +13,14 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    05/2023   2023.05    Refactoring to support repsonder and stream functionality
+--    09/2025   ???????    Added VIrqVec
+--    05/2023   2023.05    Refactoring to support responder and stream functionality
 --    09/2022   2023.01    Initial revision
 --
 --
 --  This file is part of OSVVM.
 --
---  Copyright (c) 2022 by [OSVVM Authors](../AUTHORS.md)
+--  Copyright (c) 2022 - 2025 by [OSVVM Authors](../AUTHORS.md)
 --
 --  Licensed under the Apache License, Version 2.0 (the "License");
 --  you may not use this file except in compliance with the License.
@@ -37,7 +38,7 @@
 package OsvvmVprocPkg is
 
   procedure VInit (
-    node : in integer
+    node        : in integer
   ) ;
   attribute foreign of VInit : procedure is "VHPIDIRECT ./VProc.so VInit" ;
 
@@ -63,28 +64,34 @@ package OsvvmVprocPkg is
   attribute foreign of VTrans : procedure is "VHPIDIRECT ./VProc.so VTrans" ;
 
   procedure VGetBurstWrByte (
-    node      : in  integer ;
-    idx       : in  integer ;
-    data      : out integer
+    node        : in  integer ;
+    idx         : in  integer ;
+    data        : out integer
   ) ;
   attribute foreign of VGetBurstWrByte : procedure is "VHPIDIRECT ./VProc.so VGetBurstWrByte" ;
 
   procedure VSetBurstRdByte (
-    node      : in  integer ;
-    idx       : in  integer ;
-    data      : in  integer
+    node        : in  integer ;
+    idx         : in  integer ;
+    data        : in  integer
   ) ;
   attribute foreign of VSetBurstRdByte : procedure is "VHPIDIRECT ./VProc.so VSetBurstRdByte" ;
+
+  procedure VIrqVec (
+    node        : in integer ;
+    irq         : in integer
+  ) ;
+  attribute foreign of VIrqVec : procedure is "VHPIDIRECT ./VProc.so VIrqVec" ;
 
 end ;
 
 package body OsvvmVprocPkg is
 
   procedure VInit (
-    node      : in integer
+    node        : in integer
   ) is
   begin
-    report "ERROR: foreign subprogram out_params not called" ;
+    report "ERROR: foreign subprogram not called" severity error ;
   end ;
 
   procedure VTrans (
@@ -107,7 +114,7 @@ package body OsvvmVprocPkg is
     VPParam     : out   integer
   ) is
   begin
-    report "ERROR: foreign subprogram out_params not called" ;
+    report "ERROR: foreign subprogram not called" severity error ;
   end ;
 
   procedure VGetBurstWrByte (
@@ -116,7 +123,7 @@ package body OsvvmVprocPkg is
     data      : out integer
   ) is
   begin
-    report "ERROR: foreign subprogram out_params not called" ;
+    report "ERROR: foreign subprogram not called" severity error ;
   end ;
 
   procedure VSetBurstRdByte (
@@ -125,7 +132,15 @@ package body OsvvmVprocPkg is
     data      : in  integer
   ) is
   begin
-    report "ERROR: foreign subprogram out_params not called" ;
+    report "ERROR: foreign subprogram not called" severity error ;
+  end ;
+
+  procedure VIrqVec (
+    node      : in integer ;
+    irq       : in integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram not called" severity error ;
   end ;
 
 end;

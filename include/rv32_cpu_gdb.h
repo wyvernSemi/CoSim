@@ -9,16 +9,19 @@
 //    Simon Southwell      simon.southwell@gmail.com
 //
 //  Description:
+//    Header for the gdb remote debug features of the model.
+//
 //    This file is part of the rv32_cpu instruction set simulator.
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    5th August 2021      Earlier version
+//    5th Aug   2021      Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -64,7 +67,7 @@
 // TYPEDEFS (windows)
 // -------------------------------------------------------------------------
 
-// Map the socket type for windows
+// Map the socket type for windows  
 #include <Winsock2.h>
 typedef SOCKET rv32gdb_skt_t;
     
@@ -177,7 +180,7 @@ typedef long long rv32gdb_skt_t;
 // ENUMERATIONS
 // -------------------------------------------------------------------------
 
-// Indexes/IDs of LM32 registers that match GDB's expectations
+// Indexes/IDs of RV32 registers that match GDB's expectations
 enum lm32gdb_regs_e 
 {
   RV32_REG_R0,  RV32_REG_R1,  RV32_REG_R2,  RV32_REG_R3,   

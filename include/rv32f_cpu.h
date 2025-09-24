@@ -16,13 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    26th July 2021       Earlier version
+//    26th Jul  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -92,10 +93,10 @@ protected:
     rv32i_decode_table_t  fs_tbl        [RV32I_NUM_TERTIARY_OPCODES];
 
     // Quarternary table (decoded on funct3 via decode_exception method)
-    rv32i_decode_table_t  fsgnjs_tbl    [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fminmaxs_tbl  [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fcmp_tbl      [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fmv_tbl       [RV32I_NUM_SECONDARY_OPCODES];
+    rv32i_decode_table_t  fsgnjs_tbl    [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fminmaxs_tbl  [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fcmp_tbl      [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fmv_tbl       [RV32I_NUM_QUARTERNARY_OPCODES];
 
 private:
 
@@ -123,19 +124,6 @@ private:
 
     // Handles floating point exceptions
     virtual void handle_fexceptions();
-
-    virtual void decode_exception  (rv32i_decode_table_t*& p_entry, rv32i_decode_t& d)
-    {
-        // Have the possibility of a fourth level decode on funct3
-        if (p_entry->sub_table)
-        {
-            p_entry = &p_entry->ref.p_entry[d.funct3];
-        }
-        else
-        {
-            p_entry = NULL;
-        }
-    }
 
     // ------------------------------------------------
     // Private member functions
@@ -179,6 +167,19 @@ protected:
     void fcvtsw                          (const p_rv32i_decode_t);
     void fmvwx                           (const p_rv32i_decode_t);
     void fmvxw                           (const p_rv32i_decode_t);
+
+    virtual void decode_exception (rv32i_decode_table_t*& p_entry, rv32i_decode_t& d)
+    {
+        // Have the possibility of a fourth level decode on funct3
+        if (p_entry && p_entry->sub_table)
+        {
+            p_entry = &p_entry->ref.p_entry[d.funct3];
+        }
+        else
+        {
+            p_entry = NULL;
+        }
+    }
 };
 
 #endif

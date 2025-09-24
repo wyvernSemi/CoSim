@@ -49,74 +49,91 @@ OPDIR              = .
 USRFLAGS           =
 SIM                = ModelSim
 
-# Derived directory locations
-SRCDIR             = code
-TESTDIR            = ${OPDIR}
-VOBJDIR            = ${TESTDIR}/obj
-
-# VPROC C source code
-VPROC_C            = $(wildcard ${SRCDIR}/*.c*)
-VPROC_C_BASE       = $(notdir $(filter %c, ${VPROC_C}))
-VPROC_CPP_BASE     = $(notdir $(filter %cpp, ${VPROC_C}))
-
-# Test user code
-USER_C             = $(wildcard ${USRCDIR}/*.c*)
-EXCLFILE           =
-USER_CPP_BASE      = $(patsubst ${EXCLFILE},,$(notdir $(filter %cpp, ${USER_C})))
-USER_C_BASE        = $(notdir $(filter %c, ${USER_C}))
-
-SRC_INCL           = $(wildcard ${SRCDIR}/*.h)
-USER_INCL          = $(wildcard ${USRCDIR}/*.h)
-
-VOBJS              = $(addprefix ${VOBJDIR}/, ${VPROC_C_BASE:%.c=%.o} ${VPROC_CPP_BASE:%.cpp=%.o})
-VUOBJS             = $(addprefix ${VOBJDIR}/, ${USER_C_BASE:%.c=%.o}  ${USER_CPP_BASE:%.cpp=%.o})
-
-VPROCLIBSUFFIX     = so
 
 # Get OS type
 OSTYPE:=$(shell uname)
 
+# Derived directory locations
+SRCDIR             = code
+TESTDIR            = $(OPDIR)
+VOBJDIR            = $(TESTDIR)/obj
+PCIEDIR            = ../PCIe
+
+# Derive correct PCIe co-sim library
+ifneq ($(OSTYPE), Linux)
+  ifeq ("$(SIM)", "ModelSim")
+    PCIELIB=pcie_win32
+  else
+    PCIELIB=pcie_win64
+  endif
+else
+  ifeq ("$(SIM)", "ModelSim")
+    PCIELIB=pcie_lnx32
+  else
+    PCIELIB=pcie_lnx64
+  endif
+endif 
+
+# VPROC C source code
+VPROC_C            = $(wildcard $(SRCDIR)/*.c*)
+VPROC_C_BASE       = $(notdir $(filter %c, $(VPROC_C)))
+VPROC_CPP_BASE     = $(notdir $(filter %cpp, $(VPROC_C)))
+
+# Test user code
+USER_C             = $(wildcard $(USRCDIR)/*.c*)
+EXCLFILE           =
+USER_CPP_BASE      = $(patsubst $(EXCLFILE),,$(notdir $(filter %cpp, $(USER_C))))
+USER_C_BASE        = $(notdir $(filter %c, $(USER_C)))
+
+SRC_INCL           = $(wildcard $(SRCDIR)/*.h)
+USER_INCL          = $(wildcard $(USRCDIR)/*.h)
+
+VOBJS              = $(addprefix $(VOBJDIR)/, $(VPROC_C_BASE:%.c=%.o) $(VPROC_CPP_BASE:%.cpp=%.o))
+VUOBJS             = $(addprefix $(VOBJDIR)/, $(USER_C_BASE:%.c=%.o)  $(USER_CPP_BASE:%.cpp=%.o))
+
+VPROCLIBSUFFIX     = so
+
 TOOLFLAGS          = -m64
 
-ifeq ("${SIM}", "QuestaSim")
+ifeq ("$(SIM)", "QuestaSim")
   TOOLFLAGS        += -DSIEMENS
-else ifeq ("${SIM}", "RivieraPRO")
+else ifeq ("$(SIM)", "RivieraPRO")
   ALDECDIR         =  /c/Aldec/Riviera-PRO-2022.10-x64
-  TOOLFLAGS        += -DALDEC -I${ALDECDIR}/interfaces/include
-  ifeq (${OSTYPE}, Linux)
-    TOOLFLAGS      += -L${ALDECDIR}/bin -laldecpli
+  TOOLFLAGS        += -DALDEC -I$(ALDECDIR)/interfaces/include
+  ifeq ($(OSTYPE), Linux)
+    TOOLFLAGS      += -L$(ALDECDIR)/bin -laldecpli
   else
-    TOOLFLAGS      += -L${ALDECDIR}/interfaces/lib -l:aldecpli.lib
+    TOOLFLAGS      += -L$(ALDECDIR)/interfaces/lib -l:aldecpli.lib
   endif
-else ifeq ("${SIM}", "ModelSim")
+else ifeq ("$(SIM)", "ModelSim")
   TOOLFLAGS        = -m32 -DSIEMENS
 endif
 
 RV32EXE            = test.exe
-RV32CMD            = cp ${USRCDIR}/test.exe ${OPDIR}
+RV32CMD            = cp $(USRCDIR)/test.exe $(OPDIR)
 
-ifneq ("$(wildcard ${USRCDIR}/test.exe)", "")
-  RV32TEST = ${RV32EXE}
+ifneq ("$(wildcard $(USRCDIR)/test.exe)", "")
+  RV32TEST = $(RV32EXE)
 else
   RV32TEST = dummy
 endif
 
 # Generated  PLI C library
-VPROC_PLI          = ${OPDIR}/VProc.${VPROCLIBSUFFIX}
-VLIB               = ${TESTDIR}/libvproc.a
+VPROC_PLI          = $(OPDIR)/VProc.$(VPROCLIBSUFFIX)
+VLIB               = $(TESTDIR)/libvproc.a
 
-VUSER_PLI          = ${OPDIR}/VUser.so
-VULIB              = ${TESTDIR}/libvuser.a
+VUSER_PLI          = $(OPDIR)/VUser.so
+VULIB              = $(TESTDIR)/libvuser.a
 
 # Set OS specific variables between Linux and Windows (MinGW)
-ifeq (${OSTYPE}, Linux)
+ifeq ($(OSTYPE), Linux)
   CFLAGS_SO        = -shared -lpthread -lrt -rdynamic
   CPPSTD           = -std=c++11
   WLIB             =
 else
   CFLAGS_SO        = -shared -Wl,-export-all-symbols
   CPPSTD           =
-  WLIB             = -lWs2_32 -l:vproc.${VPROCLIBSUFFIX}
+  WLIB             = -lWs2_32 -l:vproc.$(VPROCLIBSUFFIX)
 endif
 
 # Define the maximum number of supported VProcs in the compile pli library
@@ -125,70 +142,72 @@ MAX_NUM_VPROC      = 16
 CC                 = gcc
 C++                = g++
 CFLAGS             = -fPIC                                 \
-                     ${TOOLFLAGS}                          \
+                     $(TOOLFLAGS)                          \
                      -g                                    \
-                     -I${SRCDIR}                           \
-                     -I${USRCDIR}                          \
-                     -DVP_MAX_NODES=${MAX_NUM_VPROC}       \
-                     -D_REENTRANT
+                     -I$(SRCDIR)                           \
+                     -I$(USRCDIR)                          \
+                     -I$(PCIEDIR)/include                  \
+                     -DVP_MAX_NODES=$(MAX_NUM_VPROC)       \
+                     -DOSVVM
 
 #------------------------------------------------------
 # BUILD RULES
 #------------------------------------------------------
 
-all: ${VPROC_PLI} ${VUSER_PLI}
+all: $(VPROC_PLI) $(VUSER_PLI)
 
-${VOBJDIR}/%.o: ${SRCDIR}/%.cpp ${SRC_INCL}
-	@${C++} ${CPPSTD} -c ${CFLAGS} ${USRFLAGS} $< -o $@
+$(VOBJDIR)/%.o: $(SRCDIR)/%.cpp $(SRC_INCL)
+	@$(C++) $(CPPSTD) -c $(CFLAGS) $(USRFLAGS) $< -o $@
 
-${VOBJDIR}/%.o: ${USRCDIR}/%.c ${USER_INCL}
-	@${CC} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
+$(VOBJDIR)/%.o: $(USRCDIR)/%.c $(USER_INCL)
+	@$(CC) -Wno-write-strings -c $(CFLAGS) $(USRFLAGS) $< -o $@
 
-${VOBJDIR}/%.o: ${USRCDIR}/%.cpp ${USER_INCL}
-	@${C++} ${CPPSTD} -Wno-write-strings -c ${CFLAGS} ${USRFLAGS} $< -o $@
+$(VOBJDIR)/%.o: $(USRCDIR)/%.cpp $(USER_INCL)
+	@$(C++) $(CPPSTD) -Wno-write-strings -c $(CFLAGS) $(USRFLAGS) $< -o $@
 
-${VLIB} : ${VOBJS} ${VOBJDIR}
-	@ar cr ${VLIB} ${VOBJS}
+$(VLIB) : $(VOBJS) $(VOBJDIR)
+	@ar cr $(VLIB) $(VOBJS)
 
-${VULIB} : ${VUOBJS} ${VOBJDIR}
-	@ar cr ${VULIB} ${VUOBJS}
+$(VULIB) : $(VUOBJS) $(VOBJDIR)
+	@ar cr $(VULIB) $(VUOBJS)
 
-${VOBJS}: | ${VOBJDIR}
+$(VOBJS): | $(VOBJDIR)
 
-${VUOBJS}: | ${VOBJDIR}
+$(VUOBJS): | $(VOBJDIR)
 
-${VOBJDIR}:
-	@mkdir ${VOBJDIR}
+$(VOBJDIR):
+	@mkdir $(VOBJDIR)
 
-${OPDIR}:
-	@mkdir ${OPDIR}
+$(OPDIR):
+	@mkdir $(OPDIR)
 
-${RV32EXE}:
-	@${RV32CMD}
+$(RV32EXE):
+	@$(RV32CMD)
 
 .PHONY: dummy
 dummy:
 
-${VPROC_PLI}: ${VLIB}
-	@${C++} ${CPPSTD}                                   \
-            ${CFLAGS_SO}                                \
+$(VPROC_PLI): $(VLIB)
+	@$(C++) $(CPPSTD)                                   \
+            $(CFLAGS_SO)                                \
             -Wl,-whole-archive                          \
-            ${CFLAGS}                                   \
-            -L${TESTDIR} -lvproc                        \
+            $(CFLAGS)                                   \
+            -L$(TESTDIR) -lvproc                        \
+            -L$(PCIEDIR)/lib -l$(PCIELIB)               \
             -Wl,-no-whole-archive                       \
-            ${WLIB}                                     \
+            $(WLIB)                                     \
             -ldl                                        \
             -o $@
 
-${VUSER_PLI}: ${VULIB} ${RV32TEST}
-	@${C++} ${CPPSTD}                                   \
-            ${CFLAGS_SO}                                \
+$(VUSER_PLI): $(VULIB) $(RV32TEST)
+	@$(C++) $(CPPSTD)                                   \
+            $(CFLAGS_SO)                                \
             -Wl,-whole-archive                          \
-            ${CFLAGS}                                   \
-            ${USRFLAGS}                                 \
-            -L${TESTDIR} -lvuser                        \
+            $(CFLAGS)                                   \
+            $(USRFLAGS)                                 \
+            -L$(TESTDIR) -lvuser                        \
             -Wl,-no-whole-archive                       \
-            ${WLIB}                                     \
+            $(WLIB)                                     \
             -ldl                                        \
             -o $@
 
@@ -197,5 +216,5 @@ ${VUSER_PLI}: ${VULIB} ${RV32TEST}
 #------------------------------------------------------
 
 clean:
-	@rm -rf ${VPROC_PLI} ${VUSER_PLI} ${VLIB} ${VULIB} ${VOBJS} ${VOBJDIR} ${RV32EXE}
+	@rm -rf $(VPROC_PLI) $(VUSER_PLI) $(VLIB) $(VULIB) $(VOBJS) $(VOBJDIR) $(RV32EXE)
 

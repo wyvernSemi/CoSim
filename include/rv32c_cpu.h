@@ -9,19 +9,21 @@
 //    Simon Southwell      simon.southwell@gmail.com
 //
 //  Description:
-//    Contains the definitions for the rv32c_cpu derived class
+//    Contains the definitions for the rv32c_cpu derived class for
+//    the compressed instruction standard extensions
 //
 //    This file is part of the base RISC-V instruction set simulator
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    6th September 2021   Earlier version
+//    6th Sep   2021       Earlier version
 //
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. All rights reserved.
+//  Copyright (c) 2021 - 2025 Simon Southwell. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

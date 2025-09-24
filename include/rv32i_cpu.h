@@ -16,13 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    28th June 2021       Earlier version
+//    28th Jun  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -60,7 +61,7 @@
 // Class definition for RISC-V RV32I instruction set simulator model
 // -------------------------------------------------------------------------
 
-class rv32i_cpu
+class rv32i_cpu : public rv32i_consts
 {
 public:
 
@@ -71,7 +72,7 @@ public:
     // Define a class to hold all of the CPU registers. This makes it easier
     // to access all of the state as a single unit for debug purposes, and
     // save & restore features.
-    class rv32i_hart_state
+    class rv32i_hart_state : public rv32i_consts
     {
     public:
 
@@ -105,6 +106,19 @@ public:
     };
 
     // ------------------------------------------------
+    // Public type definitions
+    // ------------------------------------------------
+    enum class timing_index_e {
+        TIMING_LINEAR,
+        TIMING_JUMP,
+        TIMING_LOAD,
+        TIMING_STORE,
+        TIMING_TRAP,
+        TIMING_MUL_DIV,
+        TIMING_FLOAT
+    };
+
+    // ------------------------------------------------
     // Constructors/destructors
     // ------------------------------------------------
 
@@ -122,13 +136,15 @@ public:
 
     // Read executable
     LIBRISCV32_API int         read_elf                       (const char* const filename);
+    LIBRISCV32_API int         read_binary                    (const char *filename, const uint32_t load_addr = 0);
                                                               
     // External direct memory access
     LIBRISCV32_API uint32_t    read_mem                       (const uint32_t byte_addr, const int type, bool &fault);
     LIBRISCV32_API void        write_mem                      (const uint32_t byte_addr, const uint32_t data, const int type, bool &fault);
 
     // Callback function registration
-    LIBRISCV32_API void        register_ext_mem_callback      (p_rv32i_memcallback_t callback_func) { p_mem_callback = callback_func; };
+    LIBRISCV32_API void        register_ext_mem_callback      (p_rv32i_memcallback_t   callback_func) { p_mem_callback   = callback_func; };
+    LIBRISCV32_API void        register_unimp_callback        (p_rv32i_unimpcallback_t callback_func) { p_unimp_callback = callback_func; };
 
     // Reset the cpu (i.e. generate a reset pin assertion event)
     LIBRISCV32_API void        reset_cpu                      (void)                                { reset(); };
@@ -157,6 +173,63 @@ public:
     // Dummy method so compilation works when rv32csr_cpu class not included in inheritance.
     // Will be overloaded by rv32csr_cpu.
     LIBRISCV32_API void          register_int_callback(p_rv32i_intcallback_t callback_func) { };
+
+    // Return cycle count
+    LIBRISCV32_API inline uint64_t clk_cycles() {
+        return cycle_count;
+    }
+
+    // Update timing model values
+    LIBRISCV32_API inline int update_timing (const timing_index_e idx, const uint32_t value)
+    {
+        int diff_default;
+        int error = 0;
+
+        switch (idx)
+        {
+        case timing_index_e::TIMING_LINEAR:
+            diff_default                    = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            RV32I_DEFAULT_INSTR_CYCLE_COUNT = value;
+
+            // If default instruction timing changes, adjust all the relative timings
+            if (diff_default)
+            {
+                RV32I_JUMP_INSTR_EXTRA_CYCLES   -= diff_default;
+                RV32I_BRANCH_TAKEN_EXTRA_CYCLES -= diff_default;
+                RV32I_LOAD_EXTRA_CYCLES         -= diff_default;
+                RV32I_STORE_EXTRA_CYCLES        -= diff_default;
+                RV32I_TRAP_EXTRA_CYCLES         -= diff_default;
+                RV32I_MUL_DIV_EXTRA_CYCLES      -= diff_default;
+                RV32I_FLOAT_EXTRA_CYCLES        -= diff_default;
+            }
+
+          break;
+        case timing_index_e::TIMING_JUMP:
+            RV32I_JUMP_INSTR_EXTRA_CYCLES   = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            RV32I_BRANCH_TAKEN_EXTRA_CYCLES = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        case timing_index_e::TIMING_LOAD:
+            RV32I_LOAD_EXTRA_CYCLES         = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        case timing_index_e::TIMING_STORE:
+            RV32I_STORE_EXTRA_CYCLES        = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        case timing_index_e::TIMING_TRAP:
+            RV32I_TRAP_EXTRA_CYCLES         = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        case timing_index_e::TIMING_MUL_DIV:
+            RV32I_MUL_DIV_EXTRA_CYCLES      = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        case timing_index_e::TIMING_FLOAT:
+            RV32I_FLOAT_EXTRA_CYCLES        = value - RV32I_DEFAULT_INSTR_CYCLE_COUNT;
+            break;
+        default:
+            error++;
+            break;
+        }
+
+        return error;
+    }
 
     // ------------------------------------------------
     // Public member variables
@@ -194,10 +267,19 @@ protected:
     // method can update it on exceptions.
     rv32i_time_t          cycle_count;
 
+    // Timing model definitions
+    int32_t RV32I_DEFAULT_INSTR_CYCLE_COUNT              = 1;
+    int32_t RV32I_JUMP_INSTR_EXTRA_CYCLES                = 3;
+    int32_t RV32I_BRANCH_TAKEN_EXTRA_CYCLES              = 3;
+    int32_t RV32I_TRAP_EXTRA_CYCLES                      = 3;
+    int32_t RV32I_LOAD_EXTRA_CYCLES                      = 2;
+    int32_t RV32I_STORE_EXTRA_CYCLES                     = 2;
+    int32_t RV32I_MUL_DIV_EXTRA_CYCLES                   = 33;
+    int32_t RV32I_FLOAT_EXTRA_CYCLES                     = 3;
+
     // ------------------------------------------------
     // Internal constant definitions
     // ------------------------------------------------
-
 
     // String constants for instruction disassembly
     const char reserved_str[DISASSEM_STR_SIZE] = "reserved ";
@@ -264,7 +346,11 @@ protected:
     // Debug ABI register names enable flag
     bool                  abi_en;
 
+    // Flag to select using cycle count for internal mtime timer model
     bool                  use_cycles_for_mtime;
+
+    // Flag to select using external memory mapped mtime timer model (user provided via external memory access callback)
+    bool                  use_external_timer;
 
     // Holds CSR and HART (pc and regs) state
     rv32i_state           state;
@@ -294,6 +380,7 @@ protected:
     rv32i_decode_table_t  sri_tbl        [RV32I_NUM_TERTIARY_OPCODES];
     rv32i_decode_table_t  srr_tbl        [RV32I_NUM_TERTIARY_OPCODES];
     rv32i_decode_table_t  sll_tbl        [RV32I_NUM_TERTIARY_OPCODES];
+    rv32i_decode_table_t  slli_tbl       [RV32I_NUM_TERTIARY_OPCODES];
     rv32i_decode_table_t  slt_tbl        [RV32I_NUM_TERTIARY_OPCODES];
     rv32i_decode_table_t  sltu_tbl       [RV32I_NUM_TERTIARY_OPCODES];
     rv32i_decode_table_t  xor_tbl        [RV32I_NUM_TERTIARY_OPCODES];
@@ -313,7 +400,7 @@ protected:
     int32_t               trap;
 
     // Internal memory
-    uint8_t               internal_mem   [4*RV32I_INT_MEM_WORDS+4];
+    uint8_t               internal_mem   [RV32I_INT_MEM_BYTES+4];
 
     // Instructions retired count
     rv32i_time_t          instret_count;
@@ -325,8 +412,9 @@ protected:
     char                  str            [NUM_DISASSEM_BUFS][DISASSEM_STR_SIZE];
     int                   str_idx;
 
-    // Pointer to external memory callback function
+    // Pointer to callback functions
     p_rv32i_memcallback_t p_mem_callback;
+    p_rv32i_unimpcallback_t p_unimp_callback;
 
     // Current instruction
     uint32_t              curr_instr;
@@ -353,10 +441,6 @@ protected:
     {
         state.hart[curr_hart].pc = (uint32_t)(state.hart[curr_hart].pc + 4);
     }
-
-    // Place holder virtual methods for overloading with CSR access functionality
-    virtual uint32_t access_csr(const unsigned funct3, const uint32_t addr, const uint32_t rd, const uint32_t value) { return 1;}
-    virtual uint32_t csr_wr_mask(const uint32_t addr, bool& unimp) { unimp = true; return 0;}
 
     // Fetch next instruction. For RV32I, always a simple 32 bit read.
     // Can be overridden to support compressed instructions (RV32C),
@@ -450,10 +534,6 @@ protected:
             return time_point_cast<microseconds>(system_clock::now()).time_since_epoch().count();
         }
     };
-
-    inline uint64_t clk_cycles() {
-        return cycle_count;
-    }
 
     inline uint64_t inst_retired() {
         return instret_count;

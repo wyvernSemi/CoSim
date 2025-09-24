@@ -16,13 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    30th July 2021       Earlier version
+//    30th Jul  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -64,10 +65,10 @@ private:
     rv32i_decode_table_t  fd_tbl        [RV32I_NUM_TERTIARY_OPCODES];
 
     // Quarternary table (decoded on funct3 via decode_exception method)
-    rv32i_decode_table_t  fsgnjd_tbl    [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fminmaxd_tbl  [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fcmpd_tbl     [RV32I_NUM_SECONDARY_OPCODES];
-    rv32i_decode_table_t  fclassd_tbl   [RV32I_NUM_SECONDARY_OPCODES];
+    rv32i_decode_table_t  fsgnjd_tbl    [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fminmaxd_tbl  [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fcmpd_tbl     [RV32I_NUM_QUARTERNARY_OPCODES];
+    rv32i_decode_table_t  fclassd_tbl   [RV32I_NUM_QUARTERNARY_OPCODES];
 
     // ------------------------------------------------
     // Private member variables
@@ -117,19 +118,6 @@ private:
 
     // Handles flotaing point exceptions
     void handle_fexceptions();
-
-    void decode_exception(rv32i_decode_table_t*& p_entry, rv32i_decode_t& d)
-    {
-        // Have the possibility of a fourth level decode on funct3
-        if (p_entry->sub_table)
-        {
-            p_entry = &p_entry->ref.p_entry[d.funct3];
-        }
-        else
-        {
-            p_entry = NULL;
-        }
-    }
 
     double map_uint_to_double(uint64_t& num)
     {

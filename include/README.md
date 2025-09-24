@@ -1,22 +1,29 @@
-The include files in this folder are an abbreviated set of headers for using
-the librv32.a library (Linux) containing the ROSC-V RV32 ISS. The full source
-code is available on github at:
 
-    https://github.com/wyvernSemi/riscV/iss.
+# The _rv32_ RISC-V ISS Model
+
+The include files in this folder are an abbreviated set of headers for using
+the librv32[xxx].a libraries containing the RISC-V RV32 ISS. The full source
+code and [documentation](https://github.com/wyvernSemi/riscV/blob/main/iss/doc/iss_manual.pdf)
+is available on github at:
+
+[https://github.com/wyvernSemi/riscV/tree/main/iss](https://github.com/wyvernSemi/riscV/tree/main/iss)
 
 To use the ISS, the co-simulation code must include rv32.h and link the library
-(-lrv32) in CoSim/lib.
+(`-lrv32`) in `CoSim/lib`.
 
-If the gdb remote target wrapper interface is to be used then rv32_cpu_gdb.h
-must also be included. Then, in place of a call to the model's run() method---
-pCpu->run(cfg)---a call to the gdb wrapper function is made:
+If the gdb remote target wrapper interface is to be used then `rv32_cpu_gdb.h`
+must also be included. Then, in place of a call to the model's `run()` method&mdash;
+`pCpu->run(cfg)`&mdash;a call to the gdb wrapper function is made:
 
-    rv32gdb_process_gdb(pCpu, cfg.gdb_ip_portnum, cfg);
+```
+rv32gdb_process_gdb(pCpu, cfg.gdb_ip_portnum, cfg);
+```
 
 This will open a TCP/IP socket and listen for the gdb remote target connection.
-The makefile in CoSim can be called to link the ISS library as follows (e.g. in
+The `makefile` in the `CoSim` directory can be called to link the ISS library as follows (e.g. in
 a bash script):
 
+```
     #!/bin/bash
     OSVVMDIR=<absolute path>/OsvvmLibraries
     SIMDIR=`pwd`
@@ -25,10 +32,11 @@ a bash script):
             OPDIR=$SIMDIR                \
             USRCDIR=$OSVVMDIR/CoSim/iss  \
             USRFLAGS="-I $OSVVMDIR/CoSim/include -L $OSVVMDIR/CoSim/lib -lrv32"
+```
 
-#### Copyright and License
+## Copyright and License
 
-Copyright (C) 2020 - 2021 by [OSVVM Authors](AUTHORS.md)   
+Copyright &copy; 2020 - 2025 by [OSVVM Authors](AUTHORS.md)   
 
 This file is part of OSVVM.
 

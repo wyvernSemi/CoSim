@@ -9,20 +9,21 @@
 //    Simon Southwell      simon.southwell@gmail.com
 //
 //  Description:
-//    Contains the definitions for the rv32csr_cpu derived class
+//    Contains the definitions for the rv32a_cpu derived class
 //
 //    This file is part of the A extended RISC-V instruction
 //    set simulator (rv32a_cpu).
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????       Update model to v1.2.9
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
-//    26th July 2021       Earlier version
+//    26th Jul  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 Simon Southwell. 
+//  Copyright (c) 2021 - 2025 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -53,7 +54,7 @@ public:
     virtual  LIBRISCV32_API      ~rv32a_cpu()   { };
 
 protected:
-    // Add an AMO instruction secondary table here. Make public to allow
+    // Add an AMO instruction secondary table here. Make protected to allow
     // RV64A instructions to be added in a future derived class.
     rv32i_decode_table_t  amo_tbl        [RV32I_NUM_SECONDARY_OPCODES];
 
