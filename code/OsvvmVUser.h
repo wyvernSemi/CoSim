@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????.??    Added support for Set- & Get- burst mode and model options
 //    05/2023   2023.05    Adding support for Async, Try and Check transactions
 //                         and address bus repsonder
 //    01/2023   2023.01    Initial revision
@@ -122,6 +123,13 @@ extern void      VWaitForSim                    (const uint32_t node = 0);
 
 // OSVVM support function to set the test name
 extern void      VSetTestName                   (const char*    data, const int bytesize, const uint32_t node);
+
+// OSVVM VC Set- and Get- for model options and burst mode
+extern void      VSetModelOptions               (const int option, const int optval, const uint32_t node = 0);
+extern void      VGetModelOptions               (const int option, int  &optval, const uint32_t node = 0);
+extern void      VGetModelOptions               (const int option, bool &optval, const uint32_t node = 0);
+extern void      VSetBurstMode                  (const int mode, const uint32_t node = 0);
+extern int       VGetBurstMode                  (const uint32_t node = 0);
 
 // Overloaded transaction functions for 32 and 64 bit architecture for byte, half-word, word and double-word
 extern uint8_t   VTransUserCommon               (const int op, uint32_t *addr, const uint8_t  data, int* status, const int prot = 0, const uint32_t node = 0);

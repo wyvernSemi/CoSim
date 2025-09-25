@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????.??    Added support for Set- & Get- burst mode and model options
 //    05/2023   2023.05    Adding asynchronous transaction support
 //    03/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
@@ -219,6 +220,12 @@ public:
       void     waitForSim                    (void)                                                                          {VWaitForSim(node);}
 
       int      getNodeNumber                 (void)                                                                          {return node;}
+      
+      void     setModelOptions               (const int option, const int optval)                                            {VSetModelOptions(option, optval, node);}
+      void     getModelOptions               (const int option, int  &optval)                                                {VGetModelOptions(option, optval, node);}
+      void     getModelOptions               (const int option, bool &optval)                                                {VGetModelOptions(option, optval, node);}
+      void     setBurstMode                  (const int mode)                                                                {VSetBurstMode(mode, node);}
+      int      getBurstMode                  ()                                                                              {return VGetBurstMode(node);}
 
 private:
 

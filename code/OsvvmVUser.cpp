@@ -17,6 +17,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2025   ????.??    Added support for Set- & Get- burst mode and model options
 //    05/2023   2023.05    Adding support for Async, Check and Try functionality
 //    04/2023   2023.04    Adding basic stream support
 //    01/2023   2023.01    Initial revision
@@ -1087,6 +1088,114 @@ void VSetTestName (const char* data, const int bytesize, const uint32_t node)
     VExch(&sbuf, &rbuf, node);
 
     return;
+}
+
+// -------------------------------------------------------------------------
+// VSetModelOptions()
+//
+// OSVVM VC SetModelOptions
+// -------------------------------------------------------------------------
+
+void VSetModelOptions (const int option, const int optval, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type           = trans_idle;
+    sbuf.op             = SET_MODEL_OPTIONS;
+    sbuf.param          = option;
+
+    *((int*)sbuf.data)  = optval;
+
+    VExch(&sbuf, &rbuf, node);
+}
+
+// -------------------------------------------------------------------------
+// VGetModelOptions()
+//
+// OSVVM VC GetModelOptions
+// -------------------------------------------------------------------------
+
+void VGetModelOptions (const int option, int &optval, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type           = trans_idle;
+    sbuf.op             = GET_MODEL_OPTIONS;
+    sbuf.param          = option;
+
+    VExch(&sbuf, &rbuf, node);
+
+    // Option value is returned in the count field
+    // containing the IntToModel value.
+    optval = rbuf.count;
+}
+
+void VGetModelOptions (const int option, bool &optval, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type           = trans_idle;
+    sbuf.op             = GET_MODEL_OPTIONS;
+    sbuf.param          = option;
+
+    VExch(&sbuf, &rbuf, node);
+
+    // Option value is returned in the status field
+    // containing the BoolToModel value.
+    optval = rbuf.status;
+}
+
+// -------------------------------------------------------------------------
+// VSetBurstMode()
+//
+// OSVVM VC SetBurstMode
+// -------------------------------------------------------------------------
+
+void VSetBurstMode (const int mode, const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type           = trans_idle;
+    sbuf.op             = SET_BURST_MODE;
+
+    *((int*)sbuf.data)  = mode;
+
+    VExch(&sbuf, &rbuf, node);
+}
+
+// -------------------------------------------------------------------------
+// VGetBurstMode()
+//
+// OSVVM VC GetBurstMode
+// -------------------------------------------------------------------------
+
+int  VGetBurstMode (const uint32_t node)
+{
+    rcv_buf_t  rbuf;
+    send_buf_t sbuf;
+
+    VInitSendBuf(sbuf);
+
+    sbuf.type           = trans_idle;
+    sbuf.op             = GET_BURST_MODE;
+
+    VExch(&sbuf, &rbuf, node);
+
+    // mode value is returned in the count field
+    // containing the IntToModel value.
+    return rbuf.count;
 }
 
 

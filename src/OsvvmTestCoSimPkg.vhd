@@ -14,7 +14,8 @@
 --
 --  Revision History:
 --    Date      Version    Description
---    07/2025   ????.??    Updated CoSimIrq to use VIrqVec
+--    09/2025   ????.??    Updated CoSimIrq to use VIrqVec
+--                         Added support for Set- & Get- burst mode and model options
 --    05/2023   2023.05    Adding asynchronous, check and try transaction support,
 --                         and added address bus responder functionality.
 --    04/2023   2023.04    Adding basic stream support
@@ -365,6 +366,23 @@ package body OsvvmTestCoSimPkg is
         when WAIT_FOR_CLOCK =>
           WaitForClock(ManagerRec, VPTicks) ;
 
+        when SET_MODEL_OPTIONS =>
+          if VPDataOut /= 0 then
+            ManagerRec.BoolToModel <= true;
+          else
+            ManagerRec.BoolToModel <= false;
+          end if;
+          SetModelOptions(ManagerRec, VPParam, VPDataOut) ;
+
+        when GET_MODEL_OPTIONS =>
+          GetModelOptions(ManagerRec, VPParam, RdData(VPDataWidth-1 downto 0)) ;
+
+        when SET_BURST_MODE =>
+          SetBurstMode(ManagerRec, VPDataOut) ;
+
+        when GET_BURST_MODE =>
+          GetBurstMode(ManagerRec, RdDataInt) ;
+
         when READ_OP =>
           Read  (ManagerRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
 
@@ -696,6 +714,23 @@ package body OsvvmTestCoSimPkg is
         when WAIT_FOR_CLOCK =>
           WaitForClock(SubordinateRec, VPTicks) ;
 
+        when SET_MODEL_OPTIONS =>
+          if VPDataOut /= 0 then
+            SubordinateRec.BoolToModel <= true;
+          else
+            SubordinateRec.BoolToModel <= false;
+          end if;
+          SetModelOptions(SubordinateRec, VPParam, VPDataOut) ;
+
+        when GET_MODEL_OPTIONS =>
+          GetModelOptions(SubordinateRec, VPParam, RdData(VPDataWidth-1 downto 0)) ;
+
+        when SET_BURST_MODE =>
+          SetBurstMode(SubordinateRec, VPDataOut) ;
+
+        when GET_BURST_MODE =>
+          GetBurstMode(SubordinateRec, RdDataInt) ;
+
         when WRITE_OP =>
           GetWrite(SubordinateRec, Address(VPAddrWidth-1 downto 0), RdData(VPDataWidth-1 downto 0)) ;
 
@@ -869,6 +904,23 @@ package body OsvvmTestCoSimPkg is
 
         when WAIT_FOR_CLOCK =>
           WaitForClock(TxRec, VPTicks) ;
+
+        when SET_MODEL_OPTIONS =>
+          if VPDataOut /= 0 then
+            TxRec.BoolToModel <= true;
+          else
+            TxRec.BoolToModel <= false;
+          end if;
+          SetModelOptions(TxRec, VPParam, VPDataOut) ;
+
+        when GET_MODEL_OPTIONS =>
+          GetModelOptions(TxRec, VPParam, RdData(VPDataWidth-1 downto 0)) ;
+
+        when SET_BURST_MODE =>
+          SetBurstMode(TxRec, VPDataOut) ;
+
+        when GET_BURST_MODE =>
+          GetBurstMode(TxRec, RdDataInt) ;
 
         when GET =>
           Param := (others => '0') ;

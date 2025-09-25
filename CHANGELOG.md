@@ -5,6 +5,7 @@
 | ????.??   | Added VIrq CoSim procedure
 |           | Updated rv32 RISC-V ISS to v1.2.9
 |           | Added the inclusion of the PCIe C model to CoSim library compilation
+|           | Added support for SetBurstMode, GetBurstMode, SetModelOptions and GetModelOptions
 | 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg
 | 2023.??   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
 | 2023.05   | Support for split transactions, responder, streaming and checking
@@ -23,6 +24,7 @@
   - Reading of binary program in addition to ELF support
 - Added the inclusion of the PCIe C model to CoSim library compilation.
   These new libraries exits in `PCIe/lib`
+- Added support for SetModelOptions and GetModelOptions
 
 
 ## 2024.07 July 2024
@@ -35,7 +37,7 @@
 - Added split transaction methods for address bus model independent manager
 - Added support address bus model independent subordinate/responder
 - Added support for streaming bus model independent transactions
-- Added test data pattren generation methods
+- Added test data pattern generation methods
 - Added data check methods
 
 ## 2023.01 January 2023
