@@ -192,7 +192,7 @@ static void VUserInit (const int node)
 
     // Call user program
     DebugVPrint("VUserInit(): calling VUserMain%d\n", node);
-    VUserMain_func();
+    VUserMain_func(node);
 
     while(true);
 }

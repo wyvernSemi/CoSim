@@ -90,3 +90,50 @@ EXTERN int VRead (unsigned int addr, unsigned int *data, int delta, unsigned int
 
     return 0;
 }
+
+// -------------------------------------------------------------------------
+// VProc style word write function to OSVVM co-sim write transaction call
+// for 64-bits
+// -------------------------------------------------------------------------
+
+uint64_t VWrite64 (uint64_t addr, uint64_t data, int delta, unsigned int node)
+{
+    uint64_t rdata = 0;
+
+    // Check if an OSVVM co-sim API for this node and create if not
+    if (pcie[node] == NULL)
+    {
+        pcie[node] = new OsvvmCosim(node);
+    }
+
+    // Do an asynchronous word write if delta set, else a normal write
+    if (delta)
+    {
+        rdata = pcie[node]->transWriteAsync(addr, data);
+    }
+    else
+    {
+        rdata = pcie[node]->transWrite(addr, data);
+    }
+
+    return rdata;
+}
+
+// -------------------------------------------------------------------------
+// VProc style word read function to OSVVM co-sim read transaction call
+// for 64-bits
+// -------------------------------------------------------------------------
+
+int VRead64(uint64_t addr, uint64_t *data, int delta, unsigned int node)
+{
+    // Check if an OSVVM co-sim API for this node and create if not
+    if (pcie[node] == NULL)
+    {
+        pcie[node] = new OsvvmCosim(node);
+    }
+
+    // Do a word read
+    pcie[node]->transRead(addr, data);
+
+    return 0;
+}

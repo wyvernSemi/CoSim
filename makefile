@@ -58,6 +58,7 @@ SRCDIR             = code
 TESTDIR            = $(OPDIR)
 VOBJDIR            = $(TESTDIR)/obj
 PCIEDIR            = ../PCIe
+LTSSMDIR           = $(PCIEDIR)/ltssm
 
 # Derive correct PCIe co-sim library
 ifneq ($(OSTYPE), Linux)
@@ -79,6 +80,9 @@ VPROC_C            = $(wildcard $(SRCDIR)/*.c*)
 VPROC_C_BASE       = $(notdir $(filter %c, $(VPROC_C)))
 VPROC_CPP_BASE     = $(notdir $(filter %cpp, $(VPROC_C)))
 
+LTSSM_C            = $(wildcard $(LTSSMDIR)/*.c)
+LTSSM_CPP_BASE     = $(notdir $(filter %c, $(LTSSM_C)))
+
 # Test user code
 USER_C             = $(wildcard $(USRCDIR)/*.c*)
 EXCLFILE           =
@@ -87,10 +91,10 @@ USER_C_BASE        = $(notdir $(filter %c, $(USER_C)))
 
 SRC_INCL           = $(wildcard $(SRCDIR)/*.h)
 USER_INCL          = $(wildcard $(USRCDIR)/*.h)
+LTSSM_INCL         = $(wildcard $(LTSSMDIR)/*.h)
 
-VOBJS              = $(addprefix $(VOBJDIR)/, $(VPROC_C_BASE:%.c=%.o) $(VPROC_CPP_BASE:%.cpp=%.o))
+VOBJS              = $(addprefix $(VOBJDIR)/, $(VPROC_C_BASE:%.c=%.o) $(VPROC_CPP_BASE:%.cpp=%.o) $(LTSSM_CPP_BASE:%.c=%.o))
 VUOBJS             = $(addprefix $(VOBJDIR)/, $(USER_C_BASE:%.c=%.o)  $(USER_CPP_BASE:%.cpp=%.o))
-
 VPROCLIBSUFFIX     = so
 
 TOOLFLAGS          = -m64
@@ -137,16 +141,18 @@ else
 endif
 
 # Define the maximum number of supported VProcs in the compile pli library
-MAX_NUM_VPROC      = 16
+MAX_NUM_VPROC      = 64
 
 CC                 = gcc
 C++                = g++
+CCSTD              = -std=c99
 CFLAGS             = -fPIC                                 \
                      $(TOOLFLAGS)                          \
                      -g                                    \
                      -I$(SRCDIR)                           \
                      -I$(USRCDIR)                          \
                      -I$(PCIEDIR)/include                  \
+                     -I$(LTSSMDIR)                         \
                      -DVP_MAX_NODES=$(MAX_NUM_VPROC)       \
                      -DOSVVM
 
@@ -156,6 +162,9 @@ CFLAGS             = -fPIC                                 \
 
 all: $(VPROC_PLI) $(VUSER_PLI)
 
+$(VOBJDIR)/%.o: $(SRCDIR)/%.c $(SRC_INCL)
+	@$(CC) -c $(CCSTD) -c $(CFLAGS) $(USRFLAGS) $< -o $@
+
 $(VOBJDIR)/%.o: $(SRCDIR)/%.cpp $(SRC_INCL)
 	@$(C++) $(CPPSTD) -c $(CFLAGS) $(USRFLAGS) $< -o $@
 
@@ -164,6 +173,9 @@ $(VOBJDIR)/%.o: $(USRCDIR)/%.c $(USER_INCL)
 
 $(VOBJDIR)/%.o: $(USRCDIR)/%.cpp $(USER_INCL)
 	@$(C++) $(CPPSTD) -Wno-write-strings -c $(CFLAGS) $(USRFLAGS) $< -o $@
+    
+$(VOBJDIR)/%.o: $(LTSSMDIR)/%.c $(LTSSM_INCL)
+	@$(CC) -Wno-write-strings -c $(CFLAGS) $(USRFLAGS) $< -o $@
 
 $(VLIB) : $(VOBJS) $(VOBJDIR)
 	@ar cr $(VLIB) $(VOBJS)
