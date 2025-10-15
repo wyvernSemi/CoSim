@@ -220,6 +220,10 @@ void pcieVcInterface::run(void)
                    case SETTRANSMODE:
                        trans_mode = (pcie_trans_mode_t)int_to_model;
                        break;
+                       
+                   case SETRDLCK:
+                       rd_lck = (bool)int_to_model;
+                       break;
 
                    default:
                        VPrint("pcieVcInterface::run : ***ERROR. Unrecognised SET_MODEL_OPTIONS option (%d)\n", option);
@@ -229,6 +233,7 @@ void pcieVcInterface::run(void)
                break;
 
             case WRITE_OP :
+            case ASYNC_WRITE_ADDRESS :
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATATOMODEL, &wdata,      DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
@@ -242,8 +247,21 @@ void pcieVcInterface::run(void)
                 switch(trans_mode)
                 {
                 case MEM_TRANS :
-                    // Do a posted memory write (no completion to wait for
+                    // Do a posted memory write (no completion to wait for)
                     pcie->memWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                    break;
+                    
+                case MSG_TRANS :
+                    if (ASYNC_WRITE_ADDRESS)
+                    {
+                        pcie->message(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                    }
+                    else
+                    {
+                        pcie->message(address, NULL, 0, tag++, rid, false, ep_mode);
+                    }
+                    
+                    
                     break;
                     
                 case CFG_SPC_TRANS :
@@ -258,6 +276,21 @@ void pcieVcInterface::run(void)
                         VPrint("pcieVcInterface::run : ***ERROR. Received bad status (%d) on WRITE_OP\n", cpl_status);
                         error++;
                     }
+                    break;
+                    
+                case IO_TRANS :
+                    pcie->ioWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                    
+                    // Non-posted transaction, so do a wait for the status completion
+                    pcie->waitForCompletion();
+                    
+                    // Flag any bad status
+                    if (cpl_status)
+                    {
+                        VPrint("pcieVcInterface::run : ***WARNING. Received bad status (%d) on WRITE_OP\n", cpl_status);
+                        //error++;
+                    }
+                    
                     break;
                     
                 default :
@@ -282,6 +315,11 @@ void pcieVcInterface::run(void)
                 case CFG_SPC_TRANS :
                     // Instigate a configuration space read
                     pcie->cfgRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
+                    break;
+                    
+                case IO_TRANS :
+                    // Instigate a configuration space read
+                    pcie->ioRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
                     break;
 
                 default :

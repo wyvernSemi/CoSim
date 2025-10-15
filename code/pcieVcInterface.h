@@ -136,6 +136,7 @@ public:
     static constexpr int   SETTRANSMODE       = 1001;
     static constexpr int   INITDLL            = 1002;
     static constexpr int   INITPHY            = 1003;
+    static constexpr int   SETRDLCK           = 1004;
 
     typedef enum pcie_trans_mode_e
     {
@@ -159,6 +160,7 @@ public:
                     ep_mode     = EP_MODE_DISABLED;
 
                     trans_mode  = MEM_TRANS;
+                    rd_lck      = false;
                     tag         = 0;
                     
                     txdatabuf   = new PktData_t[databufsize];
@@ -182,6 +184,7 @@ private:
     unsigned           pipe_mode;
     unsigned           ep_mode;
     pcie_trans_mode_t  trans_mode;
+    bool               rd_lck;
 
     char               sbuf[strbufsize];
     pPktData_t         txdatabuf;
