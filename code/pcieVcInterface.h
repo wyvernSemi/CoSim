@@ -104,6 +104,7 @@ extern "C" {
 #define GETOPTIONS           409
 #define ACKTRANS             410
 #define SETDATAFROMMODEL     411
+#define SETBOOLFROMMODEL     412
 
 // **** If the above values change, also update ../src/PcieVcInterfacePkg.vhd ****
 
@@ -187,6 +188,8 @@ private:
 
     // Buffer for use by input callback
     pPktData_t         rxdatabuf;
+    
+    PktData_t          cpl_status;
 
 };
 
