@@ -47,6 +47,14 @@ extern "C" {
 #ifndef _PCIEVCINTERFACE_H_
 #define _PCIEVCINTERFACE_H_
 
+#ifndef LO_NIBBLE_MASK
+#define LO_NIBBLE_MASK               0x0f
+#endif
+
+#ifndef HI_NIBBLE_MASK
+#define HI_NIBBLE_MASK               0xf0
+#endif
+
 // -------------------------------------------------------------------------
 // DEFINES
 // -------------------------------------------------------------------------
@@ -105,6 +113,8 @@ extern "C" {
 #define ACKTRANS             410
 #define SETDATAFROMMODEL     411
 #define SETBOOLFROMMODEL     412
+#define POPDATA              413
+#define PUSHDATA             414
 
 // **** If the above values change, also update ../src/PcieVcInterfacePkg.vhd ****
 

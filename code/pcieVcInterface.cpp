@@ -38,6 +38,39 @@
 #include "pcieVcInterface.h"
 
 //-------------------------------------------------------------
+// CalcBe()
+//
+// Returns the 8 bit LBE/FBE TLP header field, based on
+// address and byte length.
+//
+//-------------------------------------------------------------
+
+static int CalcBe (const int inaddr, const int byte_len)
+{
+    int val, endpos;
+    int addr = inaddr & 0x3;
+
+    endpos = addr + byte_len;
+
+    // First BE
+    val = (0xf << (addr & 0x3)) & 0xf;
+
+    // Only one double word---combine start and end BEs
+    if (endpos <= 4)
+    {
+        val &= 0xf >> (4-endpos);
+    // More than one DW
+    }
+    else
+    {
+        endpos %= 4;
+        endpos += endpos ? 0 : 4;
+        val |= (0xf0 >> (4-endpos)) & 0xf0;
+    }
+    return val;
+}
+
+//-------------------------------------------------------------
 // VUserInput()
 //
 // Singleton re-entrant wrapper for pcieVcInterface object's
@@ -136,6 +169,10 @@ void pcieVcInterface::run(void)
     unsigned   int_to_model;
     unsigned   option;
 
+    uint32_t   status;
+    uint32_t   be;
+    uint32_t   popdata;
+
     uint64_t   rdata;
     uint64_t   wdata;
     uint64_t   wdatawidth;
@@ -220,7 +257,7 @@ void pcieVcInterface::run(void)
                    case SETTRANSMODE:
                        trans_mode = (pcie_trans_mode_t)int_to_model;
                        break;
-                       
+
                    case SETRDLCK:
                        rd_lck = (bool)int_to_model;
                        break;
@@ -239,7 +276,7 @@ void pcieVcInterface::run(void)
                 VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
 
                 // Place data into a PCIe model byte buffer
-                for (byteidx = 0; byteidx < wdatawidth; byteidx++)
+                for (byteidx = 0; byteidx < wdatawidth/8; byteidx++)
                 {
                     txdatabuf[byteidx] = (wdata >> (byteidx<<3)) & 0xff;
                 }
@@ -250,7 +287,7 @@ void pcieVcInterface::run(void)
                     // Do a posted memory write (no completion to wait for)
                     pcie->memWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
                     break;
-                    
+
                 case MSG_TRANS :
                     if (ASYNC_WRITE_ADDRESS)
                     {
@@ -260,16 +297,14 @@ void pcieVcInterface::run(void)
                     {
                         pcie->message(address, NULL, 0, tag++, rid, false, ep_mode);
                     }
-                    
-                    
                     break;
-                    
+
                 case CFG_SPC_TRANS :
                     pcie->cfgWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
-                    
+
                     // Non-posted transaction, so do a wait for the status completion
                     pcie->waitForCompletion();
-                    
+
                     // Flag any bad status
                     if (cpl_status)
                     {
@@ -277,22 +312,30 @@ void pcieVcInterface::run(void)
                         error++;
                     }
                     break;
-                    
+
                 case IO_TRANS :
                     pcie->ioWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
-                    
+
                     // Non-posted transaction, so do a wait for the status completion
                     pcie->waitForCompletion();
-                    
+
                     // Flag any bad status
                     if (cpl_status)
                     {
                         VPrint("pcieVcInterface::run : ***WARNING. Received bad status (%d) on WRITE_OP\n", cpl_status);
                         //error++;
                     }
-                    
                     break;
-                    
+
+                case CPL_TRANS :
+
+                    status = CPL_SUCCESS;
+                    be     = CalcBe(address, wdatawidth/8);
+
+                    // Do a completion (posted, so nothing to wait for)
+                    pcie->completion(address, txdatabuf, status, (be >> 4) & 0xf, be & 0xf, wdatawidth/32, tag++, false, ep_mode);
+                    break;
+
                 default :
                     VPrint("pcieVcInterface::run : ***ERROR. Unrecognised transaction mode on WRITE_OP (%d)\n", trans_mode);
                     error++;
@@ -311,12 +354,12 @@ void pcieVcInterface::run(void)
                     // Instigate a memory read
                     pcie->memRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
                     break;
-                    
+
                 case CFG_SPC_TRANS :
                     // Instigate a configuration space read
                     pcie->cfgRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
                     break;
-                    
+
                 case IO_TRANS :
                     // Instigate a configuration space read
                     pcie->ioRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
@@ -349,7 +392,48 @@ void pcieVcInterface::run(void)
 
                 // Update transaction record return data
                 VWrite64(SETDATAFROMMODEL, rdata, DELTACYCLE, node);
-                
+
+                break;
+
+            case WRITE_BURST :
+
+                VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
+                VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
+
+                for (int pidx = 0; pidx < wdatawidth; pidx++)
+                {
+                    VRead(POPDATA, &popdata, DELTACYCLE, node);
+                    txdatabuf[pidx] = popdata & 0xff;
+                }
+                pcie->memWrite(address, txdatabuf, wdatawidth, tag++, rid, false, ep_mode);
+                break;
+
+            case READ_BURST :
+
+                VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
+                VRead64(GETDATAWIDTH,   &rdatawidth, DELTACYCLE, node);
+
+                pcie->memRead(address, rdatawidth, tag++, rid, false, ep_mode);
+
+                // Blocking read, so do a wait for the completion
+                pcie->waitForCompletion();
+
+                // If a successful completion returned, extract data
+                if (!cpl_status)
+                {
+                    // Get data
+                    addrlo = address & 0x3ULL;
+                    for (byteidx = 0; byteidx < rdatawidth; byteidx++)
+                    {
+                        VWrite(PUSHDATA, rxdatabuf[byteidx+addrlo], DELTACYCLE, node);
+                    }
+                }
+                else
+                {
+                    rdata = 0;
+                    VWrite(SETBOOLFROMMODEL, 1, DELTACYCLE, node);
+                }
+
                 break;
 
             case WAIT_FOR_CLOCK :
