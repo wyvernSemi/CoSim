@@ -45,7 +45,7 @@
 //
 //-------------------------------------------------------------
 
-static int CalcBe (const int inaddr, const int byte_len)
+static inline int CalcBe (const int inaddr, const int byte_len)
 {
     int val, endpos;
     int addr = inaddr & 0x3;
@@ -68,6 +68,37 @@ static int CalcBe (const int inaddr, const int byte_len)
         val |= (0xf0 >> (4-endpos)) & 0xf0;
     }
     return val;
+}
+
+//--------------------------------------------------------------
+// CalcWordCount()
+//
+// Calculate number of words required
+//
+//-------------------------------------------------------------
+
+static inline int CalcWordCount (const int byte_len, const int be)
+{
+    int num_words, adj_byte_len;
+
+
+    int fbe = be & 0xf;
+    int lbe = (be >> 4) & 0xf;
+
+
+    if (lbe == 0)
+    {
+        num_words = 1;
+    }
+    else
+    {
+        adj_byte_len = byte_len + ((fbe == 0xe) ? 1 : (fbe == 0xc) ? 2 : (fbe == 0x8) ? 3 : 0);
+        num_words = (adj_byte_len/4) + ((adj_byte_len%4) ? 1 : 0);
+
+        DebugVPrint("===> CalcWordCount: fbe = %x lbe = %x byte_len = %d adj_byte_len = %d num_words = %d\n", fbe, lbe, byte_len, adj_byte_len, num_words);
+    }
+
+    return num_words;
 }
 
 //-------------------------------------------------------------
@@ -168,6 +199,7 @@ void pcieVcInterface::run(void)
     unsigned   operation;
     unsigned   int_to_model;
     unsigned   option;
+    unsigned   pad_offset;
 
     uint32_t   status;
     uint32_t   be;
@@ -177,6 +209,7 @@ void pcieVcInterface::run(void)
     uint64_t   wdata;
     uint64_t   wdatawidth;
     uint64_t   rdatawidth;
+    uint64_t   word_len;
     uint64_t   address;
     uint64_t   addrlo;
 
@@ -189,11 +222,13 @@ void pcieVcInterface::run(void)
     DebugVPrint("pcieVcInterface::run: on node %d\n", node);
 
     // Fetch the model parameters
-    VRead(LANESADDR,  &link_width, DELTACYCLE, node);
-    VRead(PIPE_ADDR,  &pipe_mode,  DELTACYCLE, node);
-    VRead(EP_ADDR,    &ep_mode,    DELTACYCLE, node);
-    VRead(REQID_ADDR, &rid,        DELTACYCLE, node);
+    VRead(LANESADDR,    &link_width,  DELTACYCLE, node);
+    VRead(PIPE_ADDR,    &pipe_mode,   DELTACYCLE, node);
+    VRead(EP_ADDR,      &ep_mode,     DELTACYCLE, node);
+    VRead(EN_ECRC_ADDR, &digest_mode, DELTACYCLE, node);
+    VRead(REQID_ADDR,   &rid,         DELTACYCLE, node);
 
+    // When in PIPE mode, disable codec and scrambling
     if (pipe_mode)
     {
         pcie->configurePcie(CONFIG_DISABLE_SCRAMBLING);
@@ -225,49 +260,49 @@ void pcieVcInterface::run(void)
         switch (operation)
         {
             case SET_MODEL_OPTIONS :
-               VRead(GETOPTIONS,    &option,       DELTACYCLE, node);
-               VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+                VRead(GETOPTIONS,    &option,       DELTACYCLE, node);
+                VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
 
-               // If a PCIe C model config option, pass straight to model
-               if (option < VCOPTIONSTART)
-               {
-                   pcie->configurePcie(static_cast<config_t>(option), int_to_model);
-               }
-               else
-               {
-                   switch(option)
-                   {
-                   case ENDMODELRUN:
-                       end = true;
-                       halt = int_to_model;
-                       break;
+                // If a PCIe C model config option, pass straight to model
+                if (option < VCOPTIONSTART)
+                {
+                    pcie->configurePcie(static_cast<config_t>(option), int_to_model);
+                }
+                else
+                {
+                    switch(option)
+                    {
+                    case ENDMODELRUN:
+                        end = true;
+                        halt = int_to_model;
+                        break;
 
-                   // Do PHY layer link training initialisation.
-                   case INITPHY:
-                       InitLink(link_width, node);
-                       break;
+                    // Do PHY layer link training initialisation.
+                    case INITPHY:
+                        InitLink(link_width, node);
+                        break;
 
-                   // Do data link layer flow control initialisation
-                   case INITDLL:
-                       // Initialise flow control
-                       pcie->initFc();
-                       break;
+                    // Do data link layer flow control initialisation
+                    case INITDLL:
+                        // Initialise flow control
+                        pcie->initFc();
+                        break;
 
-                   // Set the transaction layer mode---memory, I/O, config space, completion or message
-                   case SETTRANSMODE:
-                       trans_mode = (pcie_trans_mode_t)int_to_model;
-                       break;
+                    // Set the transaction layer mode---memory, I/O, config space, completion or message
+                    case SETTRANSMODE:
+                        trans_mode = (pcie_trans_mode_t)int_to_model;
+                        break;
 
-                   case SETRDLCK:
-                       rd_lck = (bool)int_to_model;
-                       break;
+                    case SETRDLCK:
+                        rd_lck = (bool)int_to_model;
+                        break;
 
-                   default:
-                       VPrint("pcieVcInterface::run : ***ERROR. Unrecognised SET_MODEL_OPTIONS option (%d)\n", option);
-                       error++;
-                   }
-               }
-               break;
+                    default:
+                        VPrint("pcieVcInterface::run : ***ERROR. Unrecognised SET_MODEL_OPTIONS option (%d)\n", option);
+                        error++;
+                    }
+                }
+                break;
 
             case WRITE_OP :
             case ASYNC_WRITE_ADDRESS :
@@ -285,36 +320,44 @@ void pcieVcInterface::run(void)
                 {
                 case MEM_TRANS :
                     // Do a posted memory write (no completion to wait for)
-                    pcie->memWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                    pcie->memWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, digest_mode);
                     break;
 
                 case MSG_TRANS :
                     if (ASYNC_WRITE_ADDRESS)
                     {
-                        pcie->message(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                        pcie->message(address, txdatabuf, wdatawidth/8, tag++, rid, false, digest_mode);
                     }
                     else
                     {
-                        pcie->message(address, NULL, 0, tag++, rid, false, ep_mode);
+                        pcie->message(address, NULL, 0, tag++, rid, false, digest_mode);
                     }
                     break;
 
                 case CFG_SPC_TRANS :
-                    pcie->cfgWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
-
-                    // Non-posted transaction, so do a wait for the status completion
-                    pcie->waitForCompletion();
-
-                    // Flag any bad status
-                    if (cpl_status)
+                    if (!ep_mode)
                     {
-                        VPrint("pcieVcInterface::run : ***ERROR. Received bad status (%d) on WRITE_OP\n", cpl_status);
+                        pcie->cfgWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, digest_mode);
+
+                        // Non-posted transaction, so do a wait for the status completion
+                        pcie->waitForCompletion();
+
+                        // Flag any bad status
+                        if (cpl_status)
+                        {
+                            VPrint("pcieVcInterface::run : ***ERROR. Received bad status (%d) on WRITE_OP\n", cpl_status);
+                            error++;
+                        }
+                    }
+                    else
+                    {
+                        VPrint("pcieVcInterface::run : ***ERROR. Issuing a configuration space write when an endpoint on WRITE_OP\n");
                         error++;
                     }
                     break;
 
                 case IO_TRANS :
-                    pcie->ioWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, ep_mode);
+                    pcie->ioWrite(address, txdatabuf, wdatawidth/8, tag++, rid, false, digest_mode);
 
                     // Non-posted transaction, so do a wait for the status completion
                     pcie->waitForCompletion();
@@ -329,11 +372,12 @@ void pcieVcInterface::run(void)
 
                 case CPL_TRANS :
 
-                    status = CPL_SUCCESS;
-                    be     = CalcBe(address, wdatawidth/8);
+                    status   = CPL_SUCCESS;
+                    be       = CalcBe(address, wdatawidth/8);
+                    word_len = CalcWordCount(wdatawidth/8, be);
 
                     // Do a completion (posted, so nothing to wait for)
-                    pcie->completion(address, txdatabuf, status, (be >> 4) & 0xf, be & 0xf, wdatawidth/32, tag++, false, ep_mode);
+                    pcie->completion(address, txdatabuf, status, (be >> 4) & 0xf, be & 0xf, word_len, tag++, false, digest_mode);
                     break;
 
                 default :
@@ -352,17 +396,25 @@ void pcieVcInterface::run(void)
                 {
                 case MEM_TRANS :
                     // Instigate a memory read
-                    pcie->memRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
+                    pcie->memRead(address, rdatawidth/8, tag++, rid, false, digest_mode);
                     break;
 
                 case CFG_SPC_TRANS :
-                    // Instigate a configuration space read
-                    pcie->cfgRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
+                    if (!ep_mode)
+                    {
+                        // Instigate a configuration space read
+                        pcie->cfgRead(address, rdatawidth/8, tag++, rid, false, digest_mode);
+                    }
+                    else
+                    {
+                        VPrint("pcieVcInterface::run : ***ERROR. Issuing a configuration space read when an endpoint on READ_OP\n");
+                        error++;
+                    }
                     break;
 
                 case IO_TRANS :
                     // Instigate a configuration space read
-                    pcie->ioRead(address, rdatawidth/8, tag++, rid, false, ep_mode);
+                    pcie->ioRead(address, rdatawidth/8, tag++, rid, false, digest_mode);
                     break;
 
                 default :
@@ -400,12 +452,36 @@ void pcieVcInterface::run(void)
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
 
+                // For completions, the data bytes will start at an offset into the first word, determined
+                // by the address low 2 bits
+                pad_offset = (trans_mode == CPL_TRANS) ? (address & 0x3) : 0;
+
                 for (int pidx = 0; pidx < wdatawidth; pidx++)
                 {
                     VRead(POPDATA, &popdata, DELTACYCLE, node);
-                    txdatabuf[pidx] = popdata & 0xff;
+                    txdatabuf[pidx + pad_offset] = popdata & 0xff;
                 }
-                pcie->memWrite(address, txdatabuf, wdatawidth, tag++, rid, false, ep_mode);
+
+                switch(trans_mode)
+                {
+                case MEM_TRANS :
+                    pcie->memWrite(address, txdatabuf, wdatawidth, tag++, rid, false, digest_mode);
+                    break;
+
+                case CPL_TRANS :
+                    status   = CPL_SUCCESS;
+                    be       = CalcBe(address, wdatawidth);
+                    word_len = CalcWordCount(wdatawidth, be);
+
+                    // Do a completion (posted, so nothing to wait for). Align the address to a word
+                    // boundary and only use the needed lower 7 bits.
+                    pcie->partCompletionDelay(address & CMPL_ADDR_MASK, txdatabuf, status, be & 0xf, (be >> 4) & 0xf, word_len, word_len, tag++, node, rid, false, false, digest_mode);
+                    break;
+
+                default:
+                    break;
+                }
+
                 break;
 
             case READ_BURST :
@@ -413,7 +489,7 @@ void pcieVcInterface::run(void)
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &rdatawidth, DELTACYCLE, node);
 
-                pcie->memRead(address, rdatawidth, tag++, rid, false, ep_mode);
+                pcie->memRead(address, rdatawidth, tag++, rid, false, digest_mode);
 
                 // Blocking read, so do a wait for the completion
                 pcie->waitForCompletion();
@@ -441,23 +517,6 @@ void pcieVcInterface::run(void)
                 pcie->sendIdle(int_to_model);
                 break;
 
-              // Configuration options
-                // Update model configuration
-              // High level actions
-                // Link initialisation
-              // Posted Transactions
-                // Fetch data from transaction
-                // Send transaction
-              // Non-posted transactions
-                // [fetch data from transaction]
-                // Send Transaction [queued]
-              // Completion transactions
-                // [fetch data from transaction]
-                // Send completion
-              // Simulation control commands (delta)
-                // Write to control address
-              //
-
             case SET_BURST_MODE:
                 VPrint("===> SET_BURST_MODE");
                 break;
@@ -468,7 +527,6 @@ void pcieVcInterface::run(void)
                 break;
         }
     }
-
 
     if (error)
     {

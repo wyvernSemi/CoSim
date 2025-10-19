@@ -67,7 +67,7 @@ extern "C" {
 // #define PVH_STOP              -3
 // #define PVH_FINISH            -2
 // #define PVH_FATAL             -1
-// #define                      
+// #define
 // #define LINKADDR0              0
 // #define LINKADDR1              1
 // #define LINKADDR2              2
@@ -84,7 +84,7 @@ extern "C" {
 // #define LINKADDR13            13
 // #define LINKADDR14            14
 // #define LINKADDR15            15
-// #define                      
+// #define
 // #define NODENUMADDR          200
 // #define LANESADDR            201
 // #define PVH_INVERT           202
@@ -127,26 +127,30 @@ class pcieVcInterface
 
 public:
 
-    static constexpr int   DELTACYCLE         =  -1;
-    static constexpr int   CLOCKEDCYCLE       =   0;
-    static constexpr int   PIPE_MODE_ENABLED  =   1;
-    static constexpr int   PIPE_MODE_DISABLED =   0;
-    static constexpr int   EP_MODE_ENABLED    =   1;
-    static constexpr int   EP_MODE_DISABLED   =   0;
-    static constexpr int   strbufsize         = 256;
-    static constexpr int   databufsize        = 4096;
+    static constexpr int   DELTACYCLE            =  -1;
+    static constexpr int   CLOCKEDCYCLE          =   0;
+    static constexpr int   PIPE_MODE_ENABLED     =   1;
+    static constexpr int   PIPE_MODE_DISABLED    =   0;
+    static constexpr int   EP_MODE_ENABLED       =   1;
+    static constexpr int   EP_MODE_DISABLED      =   0;
+    static constexpr int   DIGEST_MODE_ENABLED   =   1;
+    static constexpr int   DIGEST_MODE_DISABLED  =   0;
+    static constexpr int   strbufsize            = 256;
+    static constexpr int   databufsize           = 4096;
 
-    static constexpr int   FREERUNSIM         = 0;
-    static constexpr int   STOPSIM            = 1;
-    static constexpr int   FINISHSIM          = 2;
+    static constexpr int   FREERUNSIM            = 0;
+    static constexpr int   STOPSIM               = 1;
+    static constexpr int   FINISHSIM             = 2;
 
-    static constexpr int   VCOPTIONSTART      = 1000;
-    static constexpr int   ENDMODELRUN        = VCOPTIONSTART;
+    static constexpr int   VCOPTIONSTART         = 1000;
+    static constexpr int   ENDMODELRUN           = VCOPTIONSTART;
 
-    static constexpr int   SETTRANSMODE       = 1001;
-    static constexpr int   INITDLL            = 1002;
-    static constexpr int   INITPHY            = 1003;
-    static constexpr int   SETRDLCK           = 1004;
+    static constexpr int   SETTRANSMODE          = 1001;
+    static constexpr int   INITDLL               = 1002;
+    static constexpr int   INITPHY               = 1003;
+    static constexpr int   SETRDLCK              = 1004;
+
+    static constexpr int   CMPL_ADDR_MASK        = 0x7c;
 
     typedef enum pcie_trans_mode_e
     {
@@ -168,11 +172,12 @@ public:
                     rid         = node;
                     pipe_mode   = PIPE_MODE_DISABLED;
                     ep_mode     = EP_MODE_DISABLED;
+                    digest_mode = DIGEST_MODE_DISABLED;
 
                     trans_mode  = MEM_TRANS;
                     rd_lck      = false;
                     tag         = 0;
-                    
+
                     txdatabuf   = new PktData_t[databufsize];
                     rxdatabuf   = new PktData_t[databufsize];
                 };
@@ -193,6 +198,7 @@ private:
     unsigned           rid;
     unsigned           pipe_mode;
     unsigned           ep_mode;
+    unsigned           digest_mode;
     pcie_trans_mode_t  trans_mode;
     bool               rd_lck;
 
@@ -201,7 +207,7 @@ private:
 
     // Buffer for use by input callback
     pPktData_t         rxdatabuf;
-    
+
     PktData_t          cpl_status;
 
 };
