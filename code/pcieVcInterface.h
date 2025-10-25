@@ -113,8 +113,9 @@ extern "C" {
 #define ACKTRANS             410
 #define SETDATAFROMMODEL     411
 #define SETBOOLFROMMODEL     412
-#define POPDATA              413
-#define PUSHDATA             414
+#define SETINTFROMMODEL      413
+#define POPDATA              414
+#define PUSHDATA             415
 
 // **** If the above values change, also update ../src/PcieVcInterfacePkg.vhd ****
 
@@ -149,8 +150,13 @@ public:
     static constexpr int   INITDLL               = 1002;
     static constexpr int   INITPHY               = 1003;
     static constexpr int   SETRDLCK              = 1004;
+    static constexpr int   SETCMPLRID            = 1005;
+    static constexpr int   SETCMPLCID            = 1006;
+    static constexpr int   SETCMPLTAG            = 1007;
+    static constexpr int   GETLASTCMPLSTATUS     = 1008;
 
     static constexpr int   CMPL_ADDR_MASK        = 0x7c;
+    static constexpr int   CMPL_STATUS_VOID      = 0xffff;
 
     typedef enum pcie_trans_mode_e
     {
@@ -177,6 +183,10 @@ public:
                     trans_mode  = MEM_TRANS;
                     rd_lck      = false;
                     tag         = 0;
+                    cmplrid     = 0;
+                    cmplcid     = 0;
+                    cmpltag     = 0;
+                    cpl_status  = CMPL_STATUS_VOID;
 
                     txdatabuf   = new PktData_t[databufsize];
                     rxdatabuf   = new PktData_t[databufsize];
@@ -201,6 +211,9 @@ private:
     unsigned           digest_mode;
     pcie_trans_mode_t  trans_mode;
     bool               rd_lck;
+    unsigned           cmplrid;
+    unsigned           cmplcid;
+    unsigned           cmpltag;
 
     char               sbuf[strbufsize];
     pPktData_t         txdatabuf;

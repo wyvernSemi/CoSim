@@ -142,7 +142,7 @@ void pcieVcInterface::InputCallback(pPkt_t pkt, int status)
         cpl_status = GET_CPL_STATUS(pkt->data);
 
         // Warn if a bad (non-zero) status
-        if (cpl_status)
+        if (cpl_status != CPL_SUCCESS)
         {
             VPrint("**WARNING: InputCallback() received packet with status %s at node %d. Discarding.\n",
                     (cpl_status == CPL_UNSUPPORTED) ? "UNSUPPORTED" :
@@ -259,6 +259,21 @@ void pcieVcInterface::run(void)
 
         switch (operation)
         {
+            case GET_MODEL_OPTIONS :
+                VRead(GETOPTIONS,    &option,       DELTACYCLE, node);
+                switch (option)
+                {
+                case GETLASTCMPLSTATUS :
+                    VWrite(SETINTFROMMODEL, cpl_status, DELTACYCLE, node);
+                    break;
+                default:
+                    VPrint("pcieVcInterface::run : ***ERROR. Unrecognised GET_MODEL_OPTIONS option (%d)\n", option);
+                    error++;
+                    break;
+                }
+                
+                break;
+                
             case SET_MODEL_OPTIONS :
                 VRead(GETOPTIONS,    &option,       DELTACYCLE, node);
                 VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
@@ -292,6 +307,18 @@ void pcieVcInterface::run(void)
                     case SETTRANSMODE:
                         trans_mode = (pcie_trans_mode_t)int_to_model;
                         break;
+                        
+                    case SETCMPLRID:
+                        cmplrid = int_to_model;
+                        break;
+                        
+                    case SETCMPLCID:
+                        cmplcid = int_to_model;
+                        break;
+                        
+                    case SETCMPLTAG:
+                        cmpltag = int_to_model;
+                        break;
 
                     case SETRDLCK:
                         rd_lck = (bool)int_to_model;
@@ -306,6 +333,7 @@ void pcieVcInterface::run(void)
 
             case WRITE_OP :
             case ASYNC_WRITE_ADDRESS :
+                cpl_status = CMPL_STATUS_VOID;
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATATOMODEL, &wdata,      DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
@@ -377,7 +405,7 @@ void pcieVcInterface::run(void)
                     word_len = CalcWordCount(wdatawidth/8, be);
 
                     // Do a completion (posted, so nothing to wait for)
-                    pcie->completion(address, txdatabuf, status, (be >> 4) & 0xf, be & 0xf, word_len, tag++, false, digest_mode);
+                    pcie->completion(address, txdatabuf, status, (be >> 4) & 0xf, be & 0xf, word_len, cmpltag, cmplcid, cmplrid, false, digest_mode);
                     break;
 
                 default :
@@ -389,6 +417,7 @@ void pcieVcInterface::run(void)
                 break;
 
             case READ_OP :
+                cpl_status = CMPL_STATUS_VOID;
                 VRead64(GETADDRESS,   &address,    DELTACYCLE, node);
                 VRead64(GETDATAWIDTH, &rdatawidth, DELTACYCLE, node);
 
@@ -448,7 +477,7 @@ void pcieVcInterface::run(void)
                 break;
 
             case WRITE_BURST :
-
+                cpl_status = CMPL_STATUS_VOID;
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &wdatawidth, DELTACYCLE, node);
 
@@ -475,7 +504,7 @@ void pcieVcInterface::run(void)
 
                     // Do a completion (posted, so nothing to wait for). Align the address to a word
                     // boundary and only use the needed lower 7 bits.
-                    pcie->partCompletionDelay(address & CMPL_ADDR_MASK, txdatabuf, status, be & 0xf, (be >> 4) & 0xf, word_len, word_len, tag++, node, rid, false, false, digest_mode);
+                    pcie->partCompletionDelay(address & CMPL_ADDR_MASK, txdatabuf, status, be & 0xf, (be >> 4) & 0xf, word_len, word_len, cmpltag, cmplcid, cmplrid, false, false, digest_mode);
                     break;
 
                 default:
@@ -485,7 +514,7 @@ void pcieVcInterface::run(void)
                 break;
 
             case READ_BURST :
-
+                cpl_status = CMPL_STATUS_VOID;
                 VRead64(GETADDRESS,     &address,    DELTACYCLE, node);
                 VRead64(GETDATAWIDTH,   &rdatawidth, DELTACYCLE, node);
 
