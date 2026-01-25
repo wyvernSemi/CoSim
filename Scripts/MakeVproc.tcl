@@ -35,6 +35,22 @@
 namespace eval ::osvvm {
 
 # -------------------------------------------------------------------------
+# AlteraLibArgs
+#
+# Return the library arguments for Altera
+#
+# -------------------------------------------------------------------------
+
+proc AlteraLibArgs {} {
+
+  return "-L work          -L work_lib          -L pcie_cv_hip_avmm_0    -L altera_ver        \
+          -L lpm_ver       -L sgate_ver         -L altera_mf_ver         -L altera_lnsim_ver  \
+          -L cyclonev_ver  -L cyclonev_hssi_ver -L cyclonev_pcie_hip_ver -L altera            \
+          -L lpm           -L sgate             -L altera_mf             -L altera_lnsim      \
+          -L cyclonev      -L cyclonev_hssi"
+}
+
+# -------------------------------------------------------------------------
 # gen_lib_flags
 #
 # Generates the appropriate flags for a given OS if a library was specified
