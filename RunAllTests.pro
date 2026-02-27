@@ -11,7 +11,7 @@
 #
 #  Revision History:
 #    Date      Version   Description
-#    12/2025   ????.??   Adde PCIe tests
+#    12/2025   ????.??   Added PCIe tests
 #    01/2023   2023.01   Relocated testbenches to be under CoSim
 #    10/2022             Compile Script for OSVVM co-sim
 #
@@ -61,11 +61,6 @@ include  ./testbench/TbDpRam/tests.pro
 # Analyze Ethernet testbench and run tests on it
 include ./testbench/TbEthernet
 include ./testbench/TestCases_Ethernet
-
-# Doesn't do any self-checks
-# # Analyze UART testbench and run tests on it
-# include ./testbench/TbUart
-# include ./testbench/TestCases_Uart
 
 # Analyse AxiStream testbench and run tests on it
 include ./testbench/TbAxi4Stream
