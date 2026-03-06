@@ -339,12 +339,12 @@ void pcieVcInterface::run(void)
         DebugVPrint("pcieVcInterface::run: on node %d\n", node);
 
         // Fetch the model generics
-        VRead(LANESADDR,     &link_width,       DELTACYCLE, node);
-        VRead(PIPE_ADDR,     &pipe_mode,        DELTACYCLE, node);
-        VRead(SCRAMBLE_ADDR, &no_scramble_mode, DELTACYCLE, node);
-        VRead(EP_ADDR,       &ep_mode,          DELTACYCLE, node);
-        VRead(EN_ECRC_ADDR,  &digest_mode,      DELTACYCLE, node);
-        VRead(REQID_ADDR,    &rid,              DELTACYCLE, node);
+        VRead(LANESADDR,          &link_width,       DELTACYCLE, node);
+        VRead(DISABLE_8B10B,      &pipe_mode,        DELTACYCLE, node);
+        VRead(DISABLE_SCRAMBLING, &no_scramble_mode, DELTACYCLE, node);
+        VRead(EP_ADDR,            &ep_mode,          DELTACYCLE, node);
+        VRead(EN_ECRC_ADDR,       &digest_mode,      DELTACYCLE, node);
+        VRead(REQID_ADDR,         &rid,              DELTACYCLE, node);
 
         // When in PIPE mode, disable codec
         if (pipe_mode)
@@ -973,7 +973,7 @@ void pcieVcInterface::run(void)
 void pcieVcInterface::runAutoEp()
 {
     unsigned reset_state = 0;
-    unsigned pipe_mode, link_width, init_phy;
+    unsigned init_phy;
 
     // Create an API object for this node
     pcieModelClass* pcie = new pcieModelClass(node);
@@ -985,16 +985,24 @@ void pcieVcInterface::runAutoEp()
     pcie->configurePcie(CONFIG_ENABLE_MEM);
     pcie->configurePcie(CONFIG_ENABLE_UR_CPL);
 
-    // Fetch configuration status
-    VRead(PIPE_ADDR,    &pipe_mode,  pcieVcInterface::DELTACYCLE, node);
-    VRead(LANESADDR,    &link_width, pcieVcInterface::DELTACYCLE, node);
-    VRead(INITPHY_ADDR, &init_phy,   pcieVcInterface::DELTACYCLE, node);
+    // Fetch the model generics
+    VRead(LANESADDR,          &link_width,       DELTACYCLE, node);
+    VRead(DISABLE_8B10B,      &pipe_mode,        DELTACYCLE, node);
+    VRead(DISABLE_SCRAMBLING, &no_scramble_mode, DELTACYCLE, node);
+    VRead(EP_ADDR,            &ep_mode,          DELTACYCLE, node);
+    VRead(EN_ECRC_ADDR,       &digest_mode,      DELTACYCLE, node);
+    VRead(REQID_ADDR,         &rid,              DELTACYCLE, node);
 
-    // Set model into PIPE mode, if requested
+    // When in PIPE mode, disable codec
     if (pipe_mode)
     {
-        pcie->configurePcie(CONFIG_DISABLE_SCRAMBLING);
         pcie->configurePcie(CONFIG_DISABLE_8B10B);
+    }
+    
+    // If configured, disable scrambling
+    if (no_scramble_mode)
+    {
+        pcie->configurePcie(CONFIG_DISABLE_SCRAMBLING);
     }
 
     // Make sure the link is out of electrical idle

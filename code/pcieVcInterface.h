@@ -132,14 +132,15 @@ public:
     // #define             CLK_COUNT                  204
     // #define             LINK_STATE                 205
     // #define             RESET_STATE                206
+    // #define             DISABLE_SCRAMBLING         207
+    // #define             DISABLE_8B10B              208
+    // #define             GEN2_CLK                   209
 
     // Generics address offsets
     static constexpr int   REQID_ADDR            =    300;
-    static constexpr int   PIPE_ADDR             =    301;
     static constexpr int   EN_ECRC_ADDR          =    302;
     static constexpr int   INITPHY_ADDR          =    303;
     static constexpr int   ENABLE_AUTO_ADDR      =    304;
-    static constexpr int   SCRAMBLE_ADDR         =    305;
 
     // Transaction interface options address offsets
     static constexpr int   GETNEXTTRANS          =    400;
