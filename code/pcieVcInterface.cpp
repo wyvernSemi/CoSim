@@ -992,6 +992,7 @@ void pcieVcInterface::runAutoEp()
     VRead(EP_ADDR,            &ep_mode,          DELTACYCLE, node);
     VRead(EN_ECRC_ADDR,       &digest_mode,      DELTACYCLE, node);
     VRead(REQID_ADDR,         &rid,              DELTACYCLE, node);
+    VRead(INITPHY_ADDR,       &init_phy,         DELTACYCLE, node);
 
     // When in PIPE mode, disable codec
     if (pipe_mode)
