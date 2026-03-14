@@ -56,7 +56,8 @@ proc AlteraLibArgsVlog {} {
 }
 
 proc AlteraLibArgsAldec {} {
-  return "-L work       -L pcie_cv_hip_avmm_0                                                   \
+  return "+access+r                      \
+          -L work       -L pcie_cv_hip_avmm_0                                                   \
           -L altera_ver -L altera_mf_ver -L altera_lnsim_ver  -L lpm_ver                        \
           -L sgate_ver  -L cyclonev_ver  -L cyclonev_hssi_ver -L cyclonev_pcie_hip_ver"
 }
