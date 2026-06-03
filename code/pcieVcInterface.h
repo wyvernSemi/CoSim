@@ -185,6 +185,11 @@ public:
     // EXTEND_DIRECTIVE_OP Options
     static constexpr int   INITDLL               =      0;
     static constexpr int   INITPHY               =      1;
+    static constexpr int   GEN_OS                =      2;
+    static constexpr int   GEN_TS                =      3;
+    static constexpr int   GET_EVENT             =      4;
+    static constexpr int   RST_EVENT             =      5;
+    static constexpr int   GET_LANE_TS           =      6;
 
 
     // Internal memory endian control definitions
@@ -225,7 +230,7 @@ public:
 
     // Burst mask definitions
     static constexpr int   BYTE_OFFSET_MASK      =    0x3;
-    
+
     static constexpr int   MAX_TAG               =    256;
 
     // -------------------------------
@@ -347,6 +352,16 @@ public:
         PARAM_REQ_ADDRHI
     } pcie_req_params_t;
 
+    typedef enum pcie_ts_params_e
+    {
+        PARAM_TS_TYPE,
+        PARAM_LINK,
+        PARAM_LANE,
+        PARAM_NFTS,
+        PARAM_GEN,
+        PARAM_CTL
+    } pcie_ts_params_t;
+
     // -------------------------------
     // Public methods
     // -------------------------------
@@ -368,7 +383,7 @@ public:
                     endian_mode      = LITTLE_END;
                     digest_mode      = DIGEST_MODE_DISABLED;
                     no_scramble_mode = SCRAMBLING_ENABLED;
-                    
+
                     cfgspc_offset    = 0;
                     mem_addr         = 0;
                     tag              = 0;

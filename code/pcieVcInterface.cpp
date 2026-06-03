@@ -161,7 +161,7 @@ void pcieVcInterface::InputCallback(pPkt_t pkt, int status)
         // If a successful completion with data, extract the TPL payload data
         else if (pkt->ByteCount)
         {
-            // Size the buffer for the incoming data, plus offset 
+            // Size the buffer for the incoming data, plus offset
             rxbufq.back().rxbuf.resize(pkt->ByteCount + 4);
 
             // Get a pointer to the start of the payload data
@@ -293,6 +293,7 @@ void pcieVcInterface::run(void)
     int                byteidx;
     unsigned           operation;
     unsigned           int_to_model;
+    unsigned           int_from_model;
     unsigned           option;
     int                pad_offset;
 
@@ -317,6 +318,10 @@ void pcieVcInterface::run(void)
     unsigned           cmpltag;
     unsigned           localtag;
     unsigned           enable_auto;
+
+    TS_t               ts_params;
+
+    uint32_t           event_count_buf[16];
 
     VRead(ENABLE_AUTO_ADDR, &enable_auto, DELTACYCLE, node);
 
@@ -351,7 +356,7 @@ void pcieVcInterface::run(void)
         {
             pcie->configurePcie(CONFIG_DISABLE_8B10B);
         }
-        
+
         // If configured, disable scrambling
         if (no_scramble_mode)
         {
@@ -840,6 +845,64 @@ void pcieVcInterface::run(void)
                     pcie->initFc();
                     break;
 
+                // Generate an ordered set
+                case GEN_OS:
+
+                    VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+                    pcie->sendOs(int_to_model);
+                    break;
+
+                // Generate a training sequence
+                case GEN_TS:
+
+                    ts_params.id       = VWrite(GETPARAMS, (uint32_t)PARAM_TS_TYPE, DELTACYCLE, node);
+                    ts_params.linknum  = VWrite(GETPARAMS, (uint32_t)PARAM_LINK,    DELTACYCLE, node);
+                    ts_params.lanenum  = VWrite(GETPARAMS, (uint32_t)PARAM_LANE,    DELTACYCLE, node);
+                    ts_params.n_fts    = VWrite(GETPARAMS, (uint32_t)PARAM_NFTS,    DELTACYCLE, node);
+                    ts_params.datarate = VWrite(GETPARAMS, (uint32_t)PARAM_GEN,     DELTACYCLE, node);
+                    ts_params.control  = VWrite(GETPARAMS, (uint32_t)PARAM_CTL,     DELTACYCLE, node);
+
+                    pcie->sendTs(ts_params.id, ts_params.linknum, ts_params.lanenum, ts_params.n_fts, ts_params.datarate, ts_params.control);
+                    break;
+
+                // Get an OS/TS RX event count
+                case GET_EVENT:
+
+                    VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+
+                    pcie->readEventCount(int_to_model, event_count_buf);
+
+                    VWrite(SETINTFROMMODEL, link_width, DELTACYCLE, node);
+                    for (int lane = 0; lane < link_width; lane++)
+                    {
+                        VWrite(PUSHRDATA, event_count_buf[lane], DELTACYCLE, node);
+                    }
+                    break ;
+
+                // Reset a RX event count
+                case RST_EVENT:
+
+                    VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+
+                    pcie->resetEventCount(int_to_model);
+                    break;
+
+                // Get last received training sequence data for specified lane
+                case GET_LANE_TS:
+
+                    VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+
+                    ts_params = pcie->getTS(int_to_model);
+
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.id      ) | ((uint64_t)PARAM_TS_TYPE << 32), DELTACYCLE, node);
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.linknum ) | ((uint64_t)PARAM_LINK    << 32), DELTACYCLE, node);
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.lanenum ) | ((uint64_t)PARAM_LANE    << 32), DELTACYCLE, node);
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.n_fts   ) | ((uint64_t)PARAM_NFTS    << 32), DELTACYCLE, node);
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.datarate) | ((uint64_t)PARAM_GEN     << 32), DELTACYCLE, node);
+                    VWrite64(SETPARAMS, ((uint64_t)ts_params.control ) | ((uint64_t)PARAM_CTL     << 32), DELTACYCLE, node);
+
+                    break;
+
                 default:
                     VPrint("pcieVcInterface::run : ***ERROR. Unrecognised EXTEND_DIRECTIVE_OP option (%d)\n", option);
                     error++;
@@ -999,7 +1062,7 @@ void pcieVcInterface::runAutoEp()
     {
         pcie->configurePcie(CONFIG_DISABLE_8B10B);
     }
-    
+
     // If configured, disable scrambling
     if (no_scramble_mode)
     {
