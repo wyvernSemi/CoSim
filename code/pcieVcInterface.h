@@ -162,6 +162,8 @@ public:
     static constexpr int   PUSHWDATA             =    416;
     static constexpr int   POPRDATA              =    417;
     static constexpr int   PUSHRDATA             =    418;
+    static constexpr int   PUSHRDATA32           =    419;
+    static constexpr int   POPRDATA32            =    420;
 
     static constexpr int   VCOPTIONSTART         =   1000;
     static constexpr int   ENDMODELRUN           =   VCOPTIONSTART;
@@ -190,7 +192,14 @@ public:
     static constexpr int   GET_EVENT             =      4;
     static constexpr int   RST_EVENT             =      5;
     static constexpr int   GET_LANE_TS           =      6;
-
+    static constexpr int   SEND_DLL_ACK          =      7;
+    static constexpr int   SEND_DLL_NAK          =      8;
+    static constexpr int   SEND_DLL_FC           =      9;
+    static constexpr int   SEND_DLL_PM           =     10;
+    static constexpr int   SEND_DLL_VEND_NODATA  =     11;
+    static constexpr int   SEND_DLL_VEND_DATA    =     12;
+    static constexpr int   TRY_DLL               =     13;
+    static constexpr int   WAIT_FOR_DLL          =     14;
 
     // Internal memory endian control definitions
     static constexpr int   LITTLE_END            =      1;
@@ -253,6 +262,18 @@ public:
     typedef std::queue<CplDataBuf_t> CplDataBufQueue_t;
 
     typedef struct {
+        int      status;
+        unsigned type;
+        unsigned vc;
+        unsigned hdrfc;
+        unsigned datafc;
+        unsigned seqnum;
+        unsigned venddata;
+    } DllBuf_t;
+
+    typedef std::queue<DllBuf_t> DllBufQueue_t;
+
+    typedef struct {
       uint8_t  func;
       uint8_t  dev;
       uint8_t  bus;
@@ -296,9 +317,15 @@ public:
         uint8_t      cfg_reg;
     } ReqBuf_t;
 
+    typedef struct {
+        int          type;
+        int          hdr_credits;
+        int          data_credits;
+        int          vc;
+    } pcie_fc_params_t;
+
     // Receive request queue type
     typedef std::queue<ReqBuf_t> ReqBufQueue_t;
-
 
     // Enumerated type for different TLPs
     typedef enum pcie_trans_mode_e
@@ -362,6 +389,25 @@ public:
         PARAM_CTL
     } pcie_ts_params_t;
 
+    typedef enum pcie_fc_params_idx_e
+    {
+        PARAM_FC_TYPE,
+        PARAM_FC_VC,
+        PARAM_FC_HDR_CREDITS,
+        PARAM_FC_DATA_CREDITS
+    } pcie_fc_params_idx_t;
+    
+    typedef enum pcie_rx_dll_param_idx_e 
+    {
+        PARAM_DLLP_TYPE,
+        PARAM_DLLP_STATUS,
+        PARAM_DLLP_VC,
+        PARAM_DLLP_HDR_CREDITS,
+        PARAM_DLLP_DATA_CREDITS,
+        PARAM_DLLP_SEQ_NUM,
+        PARAM_DLLP_VEND_DATA
+    } pcie_rx_dll_param_idx__t;
+
     // -------------------------------
     // Public methods
     // -------------------------------
@@ -424,7 +470,11 @@ private:
     // Queue for completion RX buffers, for use by input callback
     CplDataBufQueue_t  rxbufq;
 
+    // Queue for arriving TLP requests, for use in input callback
     ReqBufQueue_t      reqbufq;
+
+    // Queue for arriving DLLP packets,  for use by input callback
+    DllBufQueue_t      dllbufq;
 
     // -------------------------------
     // Private methods
