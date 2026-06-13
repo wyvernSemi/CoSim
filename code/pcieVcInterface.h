@@ -198,8 +198,8 @@ public:
     static constexpr int   SEND_DLL_PM           =     10;
     static constexpr int   SEND_DLL_VEND_NODATA  =     11;
     static constexpr int   SEND_DLL_VEND_DATA    =     12;
-    static constexpr int   TRY_DLL               =     13;
-    static constexpr int   WAIT_FOR_DLL          =     14;
+    static constexpr int   WAIT_FOR_DLL          =     13;
+    static constexpr int   TRY_DLL               =     14;
 
     // Internal memory endian control definitions
     static constexpr int   LITTLE_END            =      1;
@@ -396,8 +396,8 @@ public:
         PARAM_FC_HDR_CREDITS,
         PARAM_FC_DATA_CREDITS
     } pcie_fc_params_idx_t;
-    
-    typedef enum pcie_rx_dll_param_idx_e 
+
+    typedef enum pcie_rx_dll_param_idx_e
     {
         PARAM_DLLP_TYPE,
         PARAM_DLLP_STATUS,
