@@ -907,19 +907,16 @@ void pcieVcInterface::run(void)
                 case WAIT_FOR_DLL:
                 case TRY_DLL:
 
-                    VRead(GETOPTIONS,    &option,       DELTACYCLE, node);
-
-                    switch (option)
+                    if (option == WAIT_FOR_DLL)
                     {
-                    case WAIT_FOR_DLL:
-                        // Blocking, so wait for something in the request buffer queue
+                        // Blocking, so wait for something in the dll buffer queue
                         while (dllbufq.empty())
                         {
-                            SendIdle(1, node);
+                            pcie->sendIdle(1);
                         }
-                        break;
-
-                    case TRY_DLL:
+                    }
+                    else
+                    {
                         if (dllbufq.empty())
                         {
                             VWrite(SETBOOLFROMMODEL, 0, DELTACYCLE, node);
@@ -928,12 +925,6 @@ void pcieVcInterface::run(void)
                         {
                             VWrite(SETBOOLFROMMODEL, 1, DELTACYCLE, node);
                         }
-                        break;
-
-                    default:
-                        VPrint("pcieVcInterface::run : ***ERROR. Unrecognised EXTEND_DIRECTIVE_OP option (%d)\n", option);
-                        error++;
-                        break;
                     }
 
                     if (!dllbufq.empty())
