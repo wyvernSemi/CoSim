@@ -242,6 +242,8 @@ public:
     static constexpr int   BYTE_OFFSET_MASK      =    0x3;
 
     static constexpr int   MAX_TAG               =    256;
+    
+    static constexpr int   NO_TRANS_AVAIL        = 0xffffffff;
 
     // -------------------------------
     // Class type definitions
@@ -387,8 +389,15 @@ public:
         PARAM_LANE,
         PARAM_NFTS,
         PARAM_GEN,
-        PARAM_CTL
+        PARAM_CTL,
+        PARAM_TS_COUNT
     } pcie_ts_params_t;
+    
+    typedef enum pcie_os_params_e
+    {
+        PARAM_OS_TYPE,
+        PARAM_OS_COUNT
+    } pcie_os_params_t;
 
     typedef enum pcie_fc_params_idx_e
     {

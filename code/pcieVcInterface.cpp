@@ -334,6 +334,8 @@ void pcieVcInterface::run(void)
     unsigned              enable_auto;
 
     TS_t                  ts_params;
+    int                   ts_os_count;
+    int                   os_type;
     pcie_fc_params_t      fc_params;
 
     uint32_t              event_count_buf[16];
@@ -397,8 +399,16 @@ void pcieVcInterface::run(void)
             // Ack transaction
             VWrite(ACKTRANS, 1, DELTACYCLE, node);
 
-            // Check if there is a new transaction (delta)
-            VRead(GETNEXTTRANS, &operation, DELTACYCLE, node);
+            // Fetch a new transaction (delta) and send idles while none available
+            do
+            {
+                VRead(GETNEXTTRANS, &operation, DELTACYCLE, node);
+                
+                if (operation == NO_TRANS_AVAIL)
+                {
+                    pcie->sendIdle();
+                }
+            } while (operation == NO_TRANS_AVAIL) ;
 
             // Make sure the tag is at a valid value
             if (tag >= MAX_TAG)
@@ -947,27 +957,36 @@ void pcieVcInterface::run(void)
                 // Generate an ordered set
                 case GEN_OS:
 
-                    VRead(GETINTTOMODEL, &int_to_model, DELTACYCLE, node);
+                    os_type      = VWrite(GETPARAMS, (uint32_t)PARAM_OS_TYPE,  DELTACYCLE, node);
+                    ts_os_count  = VWrite(GETPARAMS, (uint32_t)PARAM_OS_COUNT, DELTACYCLE, node);
 
-                    pcie->sendOs(int_to_model);
+                    for (int numos = 0; numos < ts_os_count; numos++)
+                    {
+                        pcie->sendOs(os_type);
+                    }
                     break;
 
                 // Generate a training sequence
                 case GEN_TS:
 
-                    ts_params.id       = VWrite(GETPARAMS, (uint32_t)PARAM_TS_TYPE, DELTACYCLE, node);
-                    ts_params.linknum  = VWrite(GETPARAMS, (uint32_t)PARAM_LINK,    DELTACYCLE, node);
-                    ts_params.lanenum  = VWrite(GETPARAMS, (uint32_t)PARAM_LANE,    DELTACYCLE, node);
-                    ts_params.n_fts    = VWrite(GETPARAMS, (uint32_t)PARAM_NFTS,    DELTACYCLE, node);
-                    ts_params.datarate = VWrite(GETPARAMS, (uint32_t)PARAM_GEN,     DELTACYCLE, node);
-                    ts_params.control  = VWrite(GETPARAMS, (uint32_t)PARAM_CTL,     DELTACYCLE, node);
+                    ts_params.id       = VWrite(GETPARAMS, (uint32_t)PARAM_TS_TYPE,  DELTACYCLE, node);
+                    ts_params.linknum  = VWrite(GETPARAMS, (uint32_t)PARAM_LINK,     DELTACYCLE, node);
+                    ts_params.lanenum  = VWrite(GETPARAMS, (uint32_t)PARAM_LANE,     DELTACYCLE, node);
+                    ts_params.n_fts    = VWrite(GETPARAMS, (uint32_t)PARAM_NFTS,     DELTACYCLE, node);
+                    ts_params.datarate = VWrite(GETPARAMS, (uint32_t)PARAM_GEN,      DELTACYCLE, node);
+                    ts_params.control  = VWrite(GETPARAMS, (uint32_t)PARAM_CTL,      DELTACYCLE, node);
 
-                    pcie->sendTs(ts_params.id,
-                                 ts_params.linknum,
-                                 ts_params.lanenum,
-                                 ts_params.n_fts,
-                                 ts_params.control,
-                                 ts_params.datarate);
+                    ts_os_count        = VWrite(GETPARAMS, (uint32_t)PARAM_TS_COUNT, DELTACYCLE, node);
+
+                    for (int numts = 0; numts < ts_os_count; numts++)
+                    {
+                        pcie->sendTs(ts_params.id,
+                                     ts_params.linknum,
+                                     ts_params.lanenum,
+                                     ts_params.n_fts,
+                                     ts_params.control,
+                                     ts_params.datarate);
+                    }
                     break;
 
                 // Get an OS/TS RX event count
