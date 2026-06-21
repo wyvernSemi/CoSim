@@ -15,7 +15,7 @@
 ## ????.?? June 2026
 - Added support for DLL and PHY traffic generation over MIT for PCIe VC with
   new commands to both generate and receive DLL packets and generated PHY TS/OS
-  traffic and retrived TS/OS RX event counts.
+  traffic and retrieve TS/OS RX event counts.
 
 ## 2026.01 January 2026
 - Added the inclusion of the PCIe C model to CoSim library compilation.
@@ -36,7 +36,7 @@
 ## 2024.07 July 2024
 - Updated calls to CreateClock for it being moved to ClockResetPkg
 
-## 2023.?? July 2023
+## 2023.07 July 2023
 - Updates RISC-V ISS rv32 libraries and include headers for new features and fixes to support running FreeRTOS real-time operating system
 
 ## 2023.05 May 2023
@@ -51,7 +51,7 @@
 
  
 ## Copyright and License
-Copyright (C) 2023 by [OSVVM Authors](AUTHORS.md)   
+Copyright (C) 2023 - 2026 by [OSVVM Authors](AUTHORS.md)   
 
 This file is part of OSVVM.
 
