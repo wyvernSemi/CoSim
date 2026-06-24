@@ -14,12 +14,12 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    06/2026   ????.??    Added support for DLLP and PHY traffic processing
+//    06/2026   2026.07    Added support for DLLP and PHY traffic processing
 //    09/2025   2026.01    Initial Version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2025 by [OSVVM Authors](../../AUTHORS.md)
+//  Copyright (c) 2025 - 2026 by [OSVVM Authors](../../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

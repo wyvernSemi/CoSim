@@ -2,17 +2,17 @@
 
 | Revision  |  Release Summary | 
 ------------|----------- 
-| ????.??   | Added support for DLL and PHY traffic generation over MIT for PCIe VC
+| 2026.07   | Added support for DLL and PHY traffic generation over MIT for PCIe VC
 | 2026.01   | Added the inclusion of the PCIe C model to CoSim library compilation
 |           | Changes in support of PCIe VC
 |           | Added VIrq CoSim procedure
 |           | Updated rv32 RISC-V ISS to v1.3.1
 | 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg
-| 2023.??   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
+| 2023.07   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
 | 2023.05   | Support for split transactions, responder, streaming and checking
 | 2023.01   | Initial release
 
-## ????.?? June 2026
+## 2026.01 June 2026
 - Added support for DLL and PHY traffic generation over MIT for PCIe VC with
   new commands to both generate and receive DLL packets and generated PHY TS/OS
   traffic and retrieve TS/OS RX event counts.

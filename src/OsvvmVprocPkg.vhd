@@ -14,7 +14,7 @@
 --  Revision History:
 --    Date      Version    Description
 --    09/2025   2026.01    Added VIrqVec CoSim procedure
---    07/2025   2025.??    Changes in support of future Python interface
+--                         Changes in support of future Python interface
 --    05/2023   2023.05    Refactoring to support responder and stream functionality
 --    09/2022   2023.01    Initial revision
 --
