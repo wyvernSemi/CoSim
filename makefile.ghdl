@@ -1,5 +1,5 @@
 #  File Name:         makefile
-#  Purpose:           make file for compiling GHDL cosimulation with
+#  Purpose:           make file for compiling GHDL co-simulation with
 #                     callable simulator
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -8,7 +8,7 @@
 #     Simon Southwell     email:  simon.southwell@gmail.com
 #
 #  Description
-#    Tcl procedures supporting compiling of Co-cimuation C/C++ code
+#    Tcl procedures supporting compiling of Co-simulation C/C++ code
 #    using make
 #
 #  Revision History:
@@ -42,7 +42,8 @@
 #   TEST        : The directory containing the test source code, relative to ${USRCDIR}
 #   COSIMDIR    : The path to OsvvmLibraries/CoSim, if different from ${USRCDIR}
 #   OPDIR       : Directory for compilation output, if not the directory from which make was run
-#   USRFLAGS    : Additional user defined compile and link flags
+#   USRFLAGS    : Additional user defined compile flags
+#   USRLDFLAGS  : Additional user defined link flags
 #   VHDLLIB     : The path, relative to the run directory, to the VHDL_LIBS/<version>/ directory
 #   TBLIBRARY   : Name of library containing top level test component
 #   TESTBENCH   : Name of top level test component
@@ -82,6 +83,7 @@ COSIMDIR           = ${USRCDIR}
 OPDIR              = ${CURDIR}
 
 USRFLAGS           =
+USRLDFLAGS         =
 
 VHDLLIB            = VHDL_LIBS/GHDL-3.0.0-dev
 TBLIBRARY          = osvvm_tbaxi4
@@ -136,13 +138,13 @@ all: ${SIMEXE}
 # DISABLE_VUSERMAIN_THREAD defined
 #
 ${USRCODE} ${COSIMCODE}:
-	@${MAKE} -C ${COSIMDIR}                                                 \
-                --no-print-directory                                      \
-                SIM=GHDL                                                  \
-                USRCDIR=${CTESTDIR}                                       \
-                OPDIR=${OPDIR}                                            \
-                EXCLFILE=${MAINSRC}                                       \
-                USRFLAGS="-I./include -L./lib -DGHDL -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
+	@${MAKE} -C ${COSIMDIR}                                               \
+	            --no-print-directory                                      \
+	            SIM=GHDL                                                  \
+	            USRCDIR=${CTESTDIR}                                       \
+	            OPDIR=${OPDIR}                                            \
+	            EXCLFILE=${MAINSRC}                                       \
+	            USRFLAGS="-I./include -L./lib -DGHDL -DDISABLE_VUSERMAIN_THREAD ${USRFLAGS}"
 
 #
 # Collect all the user objects in VHDL_LIBS and all the relevant objects
@@ -152,9 +154,9 @@ ${TBLIB}: obj/${MAINSRC:%.cpp=%.o}
 	@rm -f $@
 	@${AR} crs $@ $<
 	@for i in `ls ${VHDLLIB}` ;                                           \
-    do                                                                    \
-       ${AR} q $@ `find ${VHDLLIB}/$${i}/ -name "*.o"` ;                  \
-    done
+	do                                                                    \
+	   ${AR} q $@ `find ${VHDLLIB}/$${i}/ -name "*.o"` ;                  \
+	done
 	@${AR} q $@ `find ${GHDLROOT}/std/v08/ ${GHDLROOT}/ieee/v08/ -name "*.o"`
 
 #
@@ -162,14 +164,14 @@ ${TBLIB}: obj/${MAINSRC:%.cpp=%.o}
 #
 e~${LCTB}.o: ${COSIMCODE}
 	@${GHDL} -e --std=08                                                  \
-             -Wl,-lpthread                                                \
-             --work=${TBLIBRARY}                                          \
-             --workdir=${VHDLLIB}/${TBLIBRARY}/v08                        \
-             -P${VHDLLIB}                                                 \
-             ${TESTBENCH}
+	         -Wl,-lpthread                                                \
+	         --work=${TBLIBRARY}                                          \
+	         --workdir=${VHDLLIB}/${TBLIBRARY}/v08                        \
+	         -P${VHDLLIB}                                                 \
+	         ${TESTBENCH}
 
 #
-# Create library from the elabrorated code
+# Create library from the elaborated code
 #
 ${LIBELAB}: e~${LCTB}.o
 	@rm -f $@
@@ -183,11 +185,12 @@ ${LIBELAB}: e~${LCTB}.o
 #
 ${SIMEXE}: ${LIBELAB} ${TBLIB} ${USRCODE}
 	@${CC} -Wl,-whole-archive                                             \
-           $<                                                             \
-           -Wl,-no-whole-archive                                          \
-           ${TBLIB}                                                       \
-           ${GHDLFLAGS}                                                   \
-           -o $@
+	       $<                                                             \
+	       -Wl,-no-whole-archive                                          \
+	       ${USRLDFLAGS}                                                  \
+	       ${TBLIB}                                                       \
+	       ${GHDLFLAGS}                                                   \
+	       -o $@
 
 #
 # Build rule for main source code

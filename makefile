@@ -12,6 +12,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    06/2026   2026.07    Fix for NVC linking of VProc.so
 #    01/2026   2026.01    Fix for NVC linking of VProc.so
 #                         Consolidation for compiling for Active-HDL
 #    10/2022   2023.01    Initial version
@@ -39,7 +40,8 @@
 #
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
-#   USRFLAGS    : Additional user defined compile and link flags
+#   USRFLAGS    : Additional user defined compile flags
+#   USRLDFLAGS  : Additional user defined link flags
 #   SIM         : The target simulator. One of GHDL, NVC, RivieraPRO,
 #                 QuestaSim, or ModelSim
 #   ALDECDIR    : Location of RivieraPRO/Active-HDL installation, when
@@ -50,6 +52,7 @@
 USRCDIR            = usercode
 OPDIR              = .
 USRFLAGS           =
+USRLDFLAGS         =
 SIM                =
 
 # RivieraPRO or Active-HDL only
@@ -225,6 +228,7 @@ $(VUSER_PLI): $(VULIB) $(RV32TEST)
 	        $(USRFLAGS)                                 \
 	        -L$(TESTDIR) -lvuser                        \
 	        -Wl,-no-whole-archive                       \
+            $(USRLDFLAGS)                               \
 	        $(WLIB)                                     \
 	        -L$(CURDIR) -l:VProc.$(VPROCLIBSUFFIX)      \
 	        -ldl                                        \

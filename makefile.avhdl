@@ -39,7 +39,8 @@
 #
 #   USRCDIR     : Directory where the test source directory is located
 #   OPDIR       : Directory for compilation output
-#   USRFLAGS    : Additional user defined compile and link flags
+#   USRFLAGS    : Additional user defined compile flags
+#   USRLDFLAGS  : Additional user defined link flags
 #   ALDECDIR    : Location of Active-HDL installation
 #
 # --------------------------------------------------------------------------
@@ -47,6 +48,7 @@
 USRCDIR            = usercode
 OPDIR              = .
 USRFLAGS           =
+USRLDFLAGS         =
 ALDECDIR           = 
 
 # Derived directory locations
@@ -170,6 +172,7 @@ $(VPROC_PLI): $(VLIB) $(VULIB) $(RV32TEST)
             -L$(TESTDIR) -lvproc -lvuser                \
             -L$(PCIEDIR)/lib -l$(PCIELIB)               \
             -Wl,-no-whole-archive                       \
+            $(USRLDFLAGS)                               \
             $(WLIB)                                     \
             -ldl                                        \
             -o $@
