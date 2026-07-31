@@ -16,15 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    07/2026   ????.??    Update model to v1.3.5
-//    09/2025   ????.??    Update model to v1.3.1
+//    07/2026   ????.??    Update model to v1.3.6
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    28th Jun  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 - 2025 Simon Southwell. 
+//  Copyright (c) 2021 - 2026 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -301,9 +300,9 @@ public:
     static const uint32_t RV32I_NV                                     = 0x10;
 
     static const uint64_t RV32I_QNANF                                  = 0xffffffff7fc00000UL;
-    static const uint64_t RV32I_SNANF                                  = 0xffffffff7fbfffffUL;
+    static const uint64_t RV32I_SNANF                                  = 0xffffffff7f800001UL;
     static const uint64_t RV32I_QNAND                                  = 0x7ff8000000000000UL;
-    static const uint64_t RV32I_SNAND                                  = 0x7ff7ffffffffffffUL;
+    static const uint64_t RV32I_SNAND                                  = 0x7ff0000000000001UL;
 
     static const uint32_t RV32I_OPCODE_LOAD                            = (0x00 << 2) | 0x03;
     static const uint32_t RV32I_OPCODE_LOAD_FP                         = (0x01 << 2) | 0x03;

@@ -16,14 +16,14 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    09/2025   ????.??    Update model to v1.3.1
+//    07/2026   ????.??    Update model to v1.3.6
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    30th Jul  2021       Earlier version
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2021 - 2025 Simon Southwell. 
+//  Copyright (c) 2021 - 2026 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

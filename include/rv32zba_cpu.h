@@ -16,11 +16,11 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    09/2025   ????.??    Update model to v1.3.1
+//    07/2026   ????.??    Update model to v1.3.6
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2025 Simon Southwell. 
+//  Copyright (c) 2025 - 2026 Simon Southwell. 
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
