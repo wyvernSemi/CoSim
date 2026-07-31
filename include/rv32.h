@@ -15,7 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    09/2025   ????.??    Update model to v1.3.1
+//    09/2025   ????.??    Update model to v1.3.5
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    12th July 2021       Earlier version
@@ -53,7 +53,7 @@ public:
 
     static const int major_ver = 1;
     static const int minor_ver = 3;
-    static const int patch_ver = 1;
+    static const int patch_ver = 5;
 
     LIBRISCV32_API rv32(FILE* dbg_fp = stdout) : RV32_TARGET_INHERITANCE_CLASS(dbg_fp)
     {
