@@ -67,7 +67,8 @@ package OsvvmTestCoSimPkg is
                               BURST_RAND_PUSH,  BURST_INCR_CHECK,
                               BURST_RAND_CHECK, BURST_TRANS,
                               BURST_DATA,       BURST_DATA_CHECK,
-                              BURST_FIFO_CHECK);
+                              BURST_FIFO_CHECK,
+                              BURST_NORM_WORD);
 
   type DirType            is (RX_REC, TX_REC);                            -- Stream bus direction in (overloaded) VPData from VTrans
 
@@ -427,25 +428,39 @@ package body OsvvmTestCoSimPkg is
           -- Select the burst operations based on the VPParam argument passed from the software
           case BurstType'val(VPParam) is
 
-            when BURST_NORM | BURST_TRANS | BURST_DATA =>
+            when BURST_NORM | BURST_NORM_WORD | BURST_TRANS | BURST_DATA =>
 
               -- Only instigate a read burst transaction if the operation isn't a POP,
               -- as defined by VPParam
               if BurstType'val(VPParam) /= BURST_DATA then
-                ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+                if BurstType'val(VPParam) /= BURST_NORM_WORD then
+                  ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize) ;
+                else
+                  ReadBurst(ManagerRec, Address(VPAddrWidth-1 downto  0), VPBurstSize/4) ;
+                end if;
               end if ;
 
               -- Pop the bytes from the FIFO if not a pure transaction operation, as
               -- defined by VPParam
-              if BurstType'val(VPParam) = BURST_NORM or BurstType'val(VPParam) = BURST_DATA then
+              if BurstType'val(VPParam) = BURST_NORM or BurstType'val(VPParam) = BURST_NORM_WORD or BurstType'val(VPParam) = BURST_DATA then
 
                 -- Pop the bytes from the read fifo and write them to the co-sim receive buffer
                 RdData := (others => '0');
-                for bidx in 0 to VPBurstSize-1 loop
-                  Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
-                  RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
-                  VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
-                end loop;
+                if BurstType'val(VPParam) /= BURST_NORM_WORD then
+                  for bidx in 0 to VPBurstSize-1 loop
+                    Pop(ManagerRec.ReadBurstFifo, RdData(7 downto 0)) ;
+                    RdDataInt := to_integer(unsigned(RdData(7 downto 0))) ;
+                    VSetBurstRdByte(NodeNum, bidx, RdDataInt) ;
+                  end loop ;
+                else
+                  for bidx in 0 to VPBurstSize/4-1 loop
+                    Pop(ManagerRec.ReadBurstFifo, RdData(31 downto 0)) ;
+                    VSetBurstRdByte(NodeNum, 4*bidx,   to_integer(unsigned(RdData( 7 downto  0)))) ;
+                    VSetBurstRdByte(NodeNum, 4*bidx+1, to_integer(unsigned(RdData(15 downto  8)))) ;
+                    VSetBurstRdByte(NodeNum, 4*bidx+2, to_integer(unsigned(RdData(23 downto 16)))) ;
+                    VSetBurstRdByte(NodeNum, 4*bidx+3, to_integer(unsigned(RdData(31 downto 24)))) ;
+                  end loop ;
+                end if;
 
               end if ;
 
@@ -493,14 +508,29 @@ package body OsvvmTestCoSimPkg is
           -- Select the burst operations based on the VPParam argument passed from the software
           case BurstType'val(VPParam) is
 
-            when BURST_NORM | BURST_DATA =>
+            when BURST_NORM | BURST_NORM_WORD | BURST_DATA =>
 
               -- Fetch the bytes from the co-sim send buffer and push to the transaction write fifo
-              for bidx in 0 to VPBurstSize-1 loop
-                VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
-                WrByteData := to_signed(WrDataInt, WrByteData'length) ;
-                Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
-              end loop ;
+              if BurstType'val(VPParam) /= BURST_NORM_WORD then
+                for bidx in 0 to VPBurstSize-1 loop
+                  VGetBurstWrByte(NodeNum, bidx, WrDataInt) ;
+                  WrByteData := to_signed(WrDataInt, WrByteData'length) ;
+                  Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(7 downto 0))) ;
+                end loop ;
+              else
+                for bidx in 0 to VPBurstSize/4-1 loop
+                  VGetBurstWrByte(NodeNum, 4*bidx, WrDataInt) ;
+                  WrByteData( 7 downto  0) := to_signed(WrDataInt, 8) ;
+                  VGetBurstWrByte(NodeNum, 4*bidx+1, WrDataInt) ;
+                  WrByteData(15 downto  8) := to_signed(WrDataInt, 8) ;
+                  VGetBurstWrByte(NodeNum, 4*bidx+2, WrDataInt) ;
+                  WrByteData(23 downto 16) := to_signed(WrDataInt, 8) ;
+                  VGetBurstWrByte(NodeNum, 4*bidx+3, WrDataInt) ;
+                  WrByteData(31 downto  24) := to_signed(WrDataInt, 8) ;
+                  
+                  Push(ManagerRec.WriteBurstFifo, std_logic_vector(WrByteData(31 downto 0))) ;
+                end loop ;
+              end if;
 
             when BURST_INCR | BURST_INCR_PUSH =>
 

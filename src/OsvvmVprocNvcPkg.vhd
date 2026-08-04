@@ -83,6 +83,24 @@ package OsvvmVprocPkg is
   ) ;
   attribute foreign of VIrqVec : procedure is "VHPIDIRECT VIrqVec" ;
 
+  procedure OsvvmCosimMemWrite (
+    addrlo      : in  integer ;
+    addrhi      : in  integer ;
+    data        : in  integer ;
+    endian      : in  integer ;
+    memspc      : in  integer
+  );
+  attribute foreign of OsvvmCosimMemWrite : procedure is "VHPIDIRECT OsvvmCosimMemWrite" ;
+
+  procedure OsvvmCosimMemRead (
+    addrlo      : in  integer ;
+    addrhi      : in  integer ;
+    data        : out integer ;
+    endian      : in  integer ;
+    memspc      : in  integer
+  );
+  attribute foreign of OsvvmCosimMemRead : procedure is "VHPIDIRECT OsvvmCosimMemRead" ;
+
 end ;
 
 package body OsvvmVprocPkg is
@@ -138,6 +156,28 @@ package body OsvvmVprocPkg is
   procedure VIrqVec (
     node      : in integer ;
     irq       : in integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram not called" severity error ;
+  end ;
+
+  procedure OsvvmCosimMemWrite (
+    addrlo      : in  integer ;
+    addrhi      : in  integer ;
+    data        : in  integer ;
+    endian      : in  integer ;
+    memspc      : in  integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram not called" severity error ;
+  end ;
+
+  procedure OsvvmCosimMemRead (
+    addrlo      : in  integer ;
+    addrhi      : in  integer ;
+    data        : out integer ;
+    endian      : in  integer ;
+    memspc      : in  integer
   ) is
   begin
     report "ERROR: foreign subprogram not called" severity error ;
