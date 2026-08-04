@@ -62,7 +62,8 @@ entity TbAddressBusMemory is
 generic (
   NUM_INTERRUPTS       : integer := 1 ;
   INT_EDGE_LEVEL       : std_logic := INTERRUPT_ON_LEVEL ;
-  INT_POLARITY         : std_logic := '1' 
+  INT_POLARITY         : std_logic := '1' ;
+  STOP_AT_TIME_ZERO    : boolean := false
 ) ;
 end entity TbAddressBusMemory ;
 architecture TestHarness of TbAddressBusMemory is
@@ -134,7 +135,8 @@ architecture TestHarness of TbAddressBusMemory is
   component TestCtrl is
     generic (
       INT_EDGE_LEVEL    : std_logic := INTERRUPT_ON_LEVEL ;
-      INT_POLARITY      : std_logic := '1' 
+      INT_POLARITY      : std_logic := '1' ;
+      STOP_AT_TIME_ZERO : boolean := false 
     ) ;
     port (
       -- Global Signal Interface
@@ -353,7 +355,8 @@ begin
   TestCtrl_1 : TestCtrl
   generic map (
     INT_EDGE_LEVEL       => INT_EDGE_LEVEL,
-    INT_POLARITY         => INT_POLARITY
+    INT_POLARITY         => INT_POLARITY,
+    STOP_AT_TIME_ZERO    => STOP_AT_TIME_ZERO
   ) 
   port map (
     -- Global Signal Interface

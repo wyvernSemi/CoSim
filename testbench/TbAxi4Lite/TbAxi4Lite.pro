@@ -38,7 +38,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  
-TestSuite  CoSim_Axi4Lite
 library    osvvm_CoSim_TbAxi4Lite
 analyze    TestCtrl_e.vhd
 analyze    TbAddressBusMemory.vhd

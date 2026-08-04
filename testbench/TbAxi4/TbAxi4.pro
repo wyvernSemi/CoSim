@@ -38,8 +38,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #  
-TestSuite  CoSim_Axi4
+
 library    osvvm_CoSim_TbAxi4
+
+if {($::osvvm::ToolName eq "RivieraPRO")} {
+
+  SetExtendedAnalyzeOptions "-nowarn COMP96_0119"
+}
+
 analyze    TestCtrl_e.vhd
 if {$::osvvm::ToolName ne "GHDL"} { 
   analyze    TbAddressBusMemory.vhd
@@ -47,5 +53,8 @@ if {$::osvvm::ToolName ne "GHDL"} {
   analyze    TbAddressBusMemory_GHDL.vhd
 }
 
+analyze    TbCosimDemo.vhd
+
 analyze    ../TestCases/TbAb_CoSim.vhd
+analyze    ../TestCases/TbAb_CoSim_Demo.vhd
 

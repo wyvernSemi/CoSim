@@ -58,6 +58,9 @@ library osvvm_cosim ;
   context osvvm_cosim.CoSimContext ;
 
 entity TestCtrl is
+  generic (
+    STOP_AT_TIME_ZERO : boolean := FALSE
+  ) ;
   port (
     -- Global Signal Interface
     Clk            : In    std_logic ;
