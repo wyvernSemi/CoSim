@@ -1,21 +1,29 @@
 # CoSim
 
 | Revision  |  Release Summary | 
-------------|----------- 
-| 2026.07   | Added support for DLL and PHY traffic generation over MIT for PCIe VC
-| 2026.01   | Added the inclusion of the PCIe C model to CoSim library compilation
-|           | Changes in support of PCIe VC
-|           | Added VIrq CoSim procedure
-|           | Updated rv32 RISC-V ISS to v1.3.1
-| 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg
-| 2023.07   | Updates to RISC-V ISS libraries and headers for FreeRTOS support
-| 2023.05   | Support for split transactions, responder, streaming and checking
-| 2023.01   | Initial release
+------------|-------------------
+| 2026.07   | Added support for DLL and PHY traffic generation over MIT for PCIe VC |
+|           | Added support for burst word transactions |
+|           | Updated rv32 to 1.3.6 |
+|           | Added JFIF library |
+|           | Added new demo (non-regression) tests |
+| 2026.01   | Added the inclusion of the PCIe C model to CoSim library compilation |
+|           | Changes in support of PCIe VC |
+|           | Added VIrq CoSim procedure |
+|           | Updated rv32 RISC-V ISS to v1.3.1 |
+| 2024.07   | Updated calls to CreateClock for it being moved to ClockResetPkg |
+| 2023.07   | Updates to RISC-V ISS libraries and headers for FreeRTOS support |
+| 2023.05   | Support for split transactions, responder, streaming and checking |
+| 2023.01   | Initial release |
 
-## 2026.01 June 2026
+## 2026.07 July 2026
 - Added support for DLL and PHY traffic generation over MIT for PCIe VC with
   new commands to both generate and receive DLL packets and generated PHY TS/OS
   traffic and retrieve TS/OS RX event counts.
+- Added support for burst word transactions in addtion to byte bursts
+- Updated the rv32 RISC-V ISS library to latest v1.3.6 version
+- Added a new JFIF library for decoding JFIF/JPEG image files
+- Added two new non-regression demonstration tests: one for using GTK+ libraray with JFIF library and one for rv32 application to compress data with LZW code
 
 ## 2026.01 January 2026
 - Added the inclusion of the PCIe C model to CoSim library compilation.
