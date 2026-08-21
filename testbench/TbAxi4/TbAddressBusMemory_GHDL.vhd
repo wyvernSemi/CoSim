@@ -138,6 +138,7 @@ architecture TestHarness of TbAddressBusMemory is
     ) ;
     port (
       -- Global Signal Interface
+      Clk               : In    std_logic := '0';
       nReset            : In    std_logic ;
 
       -- Transaction Interfaces

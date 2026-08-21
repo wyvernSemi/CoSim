@@ -133,6 +133,15 @@ procedure CoSimResp (
     variable IntReq          : in integer := 0 ;
     variable NodeNum         : in integer := 0
   ) ;
+  
+  ------------------------------------------------------------
+  -- Co-simulation procedure to update user defined state
+  ------------------------------------------------------------
+  procedure CoSimUserValue (
+    variable UserType        : in integer := -1 ;
+    variable Value           : in integer := -1 ;
+    variable NodeNum         : in integer := 0
+  ) ;
 
   ------------------------------------------------------------
   -- Co-simulation procedure to dispatch one address bus
@@ -320,10 +329,25 @@ package body OsvvmTestCoSimPkg is
   ) is
   begin
 
-    -- Call VTrans to generate a new access
+    -- Call VIrqVec to update software interrupt state
     VIrqVec(NodeNum, IntReq) ;
 
   end procedure CoSimIrq ;
+  
+  ------------------------------------------------------------
+  -- Co-simulation procedure to update user defined state
+  ------------------------------------------------------------
+  procedure CoSimUserValue (
+    variable UserType        : in integer := -1 ;
+    variable Value           : in integer := -1 ;
+    variable NodeNum         : in integer := 0
+  ) is
+  begin
+
+    -- Call VCycleCount to update software interrupt state
+    VUserValue(NodeNum, UserType, Value) ;
+
+  end procedure CoSimUserValue ; 
 
   ------------------------------------------------------------
   -- Co-simulation procedure to dispatch one transactions

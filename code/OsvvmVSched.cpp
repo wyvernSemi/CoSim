@@ -55,7 +55,10 @@ pSchedState_t ns[VP_MAX_NODES] = { NULL };
 #if defined(USE_VHPI)
 
 #include <vhpi_user.h>
+
+#if defined (ALDEC) || defined (ACTIVEHDL)
 #include <aldecpli.h>
+#endif
 
 // -------------------------------------------------------------------------
 // Function setting up table of foreign procedure registration data
@@ -67,6 +70,7 @@ VPROC_RTN_TYPE reg_foreign_procs() {
     vhpiForeignDataT foreignDataArray[] = {
         {vhpiProcF, (char*)"VProc", (char*)"VInit",           NULL, VInit},
         {vhpiProcF, (char*)"VProc", (char*)"VIrqVec",         NULL, VIrqVec},
+        {vhpiProcF, (char*)"VProc", (char*)"VUserValue",      NULL, VUserValue},
         {vhpiProcF, (char*)"VProc", (char*)"VTrans",          NULL, VTrans},
         {vhpiProcF, (char*)"VProc", (char*)"VSetBurstRdByte", NULL, VSetBurstRdByte},
         {vhpiProcF, (char*)"VProc", (char*)"VGetBurstWrByte", NULL, VGetBurstWrByte},
@@ -440,8 +444,7 @@ VPROC_RTN_TYPE VGetBurstWrByte(VGETBURSTWRBYTE_PARAMS)
 // -------------------------------------------------------------------------
 // VIrqVec()
 ///
-// Main routine called whenever VIrqVec procedure invoked on
-// clock edge of scheduled cycle.
+// Main routine called whenever VIrqVec procedure invoked.
 //
 // -------------------------------------------------------------------------
 
@@ -461,6 +464,33 @@ VPROC_RTN_TYPE VIrqVec (VIRQVEC_PARAMS)
     if (ns[node]->VIntVecCB != NULL)
     {
         (*(ns[node]->VIntVecCB))(irq);
+    }
+}
+
+// -------------------------------------------------------------------------
+// VUserValue()
+///
+// Main routine called whenever VUserValue procedure invoked.
+//
+// -------------------------------------------------------------------------
+
+VPROC_RTN_TYPE VUserValue (VUSERVALUE_PARAMS)
+{
+#if defined(USE_VHPI)
+    int node, value, type;
+    int args[VUSERVALUE_NUM_ARGS];
+
+    getVhpiParams(cb, args, VUSERVALUE_NUM_ARGS);
+    
+    int argIdx = 0;
+    node       = args[argIdx++];
+    type       = args[argIdx++];
+    value      = args[argIdx++];
+#endif
+
+    if (ns[node]->VUserCB != NULL)
+    {
+        (*(ns[node]->VUserCB))(type, value);
     }
 }
 

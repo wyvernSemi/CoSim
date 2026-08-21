@@ -267,6 +267,9 @@ typedef void * handle_t;
 // Interrupt function pointer type
 typedef int  (*pVUserInt_t)      (int);
 
+// Generic user CB function type
+typedef int  (*pVUser_t)         (int, int);
+
 typedef struct
 {
     sem_t               snd;
@@ -274,6 +277,7 @@ typedef struct
     send_buf_t          send_buf;
     rcv_buf_t           rcv_buf;
     pVUserInt_t         VIntVecCB;
+    pVUser_t            VUserCB;
     unsigned int        last_int;
 } SchedState_t, *pSchedState_t;
 

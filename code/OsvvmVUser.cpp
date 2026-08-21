@@ -162,7 +162,7 @@ static void VUserInit (const int node)
 
 #if defined(ACTIVEHDL)
     hdlvu = NULL;
-#else 
+#else
     sprintf(vusersoname, "./VUser.so");
     // Load user shared object to get handle to lookup VUsermain function symbols
     hdlvu = dlopen(vusersoname, RTLD_LAZY | RTLD_GLOBAL);
@@ -213,8 +213,9 @@ int VUser (const int node)
     DebugVPrint("VUser(): node %d\n", node);
 
     // Interrupt callback initialisation
-    ns[node]->VIntVecCB  = NULL;
-    ns[node]->last_int   = 0;
+    ns[node]->VIntVecCB     = NULL;
+    ns[node]->VUserCB       = NULL;
+    ns[node]->last_int      = 0;
 
     DebugVPrint("VUser(): initialised interrupt table node %d\n", node);
 
@@ -1060,6 +1061,20 @@ void VRegInterrupt (const pVUserInt_t func, const uint32_t node)
     DebugVPrint("VRegInterrupt(): at node %d, registering vector interrupt callback\n", node);
 
     ns[node]->VIntVecCB = func;
+}
+
+// -------------------------------------------------------------------------
+// VRegUserValue()
+//
+// Registers a generic user callback
+//
+// -------------------------------------------------------------------------
+
+void VRegUserValue (const pVUser_t func, const uint32_t node)
+{
+    DebugVPrint("VRegUserValue(): at node %d, registering user callback\n", node);
+
+    ns[node]->VUserCB = func;
 }
 
 // -------------------------------------------------------------------------

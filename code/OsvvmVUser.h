@@ -139,9 +139,12 @@ extern bool      VStreamUserBurstGetCommon      (const int op, const int param, 
 extern int       VStreamWaitGetCount            (const int op, const bool txnrx, const uint32_t node = 0);
 
 // User function called from VInit to instigate new user thread
-extern int       VUser                          (const int node);
+extern int       VUser                          (const int node = 0);
 
 // User interrupt callback registering function
-extern void      VRegInterrupt                  (const pVUserInt_t func, const uint32_t node);
+extern void      VRegInterrupt                  (const pVUserInt_t func, const uint32_t node = 0);
+
+// User cycle count callback registering function
+extern void      VRegUserValue                  (const pVUser_t func,    const uint32_t node = 0);
 
 #endif

@@ -7,6 +7,7 @@
 |           | Updated rv32 to 1.3.6 |
 |           | Added JFIF library |
 |           | Added new demo (non-regression) tests |
+|           | Added new generic user callback mechanisim |
 | 2026.01   | Added the inclusion of the PCIe C model to CoSim library compilation |
 |           | Changes in support of PCIe VC |
 |           | Added VIrq CoSim procedure |
@@ -24,6 +25,7 @@
 - Updated the rv32 RISC-V ISS library to latest v1.3.6 version
 - Added a new JFIF library for decoding JFIF/JPEG image files
 - Added two new non-regression demonstration tests: one for using GTK+ libraray with JFIF library and one for rv32 application to compress data with LZW code
+- Added a VHDL co-simulation procedure to call a user defined callback functiion with type and value arguments
 
 ## 2026.01 January 2026
 - Added the inclusion of the PCIe C model to CoSim library compilation.

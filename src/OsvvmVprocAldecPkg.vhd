@@ -82,6 +82,13 @@ package OsvvmVprocPkg is
     irq         : in integer
   ) ;
   attribute foreign of VIrqVec : procedure is "VHPI VProc.so; VIrqVec" ;
+  
+  procedure VUserValue (
+    node        : in integer ;
+    usertype    : in integer ;
+    value       : in integer
+  ) ;
+  attribute foreign of VUserValue : procedure is "VHPI VProc.so; VUserValue" ;
 
   procedure OsvvmCosimMemWrite (
     addrlo      : in  integer ;
@@ -156,6 +163,15 @@ package body OsvvmVprocPkg is
   procedure VIrqVec (
     node      : in integer ;
     irq       : in integer
+  ) is
+  begin
+    report "ERROR: foreign subprogram not called" severity error ;
+  end ;
+  
+  procedure VUserValue (
+    node        : in integer ;
+    usertype    : in integer ;
+    value       : in integer
   ) is
   begin
     report "ERROR: foreign subprogram not called" severity error ;

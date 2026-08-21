@@ -46,8 +46,9 @@
 // Import VProc user API
 #include "OsvvmCosim.h"
 
-// I am node 0 context
-static int node  = 0;
+const int CYCLE_COUNT_TYPE = 0;
+
+static int cyclecount = -1;
 
 #ifdef _WIN32
 #define srandom srand
@@ -86,6 +87,20 @@ static void logGdbMsg(FILE *fp, wtrans_t &w, bool rnw)
 }
 
 // ------------------------------------------------------------------------------
+// Callback to update user defined state
+// ------------------------------------------------------------------------------
+
+static int CycleCountCB (int type, int count)
+{
+    if (type == CYCLE_COUNT_TYPE)
+    {
+        cyclecount = count;
+    }
+    
+    return 0;
+}
+
+// ------------------------------------------------------------------------------
 // Main entry point for node 0 virtual processor software
 //
 // VUserMainX has no calling arguments. If runtime configuration required
@@ -93,7 +108,7 @@ static void logGdbMsg(FILE *fp, wtrans_t &w, bool rnw)
 //
 // ------------------------------------------------------------------------------
 
-extern "C" void VUserMain0()
+extern "C" void VUserMain0(int node)
 {
     VPrint("VUserMain0(): node=%d\n", node);
 
@@ -108,6 +123,8 @@ extern "C" void VUserMain0()
     srandom(~node);
 
     FILE* fp = fopen("sktscript.txt", "w");
+    
+    cosim.regUserCB(CycleCountCB);
 
     while (!error && count != 0)
     {
@@ -146,7 +163,7 @@ extern "C" void VUserMain0()
             if (rdata == wtrans.wdata)
             {
                 // Display read transaction information
-                VPrint("VUserMain0: read %s %08X from address %08X\n", msg, rdata, wtrans.addr);
+                VPrint("VUserMain0: read %s %08X from address %08X @ cycle %d\n", msg, rdata, wtrans.addr, cyclecount);
             }
             else
             {
@@ -181,7 +198,7 @@ extern "C" void VUserMain0()
             }
 
             // Display write transaction display information
-            VPrint("VUserMain0: wrote %s %08X to address %08X\n", msg, wtrans.wdata, wtrans.addr);
+            VPrint("VUserMain0: wrote %s %08X to address %08X @ cycle %d\n", msg, wtrans.wdata, wtrans.addr, cyclecount);
         }
 
         logGdbMsg(fp, wtrans, rnw);

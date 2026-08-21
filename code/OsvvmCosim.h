@@ -220,6 +220,7 @@ public:
       int      transGetReadTransactionCount  (void)                                                                          {return VTransGetCount(GET_READ_TRANSACTION_COUNT, node);}
 
       void     regInterruptCB                (pVUserInt_t func)                                                              {VRegInterrupt(func, node);}
+      void     regUserCB                     (pVUser_t    func)                                                              {VRegUserValue(func, node);}
 
       void     waitForSim                    (void)                                                                          {VWaitForSim(node);}
 

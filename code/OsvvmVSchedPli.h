@@ -64,6 +64,7 @@
 
 #define VINIT_PARAMS               vint_t  node
 #define VIRQVEC_PARAMS             vint_t  node,     vint_t  irq
+#define VUSERVALUE_PARAMS          vint_t  node,     vint_t  type,        vint_t  value
 #define VTRANS_PARAMS              vint_t  node,     vint_t  Interrupt,   vint_t  VPStatus,    vint_t  VPCount,     vint_t  VPCountSec,  \
                                    vint_t* VPData,   vint_t* VPDataHi,    vint_t* VPDataWidth,                                     \
                                    vint_t* VPAddr,   vint_t* VPAddrHi,    vint_t* VPAddrWidth,                                     \
@@ -82,14 +83,16 @@
 #include <aldecpli.h>
 #endif
 
-#define VINIT_PARAMS                        const struct vhpiCbDataS* cb
-#define VIRQVEC_PARAMS                      const struct vhpiCbDataS* cb
-#define VTRANS_PARAMS                       const struct vhpiCbDataS* cb
-#define VGETBURSTWRBYTE_PARAMS              const struct vhpiCbDataS* cb
-#define VSETBURSTRDBYTE_PARAMS              const struct vhpiCbDataS* cb
+#define VINIT_PARAMS                        const vhpiCbDataT* cb
+#define VIRQVEC_PARAMS                      const vhpiCbDataT* cb
+#define VUSERVALUE_PARAMS                   const vhpiCbDataT* cb
+#define VTRANS_PARAMS                       const vhpiCbDataT* cb
+#define VGETBURSTWRBYTE_PARAMS              const vhpiCbDataT* cb
+#define VSETBURSTRDBYTE_PARAMS              const vhpiCbDataT* cb
 
 #define VINIT_NUM_ARGS                      1
 #define VIRQVEC_NUM_ARGS                    2
+#define VUSERVALUE_NUM_ARGS                 3
 #define VTRANS_NUM_ARGS                     17
 #define VGETBURSTWRBYTE_NUM_ARGS            3
 #define VSETBURSTRDBYTE_NUM_ARGS            3
@@ -111,6 +114,7 @@
 
 extern LINKAGE VPROC_RTN_TYPE VInit           (VINIT_PARAMS);
 extern LINKAGE VPROC_RTN_TYPE VIrqVec         (VIRQVEC_PARAMS);
+extern LINKAGE VPROC_RTN_TYPE VUserValue      (VUSERVALUE_PARAMS);
 extern LINKAGE VPROC_RTN_TYPE VTrans          (VTRANS_PARAMS);
 extern LINKAGE VPROC_RTN_TYPE VSetBurstRdByte (VSETBURSTRDBYTE_PARAMS);
 extern LINKAGE VPROC_RTN_TYPE VGetBurstWrByte (VGETBURSTWRBYTE_PARAMS);
