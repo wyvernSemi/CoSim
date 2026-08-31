@@ -2,7 +2,7 @@
 
 | Revision  |  Release Summary | 
 ------------|-------------------
-| 2026.07   | Added support for DLL and PHY traffic generation over MIT for PCIe VC |
+| 2026.08   | Added support for DLL and PHY traffic generation over MIT for PCIe VC |
 |           | Added support for burst word transactions |
 |           | Updated rv32 to 1.3.6 |
 |           | Added JFIF library |
@@ -17,7 +17,7 @@
 | 2023.05   | Support for split transactions, responder, streaming and checking |
 | 2023.01   | Initial release |
 
-## 2026.07 July 2026
+## 2026.08 August 2026
 - Added support for DLL and PHY traffic generation over MIT for PCIe VC with
   new commands to both generate and receive DLL packets and generated PHY TS/OS
   traffic and retrieve TS/OS RX event counts.

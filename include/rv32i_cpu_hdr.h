@@ -16,7 +16,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    07/2026   ????.??    Update model to v1.3.6
+//    07/2026   2026.08    Update model to v1.3.6
 //    07/2023   2023.??    Updates for supporting FreeRTOS
 //    01/2023   2023.01    Released with OSVVM CoSim
 //    28th Jun  2021       Earlier version

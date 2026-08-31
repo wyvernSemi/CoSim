@@ -14,7 +14,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
-//    06/2026   ????.??    Added support for DLLP and PHY traffic processing
+//    06/2026   2026.08    Added support for DLLP and PHY traffic processing
 //    09/2025   2026.01    Initial Version
 //
 //  This file is part of OSVVM.
