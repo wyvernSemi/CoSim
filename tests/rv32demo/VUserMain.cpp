@@ -88,9 +88,9 @@ static const int           UARTTB_BREAK_ERROR      = 4;
 static const uint32_t      INTMEMSIZE              = 0x00200000;
 
 // Address where co-simulated memory starts
-static const uint32_t      INTMEM_BASE_ADDR        = ROM_BASE_ADDR;         // ROM + RAM in Axi4Memory VC
-//static const uint32_t      INTMEM_BASE_ADDR        = RAM_BASE_ADDR;         // ROM in Axi4Memory VC, RAM in software
-//static const uint32_t      INTMEM_BASE_ADDR        = MEM_TOP_ADDR;          // ROM + RAM in software
+static const uint32_t      SIM_MEM_BASE_ADDR        = ROM_BASE_ADDR;         // ROM + RAM in Axi4Memory VC
+//static const uint32_t      SIM_MEM_BASE_ADDR        = RAM_BASE_ADDR;         // ROM in Axi4Memory VC, RAM in software
+//static const uint32_t      SIM_MEM_BASE_ADDR        = MEM_TOP_ADDR;          // ROM + RAM in software
 
 // -------------------------------------------------------------------------
 // LOCAL STATIC STATE
@@ -133,7 +133,7 @@ static int memcb (const uint32_t byte_addr, uint32_t &data, const int type, cons
         }
     }
     // Only process RAM accesses as co-simulated, leaving ROM to rv32 internal memory
-    else if (byte_addr >= INTMEM_BASE_ADDR)
+    else if (byte_addr >= SIM_MEM_BASE_ADDR)
     {
         // Select the co-simulation call based on the access type
         switch(type)
