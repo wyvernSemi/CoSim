@@ -15,6 +15,7 @@
 //
 //  Revision History:
 //    Date      Version    Description
+//    09/2026   2026.08    Minor fixes for linux compilation
 //    09/2025   2026.01    Added support for Set- & Get- burst mode and model options
 //    05/2023   2023.05    Adding support for Async, Try and Check transactions
 //                         and address bus repsonder
@@ -23,7 +24,7 @@
 //
 //  This file is part of OSVVM.
 //
-//  Copyright (c) 2023 - 2025 by [OSVVM Authors](../AUTHORS.md)
+//  Copyright (c) 2023 - 2026 by [OSVVM Authors](../AUTHORS.md)
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -50,7 +51,7 @@
 
 #include "OsvvmVProc.h"
 #include "OsvvmVSchedPli.h"
-#include "OsvvmVUserVprint.h"
+#include "OsvvmVUserVPrint.h"
 
 // -------------------------------------------------------------------------
 // DEFINES AND MACROS
